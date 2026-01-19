@@ -1,0 +1,5 @@
+# Ignore history directory
+history/
+
+# Ignore dist directory
+dist/
