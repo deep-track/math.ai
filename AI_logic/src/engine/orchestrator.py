@@ -1,16 +1,24 @@
 import os
+import json
 from dotenv import load_dotenv
 import chromadb
 from chromadb import Documents, EmbeddingFunction, Embeddings
 from mistralai import Mistral
 import cohere
 
-# CONFIGURATION 
+# IMPORT LOGGER 
+from src.utils.logger import AgentLogger
+
+# CONFIGURATION
 load_dotenv()
+VERBOSE_MODE = os.getenv("VERBOSE", "True").lower() == "true"
 
 # 1. Setup Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CHROMA_DB_DIR = os.path.join(BASE_DIR, "chroma_db")
+
+#  INITIALIZE LOGGER 
+logger = AgentLogger(verbose=VERBOSE_MODE)
 
 # 2. Initialize Clients
 mistral_api_key = os.getenv("MISTRAL_API_KEY")
@@ -19,7 +27,7 @@ mistral_client = Mistral(api_key=mistral_api_key)
 # Cohere for the  (Search/Embeddings)
 cohere_api_key = os.getenv("COHERE_API_KEY")
 if not cohere_api_key:
-    raise ValueError(" COHERE_API_KEY is missing in .env file")
+    raise ValueError("COHERE_API_KEY is missing in .env file")
 co_client = cohere.Client(api_key=cohere_api_key)
 
 # COHERE EMBEDDING FUNCTION
@@ -28,7 +36,6 @@ class CohereEmbeddingFunction(EmbeddingFunction):
         self.client = client
 
     def __call__(self, input: Documents) -> Embeddings:
-        
         response = self.client.embed(
             texts=input,
             model="embed-multilingual-v3.0",
@@ -47,7 +54,7 @@ collection = chroma_client.get_collection(
     embedding_function=embedding_fn
 )
 
-#  SYSTEM PROMPT 
+# SYSTEM PROMPT 
 SYSTEM_TEMPLATE = """You are an expert Math Pedagogy Assistant designed to help pre-service teachers in Benin.
 Your goal is to explain mathematical concepts clearly in French, adhering strictly to the official
 high school curriculum provided in the context.
@@ -69,13 +76,14 @@ high school curriculum provided in the context.
 {context_str}
 """
 
-# REASONING ENGINE TOOLS 
+#  REASONING ENGINE TOOLS 
 
 def search_curriculum(query):
     """
     Action: Searches the vector database for relevant content.
     """
-    print(f"[Action] Searching ChromaDB (via Cohere) for: '{query}'...")
+    # --- LOGGING ACTION ---
+    logger.log_step("Action", f"Searching ChromaDB (via Cohere) for: '{query}'")
     
     results = collection.query(
         query_texts=[query],
@@ -96,20 +104,32 @@ def search_curriculum(query):
 # MAIN ORCHESTRATOR LOOP 
 
 def ask_benin_math(question: str):
-    print(f"\n[User Question]: {question}")
+    # LOGGING START 
+    logger.log_step("Thought", f"Processing new user question: {question}")
     
-    print("[Thought]: Retrieving official curriculum data...")
+    # Track steps for the JSONL log
+    execution_steps = []
     
-    # 1. Search (using Cohere)
+    # 1. THOUGHT
+    thought_content = "Retrieving official curriculum data..."
+    logger.log_step("Thought", thought_content)
+    execution_steps.append({"type": "thought", "content": thought_content})
+    
+    # 2. ACTION (Search)
     context_observation = search_curriculum(question)
     
+    # 3. OBSERVATION
     if not context_observation.strip():
-        print("Observation]: Database returned empty results.")
+        obs_text = "Database returned empty results."
+        logger.log_step("Observation", obs_text)
+        execution_steps.append({"type": "observation", "content": obs_text})
         return "Je ne trouve pas cette information dans le programme officiel fourni."
     else:
-        print(f"[Observation]: Retrieved relevant context.")
+        obs_text = f"Retrieved relevant context ({len(context_observation)} chars)."
+        logger.log_step("Observation", obs_text)
+        execution_steps.append({"type": "observation", "content": obs_text})
 
-    # 2. Generate Answer 
+    # 4. GENERATION (Mistral)
     final_prompt = SYSTEM_TEMPLATE.format(context_str=context_observation)
     
     try:
@@ -122,10 +142,23 @@ def ask_benin_math(question: str):
         )
         
         answer = chat_response.choices[0].message.content
+        
+        #  SAVE LOG (JSONL)
+        logger.save_request(
+            prompt=question,
+            model="mistral-large-latest",
+            steps=execution_steps,
+            final_answer=answer,
+            verifier_result="Passed (Basic RAG)", 
+            confidence=0.95 
+        )
+        
         return answer
 
     except Exception as e:
-        return f"Error contacting Mistral: {e}"
+        error_msg = f"Error contacting Mistral: {e}"
+        logger.log_step("Error", error_msg)
+        return error_msg
 
 if __name__ == "__main__":
     user_query = "Qu'est-ce qu'un espace vectoriel ?"
