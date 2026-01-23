@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "question": "Résoudre dans ℝ l’équation suivante : 2x² − 5x − 3 = 0."
+  },
+  {
+    "id": 2,
+    "question": "Étudier la monotonie de la fonction f(x) = x³ − 3x + 1 sur ℝ."
+  },
+  {
+    "id": 3,
+    "question": "Calculer la limite de la suite définie par uₙ = (2n + 1) / (n + 3) lorsque n tend vers +∞."
+  },
+  {
+    "id": 4,
+    "question": "Déterminer si la suite uₙ = (−1)ⁿ / n converge."
+  },
+  {
+    "id": 5,
+    "question": "Étudier la continuité de la fonction f définie par f(x) = |x − 2| en x = 2."
+  },
+  {
+    "id": 6,
+    "question": "Calculer la dérivée de la fonction f(x) = x² eˣ."
+  },
+  {
+    "id": 7,
+    "question": "Résoudre le système linéaire suivant : x + y = 3, 2x − y = 1."
+  },
+  {
+    "id": 8,
+    "question": "Déterminer l’équation réduite de la droite passant par les points A(1,2) et B(3,6)."
+  },
+  {
+    "id": 9,
+    "question": "Étudier le signe de la fonction f(x) = x² − 4."
+  },
+  {
+    "id": 10,
+    "question": "Calculer l’intégrale ∫₀¹ (3x²) dx."
+  },
+  {
+    "id": 11,
+    "question": "Montrer que toute suite croissante et majorée de ℝ est convergente."
+  },
+  {
+    "id": 12,
+    "question": "Montrer que toute application linéaire injective entre deux espaces vectoriels de même dimension est bijective."
+  },
+  {
+    "id": 13,
+    "question": "Donner un exemple de suite divergente dont une sous-suite converge."
+  },
+  {
+    "id": 14,
+    "question": "Montrer que la somme de deux fonctions continues est continue."
+  },
+  {
+    "id": 15,
+    "question": "Soit f une fonction dérivable sur ℝ telle que f′ = 0. Montrer que f est constante."
+  },
+  {
+    "id": 16,
+    "question": "Montrer que toute norme sur ℝⁿ est équivalente à la norme euclidienne."
+  },
+  {
+    "id": 17,
+    "question": "Montrer que l’ensemble des rationnels ℚ est dense dans ℝ."
+  },
+  {
+    "id": 18,
+    "question": "Montrer qu’une fonction continue sur un segment fermé est bornée."
+  },
+  {
+    "id": 19,
+    "question": "Déterminer les valeurs propres de la matrice [[2,1],[1,2]]."
+  },
+  {
+    "id": 20,
+    "question": "Montrer que toute suite convergente est bornée."
+  }
+]

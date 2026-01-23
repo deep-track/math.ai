@@ -1,0 +1,23 @@
+[
+  { "id": 1, "answer": "Les solutions sont x = 3 et x = −1/2." },
+  { "id": 2, "answer": "La fonction est décroissante sur [−1,1] et croissante sur ]−∞,−1] ∪ [1,+∞[." },
+  { "id": 3, "answer": "La limite de la suite est 2." },
+  { "id": 4, "answer": "La suite converge vers 0." },
+  { "id": 5, "answer": "La fonction est continue en x = 2." },
+  { "id": 6, "answer": "La dérivée est f′(x) = eˣ(x² + 2x)." },
+  { "id": 7, "answer": "La solution est (x,y) = (4/3, 5/3)." },
+  { "id": 8, "answer": "L’équation de la droite est y = 2x." },
+  { "id": 9, "answer": "La fonction est positive pour |x| ≥ 2 et négative pour |x| < 2." },
+  { "id": 10, "answer": "La valeur de l’intégrale est 1." },
+
+  { "id": 11, "answer": "D’après le théorème de convergence monotone, la suite converge." },
+  { "id": 12, "answer": "Injective + dimensions égales implique bijective." },
+  { "id": 13, "answer": "Par exemple, la suite (−1)ⁿ est divergente mais admet des sous-suites convergentes." },
+  { "id": 14, "answer": "La continuité est stable par addition." },
+  { "id": 15, "answer": "Si f′ = 0 alors f est constante sur ℝ." },
+  { "id": 16, "answer": "Toutes les normes sur ℝⁿ sont équivalentes (théorème fondamental des normes)." },
+  { "id": 17, "answer": "Entre deux réels, il existe toujours un rationnel." },
+  { "id": 18, "answer": "D’après le théorème de Weierstrass, la fonction est bornée." },
+  { "id": 19, "answer": "Les valeurs propres sont λ = 3 et λ = 1." },
+  { "id": 20, "answer": "Toute suite convergente est nécessairement bornée." }
+]
