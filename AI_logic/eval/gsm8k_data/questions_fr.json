@@ -1,0 +1,23 @@
+[
+  {"id": 1, "question": "Natalia a vendu des trombones à 48 de ses amis en avril, puis elle a vendu deux fois moins de trombones en mai. Combien de trombones Natalia a-t-elle vendus au total en avril et en mai ?"},
+  {"id": 2, "question": "Weng gagne 12 $ de l’heure pour faire du babysitting. Hier, elle a fait 50 minutes de babysitting. Combien a-t-elle gagné ?"},
+  {"id": 3, "question": "Betty économise de l’argent pour acheter un portefeuille qui coûte 100 $. Elle n’a que la moitié de la somme nécessaire. Ses parents lui donnent 15 $, et ses grands-parents lui donnent deux fois plus. De combien d’argent a-t-elle encore besoin ?"},
+  {"id": 4, "question": "Julie lit un livre de 120 pages. Hier, elle a lu 12 pages et aujourd’hui elle a lu deux fois plus qu’hier. Si elle veut lire la moitié des pages restantes demain, combien de pages doit-elle lire ?"},
+  {"id": 5, "question": "James écrit une lettre de 3 pages à deux amis différents deux fois par semaine. Combien de pages écrit-il en un an ?"},
+  {"id": 6, "question": "Mark a un jardin avec des fleurs de trois couleurs différentes. Dix sont jaunes, il y a 80 % de fleurs violettes en plus que de fleurs jaunes, et 25 % autant de fleurs vertes que le total des fleurs jaunes et violettes. Combien de fleurs y a-t-il en tout ?"},
+  {"id": 7, "question": "Albert achète 2 grandes pizzas et 2 petites pizzas. Une grande pizza a 16 parts et une petite en a 8. S’il mange tout, combien de parts mange-t-il au total ?"},
+  {"id": 8, "question": "Ken prépare un colis en ajoutant successivement des bonbons, des brownies et des vers gélifiés, en modifiant le poids à chaque étape. Quel est le poids final du colis en livres ?"},
+  {"id": 9, "question": "Alexis dispose d’un budget de 200 $ pour acheter des vêtements professionnels. Après plusieurs achats, il lui reste 16 $. Combien a-t-elle payé pour les chaussures ?"},
+  {"id": 10, "question": "Tina gagne 18 $ de l’heure et reçoit un paiement majoré pour les heures supplémentaires. Si elle travaille 10 heures par jour pendant 5 jours, combien gagne-t-elle au total ?"},
+  {"id": 11, "question": "Tobias achète une paire de chaussures à 95 $ et lui reste 15 $. Il gagne de l’argent avec une allocation, la tonte de pelouses et le déneigement. Combien d’allées a-t-il déneigées ?"},
+  {"id": 12, "question": "Randy possède 60 manguiers et 5 de moins que la moitié de ce nombre en cocotiers. Combien d’arbres possède-t-il au total ?"},
+  {"id": 13, "question": "Jasper achète du fromage, de la charcuterie et d’autres ingrédients pour une soirée. Combien dépense-t-il au total ?"},
+  {"id": 14, "question": "Joy peut lire 8 pages en 20 minutes. Combien d’heures lui faudra-t-il pour lire 120 pages ?"},
+  {"id": 15, "question": "James vend des DVD et réalise un bénéfice quotidien pendant plusieurs semaines. Quel est son bénéfice total après 20 semaines ?"},
+  {"id": 16, "question": "Le bénéfice d’une transaction est partagé entre Mike et Johnson selon le ratio 2:5. Si Johnson reçoit 2500 $, combien reste-t-il à Mike après avoir acheté une chemise à 200 $ ?"},
+  {"id": 17, "question": "Dans un camion se trouvent des casques de différentes couleurs. Après que Carl et John en ont retiré plusieurs, combien de casques restent dans le camion ?"},
+  {"id": 18, "question": "Roque se rend au travail à pied et à vélo plusieurs fois par semaine. Combien d’heures passe-t-il au total à se déplacer chaque semaine ?"},
+  {"id": 19, "question": "Bella achète des timbres de différents types. Sachant le nombre de chaque type acheté, combien de timbres a-t-elle achetés au total ?"},
+  {"id": 20, "question": "Chaque oiseau mange des insectes, chaque serpent mange des oiseaux, et chaque jaguar mange des serpents. Combien d’insectes sont mangés chaque jour par 6 jaguars ?"}
+]
+
