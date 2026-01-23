@@ -10,6 +10,7 @@ __pycache__/
 *.so
 .Python
 env/
+AI_logic/.env
 venv/
 AI_logic/myenv
 ENV/
