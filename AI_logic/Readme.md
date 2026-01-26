@@ -1,4 +1,4 @@
-## 🔧 System Constraints & Configuration
+## System Constraints & Configuration
 
 ### 1. API Rate Limits (Documented)
 We are using the following providers. Limits apply to the Free/Tier 1 plans currently in use.
@@ -16,5 +16,3 @@ To ensure vector database compatibility, the "Key" (Query) and "Lock" (Database)
 * **Model:** Cohere `embed-multilingual-v3.0`
 * **Dimension Size:** `1024` vectors
 * **Vector Database:** ChromaDB (configured with `CohereEmbeddingFunction`)
-
-**Warning:** Do not change the embedding model without wiping and re-ingesting the entire database, or a `Dimension Mismatch (384 vs 1024)` error will crash the orchestrator.
