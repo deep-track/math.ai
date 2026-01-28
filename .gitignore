@@ -13,6 +13,7 @@ dist/
 
 AI_logic/chroma_db/
 chroma_chathistory_db/
+AI_logic/src/retrieval/chroma_db/
 
 # Python
 __pycache__/

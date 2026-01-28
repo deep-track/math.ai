@@ -18,11 +18,8 @@ load_dotenv()
 VERBOSE_MODE = os.getenv("VERBOSE", "True").lower() == "true"
 
 # 1. Setup Paths
-#BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-#CHROMA_DB_DIR = os.path.join(BASE_DIR, "chroma_db")
-
-# 1. Setup Paths
-CHROMA_DB_DIR = os.getenv("CHROMA_PATH", "./chroma_db")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+CHROMA_DB_DIR = os.path.join(BASE_DIR, "chroma_db")
 
 # INITIALIZE LOGGER 
 logger = AgentLogger(verbose=VERBOSE_MODE)
