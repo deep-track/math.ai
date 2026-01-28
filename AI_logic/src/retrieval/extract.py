@@ -10,8 +10,8 @@ import json
 import os
 
 
-file_path=r"C:\Users\Administrator\Documents\Math.ai\AI_logic\curriculum_data\raw" # Change to your path
-output_file=r"C:\Users\Administrator\Documents\Math.ai\AI_logic\curriculum_data\processed\processed_curriculum.json"
+file_path=r"/math.ai/Books" # Change to your path
+output_file=r"/math.ai/curriculum_data/processed_curriculum.json"# change path
 
 def load_and_chunk(file_path, output_file):
     

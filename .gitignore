@@ -1,5 +1,7 @@
 # Ignore curriculum data folder
 curriculum_data/
+Books/
+
 
 # Ignore dist folder
 .dist/
@@ -10,6 +12,8 @@ dist/
 
 
 AI_logic/chroma_db/
+chroma_chathistory_db/
+
 # Python
 __pycache__/
 *.py[cod]

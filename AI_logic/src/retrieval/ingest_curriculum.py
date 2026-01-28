@@ -84,4 +84,4 @@ def run_ingestion(json_file_path: str):
     print(f"Successfully indexed {total_docs} chunks into {CHROMA_PATH}.")
 
 if __name__ == "__main__":
-    run_ingestion("curriculum_data/processed/processed_curriculum.json")
+    run_ingestion(r"/math.ai/curriculim_data/processed_curriculum.json") #change path
