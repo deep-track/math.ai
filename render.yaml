@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: math-ai-backend
+    runtime: python
+    rootDir: AI_logic
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.api.server:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: MISTRAL_API_KEY
+        scope: run
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        scope: run
+        sync: false
+      - key: COHERE_API_KEY
+        scope: run
+        sync: false
+      - key: VERBOSE
+        value: "True"
