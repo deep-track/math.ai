@@ -26,7 +26,6 @@ export function ChatExample() {
   const [loading, setLoading] = useState(false);
   const [backendReady, setBackendReady] = useState(false);
   const [backendStatus, setBackendStatus] = useState<string>('Checking...');
-  const [userId, setUserId] = useState('guest');
 
   // Check backend health on component mount
   useEffect(() => {
@@ -92,7 +91,6 @@ export function ChatExample() {
       // Send to backend
       const question: MathQuestion = {
         text: inputValue,
-        userId: userId,
         sessionId: 'session-' + Date.now(),
       };
 

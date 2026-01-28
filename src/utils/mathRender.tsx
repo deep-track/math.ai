@@ -33,14 +33,13 @@ export const MathRender: React.FC<MathRenderProps> = ({ content, display = false
 /**
  * Detect and replace LaTeX expressions in text
  */
-export const detectAndRenderMath = (text: string): JSX.Element[] => {
+export const detectAndRenderMath = (text: string): React.ReactElement[] => {
   // Pattern for inline math: $...$
   // Pattern for display math: $$...$$
-  const parts: JSX.Element[] = [];
+  const parts: React.ReactElement[] = [];
   let lastIndex = 0;
   
   const displayRegex = /\$\$(.+?)\$\$/g;
-  const inlineRegex = /\$(.+?)\$/g;
 
   // First handle display math
   let match;

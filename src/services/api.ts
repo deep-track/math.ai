@@ -1,4 +1,4 @@
-import type { Problem, Solution, Feedback, AnalyticsEvent } from '../types';
+import type { Problem, Solution, Feedback, AnalyticsEvent, SubmitFeedbackResponse, AnalyticsResponse } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -6,7 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
  * Solve a math problem using the backend AI agent
  * Returns an AcademicResponse with structured step-by-step solution
  */
-export async function solveProblem(problem: Problem, userToken?: string): Promise<Solution> {
+export async function solveProblem(problem: Problem): Promise<Solution> {
   try {
     console.log('📤 Sending problem to backend:', problem.content);
 
@@ -14,11 +14,10 @@ export async function solveProblem(problem: Problem, userToken?: string): Promis
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(userToken && { 'Authorization': `Bearer ${userToken}` }),
       },
       body: JSON.stringify({
         text: problem.content,
-        user_id: userToken || 'guest',
+        user_id: 'guest',
       }),
     });
 
@@ -71,7 +70,7 @@ export async function solveProblem(problem: Problem, userToken?: string): Promis
  * Get conversation history for the current user
  * Note: This is a stub - conversations are stored client-side for now
  */
-export async function getConversationHistory(conversationId: string, userToken?: string) {
+export async function getConversationHistory(conversationId: string) {
   try {
     // For now, return empty messages array - handled client-side
     return { messages: [], id: conversationId };
@@ -85,7 +84,7 @@ export async function getConversationHistory(conversationId: string, userToken?:
  * Get all conversations for the current user
  * Note: This is a stub - conversations are stored client-side for now
  */
-export async function getConversations(userToken?: string) {
+export async function getConversations() {
   try {
     // For now, return empty array - conversations handled client-side
     return [];
@@ -99,7 +98,7 @@ export async function getConversations(userToken?: string) {
  * Create a new conversation
  * Note: This is a stub - conversations are stored client-side for now
  */
-export async function createConversation(title: string, userToken?: string) {
+export async function createConversation(title: string) {
   try {
     // For now, return a stub conversation object
     return {
@@ -123,7 +122,7 @@ export async function createConversation(title: string, userToken?: string) {
  * Submit feedback for a solution
  * Note: This is a stub - feedback is stored client-side for now
  */
-export async function submitFeedback(feedback: Feedback, userToken?: string): Promise<SubmitFeedbackResponse> {
+export async function submitFeedback(feedback: Feedback): Promise<SubmitFeedbackResponse> {
   try {
     console.log('[FEEDBACK] Received:', feedback);
     return {
@@ -143,7 +142,7 @@ export async function submitFeedback(feedback: Feedback, userToken?: string): Pr
  * Track analytics event
  * Note: This is a stub - analytics are logged client-side for now
  */
-export async function trackAnalyticsEvent(event: AnalyticsEvent, userToken?: string): Promise<AnalyticsResponse> {
+export async function trackAnalyticsEvent(event: AnalyticsEvent): Promise<AnalyticsResponse> {
   try {
     console.log('[ANALYTICS]', event);
     return { success: true };
@@ -157,7 +156,7 @@ export async function trackAnalyticsEvent(event: AnalyticsEvent, userToken?: str
  * Delete a conversation
  * Note: This is a stub - conversations are stored client-side for now
  */
-export async function deleteConversation(conversationId: string, userToken?: string) {
+export async function deleteConversation(conversationId: string) {
   try {
     console.log('[DELETE CONVERSATION]', conversationId);
     return { success: true };

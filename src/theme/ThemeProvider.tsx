@@ -4,6 +4,7 @@ export type Theme = 'dark' | 'light'
 
 export type ThemeContextType = {
   theme: Theme
+  toggleTheme?: () => void
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

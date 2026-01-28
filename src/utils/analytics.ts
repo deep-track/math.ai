@@ -7,7 +7,8 @@ class AnalyticsTracker {
   recordEvent(event: AnalyticsEvent) {
     this.events.push(event);
     // In development, log events
-    if (process.env.NODE_ENV === 'development') {
+    const isDev = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
+    if (isDev) {
       console.log('[Analytics]', event);
     }
   }

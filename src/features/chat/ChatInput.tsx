@@ -22,22 +22,11 @@ const ChatInput = ({
   const { theme } = useTheme();
   const [message, setMessage] = useState('');
   const [charCount, setCharCount] = useState(0);
-  const [language, setLanguage] = useState<string>('fr');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setCharCount(message.length);
   }, [message]);
-
-  // Listen for language changes
-  useEffect(() => {
-    const handleLanguageChange = (event: any) => {
-      setLanguage(event.detail);
-    };
-
-    window.addEventListener('languageChanged', handleLanguageChange);
-    return () => window.removeEventListener('languageChanged', handleLanguageChange);
-  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;

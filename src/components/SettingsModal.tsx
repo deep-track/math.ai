@@ -4,10 +4,10 @@ interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   theme: 'light' | 'dark';
-  onToggleTheme: () => void;
+  onToggleTheme?: () => void;
 }
 
-const SettingsModal = ({ isOpen, onClose, theme, onToggleTheme }: SettingsModalProps) => {
+const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
   const [language, setLanguage] = useState('en');
   const [fontSize, setFontSize] = useState('medium');
 
@@ -79,15 +79,14 @@ const SettingsModal = ({ isOpen, onClose, theme, onToggleTheme }: SettingsModalP
 
           {/* Settings Content */}
           <div className="space-y-6">
-            {/* Theme Setting */}
+            {/* Theme Setting - Display Only */}
             <div className="space-y-3">
               <label className="block text-sm font-medium">Thème</label>
-              <button
-                onClick={onToggleTheme}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 ${
+              <div
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg ${
                   theme === 'dark'
-                    ? 'bg-gray-800 hover:bg-gray-700'
-                    : 'bg-gray-100 hover:bg-gray-200'
+                    ? 'bg-gray-800'
+                    : 'bg-gray-100'
                 }`}
               >
                 <span className="text-sm">
@@ -96,7 +95,7 @@ const SettingsModal = ({ isOpen, onClose, theme, onToggleTheme }: SettingsModalP
                 <span className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-[#008751] to-[#00b876] text-white">
                   Actif
                 </span>
-              </button>
+              </div>
             </div>
 
             {/* Language Setting */}

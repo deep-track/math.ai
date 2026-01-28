@@ -1,5 +1,5 @@
 import React from 'react';
-import { BlockMath, InlineMath } from 'react-katex';
+import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
 import type { AcademicResponse } from '../types/AcademicResponse';

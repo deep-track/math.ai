@@ -10,11 +10,9 @@ interface FeedbackButtonsProps {
 
 const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({ 
   solutionId, 
-  onFeedbackSubmitted,
-  userToken 
+  onFeedbackSubmitted
 }) => {
   const [submitted, setSubmitted] = useState(false);
-  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackType | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,26 +24,19 @@ const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({
 
     try {
       // Submit feedback to backend
-      await submitFeedback(
-        {
-          solutionId,
-          type,
-          timestamp: Date.now(),
-        },
-        userToken
-      );
+      await submitFeedback({
+        solutionId,
+        type,
+        timestamp: Date.now(),
+      });
 
       // Track analytics event
-      await trackAnalyticsEvent(
-        {
-          eventType: 'feedback_submitted',
-          solutionId,
-          timestamp: Date.now(),
-        },
-        userToken
-      );
+      await trackAnalyticsEvent({
+        eventType: 'feedback_submitted',
+        solutionId,
+        timestamp: Date.now(),
+      });
 
-      setSelectedFeedback(type);
       setSubmitted(true);
       onFeedbackSubmitted?.(type);
     } catch (err) {

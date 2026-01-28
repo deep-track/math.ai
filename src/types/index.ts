@@ -10,6 +10,12 @@ export interface Step {
   formula?: string;
 }
 
+export interface Source {
+  text: string;
+  source: string;
+  page: string | number;
+}
+
 export interface Solution {
   id: string;
   steps: Step[];
@@ -20,6 +26,8 @@ export interface Solution {
   tutoringHints?: string[];
   refusalReason?: string;
   timestamp: number;
+  content?: string; // Full markdown content for rendering
+  sources?: Source[]; // Source references from curriculum
 }
 
 export interface Problem {
@@ -63,4 +71,13 @@ export interface AnalyticsEvent {
   solutionId?: string;
   responseTime?: number;
   timestamp: number;
+}
+
+export interface SubmitFeedbackResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface AnalyticsResponse {
+  success: boolean;
 }

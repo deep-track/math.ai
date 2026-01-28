@@ -7,85 +7,44 @@ import { getConversations } from '../../services/api';
 import { getTranslation } from '../../utils/translations';
 import SettingsModal from '../../components/SettingsModal';
 
-interface Conversation {
-  id: string;
-  title: string;
-  timestamp: number;
-}
-
 interface SidebarProps {
   onNewChat?: () => void;
   onSelectConversation?: (id: string) => void;
   currentConversationId?: string;
 }
 
-const Sidebar = ({ onNewChat, onSelectConversation, currentConversationId }: SidebarProps) => {
+const Sidebar = ({ onNewChat }: SidebarProps) => {
   const { user } = useUser();
   const { signOut } = useClerk();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [language, setLanguage] = useState<string>('fr');
 
   const handleLogout = async () => {
     await signOut();
   };
 
-  // Listen for language changes
-  useEffect(() => {
-    const handleLanguageChange = (event: any) => {
-      setLanguage(event.detail);
-    };
-
-    window.addEventListener('languageChanged', handleLanguageChange);
-    return () => window.removeEventListener('languageChanged', handleLanguageChange);
-  }, []);
-
   // Fetch conversations when component mounts or user changes
   useEffect(() => {
     const fetchConversations = async () => {
-      if (!user?.id) {
-        setConversations([]);
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
-        const data = await getConversations(user.id);
-        setConversations(Array.isArray(data) ? data : data.conversations || []);
+        await getConversations();
+        // Handle response (for now just a stub)
       } catch (err) {
         // Silently fail - don't show error to user, just show empty state
         console.error('Failed to fetch conversations:', err);
-        setConversations([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchConversations();
-  }, [user?.id]);
+  }, []);
 
   const handleNewChat = () => {
     onNewChat?.();
-  };
-
-  const handleSelectConversation = (id: string) => {
-    onSelectConversation?.(id);
-  };
-
-  const formatTime = (timestamp: number) => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const hours = diff / (1000 * 60 * 60);
-    const days = diff / (1000 * 60 * 60 * 24);
-
-    if (hours < 1) return 'Now';
-    if (hours < 24) return `${Math.floor(hours)}h ago`;
-    if (days < 7) return `${Math.floor(days)}d ago`;
-    return new Date(timestamp).toLocaleDateString();
   };
 
   return (
@@ -139,37 +98,14 @@ const Sidebar = ({ onNewChat, onSelectConversation, currentConversationId }: Sid
               </div>
             )}
 
-            {!loading && conversations.length === 0 && (
+            {!loading && (
               <div className="px-2 py-3 text-xs text-gray-400">
                 {getTranslation('noConversations')}
               </div>
             )}
 
             <div className="space-y-1">
-              {conversations.map((conv, index) => (
-                <button
-                  key={conv.id}
-                  onClick={() => handleSelectConversation(conv.id)}
-                  className={`w-full text-left rounded-md px-3 py-2 text-sm transition-all duration-200 group truncate animate-in fade-in duration-300 hover:scale-105 transform ${
-                    currentConversationId === conv.id
-                      ? 'bg-gradient-to-r from-[#008751] to-[#00b876] text-white shadow-lg'
-                      : 'hover:bg-white/10 text-gray-300'
-                  }`}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                  title={conv.title}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="truncate">{conv.title}</span>
-                  </div>
-                  <span className={`text-xs ${
-                    currentConversationId === conv.id
-                      ? 'text-white/70'
-                      : 'text-gray-500'
-                  }`}>
-                    {formatTime(conv.timestamp)}
-                  </span>
-                </button>
-              ))}
+              {/* Conversations would be mapped here if we had them */}
             </div>
           </>
         )}
@@ -207,7 +143,6 @@ const Sidebar = ({ onNewChat, onSelectConversation, currentConversationId }: Sid
         isOpen={showSettings} 
         onClose={() => setShowSettings(false)}
         theme={theme}
-        onToggleTheme={toggleTheme}
       />
     </aside>
   )

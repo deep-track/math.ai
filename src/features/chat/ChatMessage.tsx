@@ -7,7 +7,7 @@ import LoadingState from '../../components/LoadingState';
 import ErrorDisplay from '../../components/ErrorDisplay';
 import { solveProblem, trackAnalyticsEvent } from '../../services/api';
 import { getTranslation } from '../../utils/translations';
-import type { ChatMessage as ChatMessageType, Solution, Problem } from '../../types';
+import type { ChatMessage as ChatMessageType, Problem } from '../../types';
 
 const ChatMessage = () => {
   const { theme } = useTheme();
@@ -15,7 +15,6 @@ const ChatMessage = () => {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [language, setLanguage] = useState<string>('en');
 
   const userName = user?.firstName || 'Learner';
 
@@ -29,16 +28,6 @@ const ChatMessage = () => {
 
     window.addEventListener('resetChat', handleResetChat);
     return () => window.removeEventListener('resetChat', handleResetChat);
-  }, []);
-
-  // Listen for language changes
-  useEffect(() => {
-    const handleLanguageChange = (event: any) => {
-      setLanguage(event.detail);
-    };
-
-    window.addEventListener('languageChanged', handleLanguageChange);
-    return () => window.removeEventListener('languageChanged', handleLanguageChange);
   }, []);
 
   const handleSubmitProblem = useCallback(

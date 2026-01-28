@@ -6,7 +6,7 @@ interface TutorModeProps {
   userToken?: string;
 }
 
-const TutorMode: React.FC<TutorModeProps> = ({ solution, userToken }) => {
+const TutorMode: React.FC<TutorModeProps> = ({ solution }) => {
   const [revealedHints, setRevealedHints] = useState<boolean[]>(
     (solution.tutoringHints || []).map(() => false)
   );
