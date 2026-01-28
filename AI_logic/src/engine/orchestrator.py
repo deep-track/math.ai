@@ -90,21 +90,27 @@ STEP 2: PROBLEM SOLVING & LOCALIZATION
 - **Benin Contextualization:** - If the user asks for examples or a word problem, adapt the scenario to **Benin**.
   - Use local names (e.g., Bio, Chabi, Yemi), places (Cotonou, Porto-Novo, Dantokpa Market), currency (FCFA), or objects (Zemidjans, Ignames).
 
-STEP 3: OUTPUT FORMAT (INTERNAL LOGIC)
+ STEP 3: PEDAGOGICAL DIAGNOSIS 
+- **Identify Prerequisities:** What concept must the student know *before* solving this?
+- **Common Pitfalls:** Identify 1 specific error students often make on this topic (e.g., "Forgetting to convert cm to meters" or "Confusing sine and cosine").
+
+STEP 4: OUTPUT FORMAT (INTERNAL LOGIC)
 - Provide the full mathematical resolution.
 - Explicitly state the *Concept* being taught.
 - List the *Steps* required to solve it (without just giving the number).
+- Explicitly list the **Prerequisites** and **Common Pitfalls** for the Pedagogy Agent.
 
 Output your logic clearly.
 """
 
+# PROMPT 2: MISTRAL (THE BENIN TUTOR INTERFACE)
 # PROMPT 2: MISTRAL (THE BENIN TUTOR INTERFACE)
 MISTRAL_PEDAGOGY_PROMPT = """
 You are "Professeur Bio", an expert and encouraging Math Tutor for students in Benin.
 You speak simple, accessible French.
 
 **Input Data:**
-- **Expert Logic:** {reasoning}
+- **Expert Logic & Pitfalls:** {reasoning}
 - **Curriculum Context:** {context_str}
 
 **Your Goal:** Guide the student to understanding without doing the work for them.
@@ -114,13 +120,23 @@ You speak simple, accessible French.
 1. **OUT OF SYLLABUS CHECK:**
    - If the Expert Logic says "STATUS: OUT_OF_SYLLABUS", politely apologize in French. State that this topic is not in the official program and you cannot teach it.
 
-2. **PEDAGOGICAL PHASES (Prevent Over-reliance):**
+2. **DIAGNOSTIC ASSESSMENT (Real-Time):**
+   - **Analyze User Intent:**
+     - Is the user asking a *new question*? -> Go to Phase 1.
+     - Is the user providing an *answer/attempt*? -> Go to Phase 2 (Error Analysis).
+     - Is the user saying "I don't understand"? -> Go to Phase 3 (Remediation).
+
+3. **PEDAGOGICAL PHASES (Prevent Over-reliance):**
    - **Phase 1 (First Interaction):** - Explain the *General Concept* clearly using the Context.
-     - Outline the *Steps* needed to solve it (e.g., "First, we calculate the discriminant...").
+     - **SIMILAR EXAMPLE (Crucial):** Guide the student through a *similar* problem (using different numbers or a slightly different context) to demonstrate the method. **DO NOT solve the user's specific question yet.**
+     - Outline the *Steps* needed to solve the user's actual question based on that example.
+     - **Reflective Trigger:** Ask a diagnostic question to check prerequisites.
      - **DO NOT give the final numerical answer.**
      - **Action:** Ask the student: "Veux-tu voir les étapes de calcul détaillées ?" (Do you want to see the working?)
    
    - **Phase 2 (If User asks for working):**
+     - **If Correct:** Validate warmly ("Excellent !").
+     - **If Incorrect:** DO NOT give the right answer. Use **Reflective Questioning**:
      - Show the calculation steps clearly with labeling (Step 1, Step 2...).
      - Use LaTeX for formulas ($...$).
      - **Still DO NOT give the final answer.**
@@ -131,24 +147,23 @@ You speak simple, accessible French.
      - Validate their effort ("Bravo !" or "Presque...").
      - **Action:** Ask: "Veux-tu un exercice d'entraînement similaire ?"
 
-3. **🇧🇯 LOCAL CONTEXT (Benin):**
+4. **🇧🇯 LOCAL CONTEXT (Benin):**
    - When explaining, use examples relevant to their daily life in Benin (e.g., "Imagine calculating the price of gasoline at a station in Calavi...").
 
-4. **EXAM PREPARATION:**
+5. **EXAM PREPARATION:**
    - If the user asks for a question, generate a *new* Exam-Style question based on the Context, set in a Benin scenario.
 
 ### TONE GUIDELINES:
-- Be warm and encouraging ("Tu es capable !", "C'est une excellente question !").
 - Inspire curiosity.
 - Never lecture; guide.
+- **Reflective:** Ask "Why?" and "How?" more than you state facts.
 
 **Current User Question:** {question}
 """
-# TOOLS 
-
 def search_curriculum(query):
     """
     Action: Searches the vector database for relevant content.
+    Returns: Tuple (formatted_context_string, list_of_source_dicts)
     """
     logger.log_step("Action", f"Searching ChromaDB (via Cohere) for: '{query}'")
     
@@ -161,12 +176,24 @@ def search_curriculum(query):
     metadatas = results['metadatas'][0]
     
     context_text = ""
-    for i, doc in enumerate(documents):
-        source = metadatas[i].get('source', 'Unknown')
-        page = metadatas[i].get('page', '?')
-        context_text += f"\n--- Source: {source} (Page {page}) ---\n{doc}\n"
+    sources = []  # NEW: List to store structured source info
     
-    return context_text
+    for i, doc in enumerate(documents):
+        meta = metadatas[i]
+        source = meta.get('source', 'Unknown')
+        page = meta.get('page', '?')
+        
+        # Build context string for the AI
+        context_text += f"\n--- Source: {source} (Page {page}) ---\n{doc}\n"
+        
+        # Build structured data for the User
+        sources.append({
+            "text": doc,
+            "source": source,
+            "page": page
+        })
+    
+    return context_text, sources
 
 #  MAIN ORCHESTRATOR LOOP 
 
@@ -179,12 +206,17 @@ def ask_math_ai(question: str, history: str = ""):
     logger.log_step("Thought", thought_1)
     execution_steps.append({"type": "thought", "content": thought_1})
     
-    context_observation = search_curriculum(question)
+    # NEW: Unpack both context and sources
+    context_observation, sources = search_curriculum(question)
     
     if not context_observation.strip():
         obs_text = "Database returned empty results."
         logger.log_step("Observation", obs_text)
-        return "Je ne trouve pas cette information dans le programme officiel fourni."
+        # Return dict structure even for errors
+        return {
+            "answer": "Je ne trouve pas cette information dans le programme officiel fourni.",
+            "sources": []
+        }
     else:
         obs_text = f"Retrieved relevant context ({len(context_observation)} chars)."
         logger.log_step("Observation", obs_text)
@@ -197,7 +229,6 @@ def ask_math_ai(question: str, history: str = ""):
 
     try:
         claude_response = claude_client.messages.create(
-            
             model="claude-sonnet-4-5", 
             max_tokens=1024,
             messages=[
@@ -212,7 +243,6 @@ def ask_math_ai(question: str, history: str = ""):
     except Exception as e:
         error_msg = f"Error contacting Claude: {e}"
         logger.log_step("Error", error_msg)
-        # Fallback to pure context if Claude fails
         math_logic = "Error in reasoning engine. Proceeding with raw context."
 
     # STEP 3: COMMUNICATION (Mistral Large)
@@ -244,12 +274,20 @@ def ask_math_ai(question: str, history: str = ""):
             verifier_result="Passed", 
             confidence=0.98 
         )
-        return answer
+        
+        # NEW: Return Dictionary containing Answer AND Sources
+        return {
+            "answer": answer,
+            "sources": sources
+        }
 
     except Exception as e:
         error_msg = f"Error contacting Mistral: {e}"
         logger.log_step("Error", error_msg)
-        return error_msg
+        return {
+            "answer": error_msg,
+            "sources": []
+        }
 
 
 # CLI DISPLAY 
@@ -259,11 +297,12 @@ if __name__ == "__main__":
     # Test Question
     user_query = "Qu'est-ce qu'un espace vectoriel ?"
     
-    # Updated function name
-    response = ask_math_ai(user_query)
+    # Get structured response
+    result = ask_math_ai(user_query)
     
     print("\n")
-    formatted_response = Markdown(response)
+    # Access the 'answer' key for Markdown display
+    formatted_response = Markdown(result["answer"])
     
     console.print(Panel(
         formatted_response,
@@ -272,5 +311,14 @@ if __name__ == "__main__":
         border_style="green",
         expand=False
     ))
+
+    # NEW: Display Sources in CLI
+    if result["sources"]:
+        print("\n" + "-"*50)
+        console.print("[bold blue] SOURCES DU PROGRAMME OFFICIEL :[/bold blue]")
+        for i, src in enumerate(result["sources"]):
+            console.print(f"[cyan]{i+1}. {src['source']}[/cyan] (Page {src['page']})")
+            # Optional: Print snippet
+            # console.print(f"   \"{src['text'][:100]}...\"\n")
     
     print("\n" + "="*50)
