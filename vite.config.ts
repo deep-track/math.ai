@@ -7,8 +7,7 @@ export default defineConfig({
   plugins: [react(),tailwindcss()],
   build: {
     outDir: 'dist',
-    sourcemap: false,
-    minify: 'terser'
+    sourcemap: false
   },
   server: {
     port: 5173,
