@@ -69,7 +69,7 @@ const ChatMessage = () => {
         setMessages((prev) => [...prev, userMessage]);
 
         // Call API to solve problem
-        const solution = await solveProblem(problem);
+        const apiResponse = await solveProblem(problem);
 
         const responseTime = Date.now() - startTime;
 
@@ -77,28 +77,17 @@ const ChatMessage = () => {
         await trackAnalyticsEvent(
           {
             eventType: 'problem_submitted',
-            solutionId: solution.id,
+            solutionId: apiResponse.id,
             responseTime,
             timestamp: Date.now(),
           }
         );
 
-        // Track tutor mode if triggered
-        if (solution.status === 'tutor') {
-          await trackAnalyticsEvent(
-            {
-              eventType: 'tutor_mode_triggered',
-              solutionId: solution.id,
-              timestamp: Date.now(),
-            }
-          );
-        }
-
         // Add assistant message with solution
         const assistantMessage: ChatMessageType = {
           id: `msg-${Date.now()}-solution`,
           type: 'assistant',
-          solution,
+          solution: apiResponse,
           timestamp: Date.now(),
         };
 
@@ -282,6 +271,9 @@ const ChatMessage = () => {
                   >
                     <SolutionDisplay
                       solution={msg.solution}
+                      confidence={msg.solution.confidence}
+                      confidenceLevel={msg.solution.confidenceLevel}
+                      solutionId={msg.solution.id}
                       userToken={user?.id}
                       onFeedbackSubmitted={handleFeedbackSubmitted}
                     />

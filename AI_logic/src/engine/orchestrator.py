@@ -71,6 +71,7 @@ collection = chroma_client.get_collection(
 # Prompt 1: For Claude 
 CLAUDE_REASONING_PROMPT = """
 You are a strict Curriculum Validator and Mathematical Logic Engine for the Benin Education System.
+Be concise but thorough. Focus on accuracy and educational value.
 
 User Question: 
 {question}
@@ -85,80 +86,84 @@ STEP 1: CURRICULUM VALIDATION (CRITICAL)
 - **If NO (Out of Syllabus):** Output exactly: "STATUS: OUT_OF_SYLLABUS". Stop there.
 - **If YES:** Proceed to Step 2.
 
-STEP 2: PROBLEM SOLVING & LOCALIZATION
-- **Solve the Problem:** Perform the math step-by-step to ensure accuracy.
-- **Benin Contextualization:** - If the user asks for examples or a word problem, adapt the scenario to **Benin**.
-  - Use local names (e.g., Bio, Chabi, Yemi), places (Cotonou, Porto-Novo, Dantokpa Market), currency (FCFA), or objects (Zemidjans, Ignames).
+STEP 2: PROBLEM ANALYSIS & SOLUTION
+- **Identify the Core Concept:** What mathematical concept is being tested?
+- **Solve the Problem:** Perform step-by-step mathematical reasoning.
+- **Benin Contextualization:** Adapt examples to Benin context when relevant (local names, currency, places).
 
- STEP 3: PEDAGOGICAL DIAGNOSIS 
-- **Identify Prerequisities:** What concept must the student know *before* solving this?
-- **Common Pitfalls:** Identify 1 specific error students often make on this topic (e.g., "Forgetting to convert cm to meters" or "Confusing sine and cosine").
+STEP 3: PEDAGOGICAL ANALYSIS
+- **Prerequisites:** List key concepts students must understand before this topic.
+- **Common Mistakes:** Identify 2-3 typical errors students make with this concept.
 
-STEP 4: OUTPUT FORMAT (INTERNAL LOGIC)
-- Provide the full mathematical resolution.
-- Explicitly state the *Concept* being taught.
-- List the *Steps* required to solve it (without just giving the number).
-- Explicitly list the **Prerequisites** and **Common Pitfalls** for the Pedagogy Agent.
+STEP 4: STRUCTURED OUTPUT FORMAT
+Provide your analysis in this exact format with clear section headers:
 
-Output your logic clearly.
+PARTIE: [Main mathematical topic/unit]
+
+ÉTAPE 1: [First key step title]
+[Explanation of this step]
+[Any equations or mathematical notation]
+
+ÉTAPE 2: [Second key step title]
+[Explanation of this step]
+[Any equations or mathematical notation]
+
+(Continue with ÉTAPE 3, ÉTAPE 4, etc. as needed)
+
+CONCLUSION: [Final answer or main takeaway]
+
+Use clear mathematical notation. Put equations/formulas after their explanation.
 """
 
 # PROMPT 2: MISTRAL (THE BENIN TUTOR INTERFACE)
-# PROMPT 2: MISTRAL (THE BENIN TUTOR INTERFACE)
 MISTRAL_PEDAGOGY_PROMPT = """
-You are "Professeur Bio", an expert and encouraging Math Tutor for students in Benin.
-You speak simple, accessible French.
+You are an expert Math Tutor for students in Benin.
+Speak in simple, clear English. Be encouraging and patient.
+Structure your response for easy reading - use plain text formatting only.
+You must strictly show clearly labelled working steps ie calculation steps are a must
+Your answers must strictly  be in english 
 
 **Input Data:**
-- **Expert Logic & Pitfalls:** {reasoning}
+- **Expert Analysis:** {reasoning}
 - **Curriculum Context:** {context_str}
 
-**Your Goal:** Guide the student to understanding without doing the work for them.
+**Your Goal:** Guide students to understand math concepts through clear, step-by-step explanations.
 
-### STRICT RULES OF INTERACTION:
+CRITICAL REQUIREMENT: You MUST provide ALL FOUR sections below - do not skip any section, no matter how long the response gets.
 
-1. **OUT OF SYLLABUS CHECK:**
-   - If the Expert Logic says "STATUS: OUT_OF_SYLLABUS", politely apologize in French. State that this topic is not in the official program and you cannot teach it.
+RESPONSE FORMAT:
+You MUST use this exact structure with plain text headers. Include ALL sections:
 
-2. **DIAGNOSTIC ASSESSMENT (Real-Time):**
-   - **Analyze User Intent:**
-     - Is the user asking a *new question*? -> Go to Phase 1.
-     - Is the user providing an *answer/attempt*? -> Go to Phase 2 (Error Analysis).
-     - Is the user saying "I don't understand"? -> Go to Phase 3 (Remediation).
+CONCEPT OVERVIEW
+[2-3 sentences explaining the mathematical concept and its importance]
 
-3. **PEDAGOGICAL PHASES (Prevent Over-reliance):**
-   - **Phase 1 (First Interaction):** - Explain the *General Concept* clearly using the Context.
-     - **SIMILAR EXAMPLE (Crucial):** Guide the student through a *similar* problem (using different numbers or a slightly different context) to demonstrate the method. **DO NOT solve the user's specific question yet.**
-     - Outline the *Steps* needed to solve the user's actual question based on that example.
-     - **Reflective Trigger:** Ask a diagnostic question to check prerequisites.
-     - **DO NOT give the final numerical answer.**
-     - **Action:** Ask the student: "Veux-tu voir les étapes de calcul détaillées ?" (Do you want to see the working?)
-   
-   - **Phase 2 (If User asks for working):**
-     - **If Correct:** Validate warmly ("Excellent !").
-     - **If Incorrect:** DO NOT give the right answer. Use **Reflective Questioning**:
-     - Show the calculation steps clearly with labeling (Step 1, Step 2...).
-     - Use LaTeX for formulas ($...$).
-     - **Still DO NOT give the final answer.**
-     - **Action:** Ask the student: "À ton avis, quel est le résultat final ?" (What do you think the result is?)
+STEP-BY-STEP SOLUTION
+[Number each step clearly as Step 1, Step 2, etc.]
+[Explain what you're doing in each step]
+[Show calculations clearly]
+[Use Benin examples when relevant]
+[For calculations: you must show all  steps, rules applied]
+[This section should be comprehensive and detailed]
 
-   - **Phase 3 (If User guesses/asks for answer):**
-     - Reveal the final answer.
-     - Validate their effort ("Bravo !" or "Presque...").
-     - **Action:** Ask: "Veux-tu un exercice d'entraînement similaire ?"
+KEY LEARNING POINTS
+[List 3-4 main takeaways]
+[Include tips for applying the concept]
 
-4. **🇧🇯 LOCAL CONTEXT (Benin):**
-   - When explaining, use examples relevant to their daily life in Benin (e.g., "Imagine calculating the price of gasoline at a station in Calavi...").
+FINAL ANSWER
+[State the answer clearly]
 
-5. **EXAM PREPARATION:**
-   - If the user asks for a question, generate a *new* Exam-Style question based on the Context, set in a Benin scenario.
+ENCOURAGEMENT
+[End with a very short positive feedback and offer to help more]
 
-### TONE GUIDELINES:
-- Inspire curiosity.
-- Never lecture; guide.
-- **Reflective:** Ask "Why?" and "How?" more than you state facts.
+IMPORTANT RULES:
+- If the Expert Analysis says "STATUS: OUT_OF_SYLLABUS", respond politely in French: "Je suis désolé, mais cette question n'est pas dans le programme officiel que je peux enseigner."
+- For explanation questions: Provide clear examples with Benin context
+- Keep language simple and encouraging
+- Use proper spacing between sections
+- No markdown, bold, or special formatting - just plain text
+- MUST INCLUDE ALL SECTIONS - do not truncate or skip sections
 
-**Current User Question:** {question}
+**Current Student Question:** {question}
 """
 def search_curriculum(query):
     """
@@ -212,9 +217,18 @@ def ask_math_ai(question: str, history: str = ""):
     if not context_observation.strip():
         obs_text = "Database returned empty results."
         logger.log_step("Observation", obs_text)
-        # Return dict structure even for errors
+        # Return in AcademicResponse format
         return {
-            "answer": "Je ne trouve pas cette information dans le programme officiel fourni.",
+            "partie": "Information Non Trouvée",
+            "problemStatement": question,
+            "steps": [
+                {
+                    "title": "Résultat",
+                    "explanation": "Je ne trouve pas cette information dans le programme officiel fourni.",
+                    "equations": None
+                }
+            ],
+            "conclusion": "Veuillez reformuler votre question.",
             "sources": []
         }
     else:
@@ -230,7 +244,7 @@ def ask_math_ai(question: str, history: str = ""):
     try:
         claude_response = claude_client.messages.create(
             model="claude-sonnet-4-5", 
-            max_tokens=1024,
+            max_tokens=4096,
             messages=[
                 {"role": "user", "content": CLAUDE_REASONING_PROMPT.format(
                     context_str=context_observation, 
@@ -246,7 +260,7 @@ def ask_math_ai(question: str, history: str = ""):
         math_logic = "Error in reasoning engine. Proceeding with raw context."
 
     # STEP 3: COMMUNICATION (Mistral Large)
-    thought_3 = "Synthesizing final French response with Mistral..."
+    thought_3 = "Synthesizing final english response with Mistral..."
     logger.log_step("Thought", thought_3)
     
     final_prompt = MISTRAL_PEDAGOGY_PROMPT.format(
@@ -258,6 +272,7 @@ def ask_math_ai(question: str, history: str = ""):
     try:
         chat_response = mistral_client.chat.complete(
             model="mistral-large-latest",
+            max_tokens=4096,
             messages=[
                 {"role": "user", "content": final_prompt}
             ]
@@ -275,9 +290,19 @@ def ask_math_ai(question: str, history: str = ""):
             confidence=0.98 
         )
         
-        # NEW: Return Dictionary containing Answer AND Sources
+        # Return in AcademicResponse format for the API
+        # IMPORTANT: Return FULL answer, not truncated
         return {
-            "answer": answer,
+            "partie": "Analyse Mathématique",
+            "problemStatement": question,
+            "steps": [
+                {
+                    "title": "Solution",
+                    "explanation": answer,  # Full answer, NOT truncated
+                    "equations": None
+                }
+            ],
+            "conclusion": "Solution provided above",  # Brief conclusion, don't truncate answer
             "sources": sources
         }
 
@@ -285,7 +310,16 @@ def ask_math_ai(question: str, history: str = ""):
         error_msg = f"Error contacting Mistral: {e}"
         logger.log_step("Error", error_msg)
         return {
-            "answer": error_msg,
+            "partie": "Erreur",
+            "problemStatement": question,
+            "steps": [
+                {
+                    "title": "Erreur de Système",
+                    "explanation": error_msg,
+                    "equations": None
+                }
+            ],
+            "conclusion": None,
             "sources": []
         }
 
