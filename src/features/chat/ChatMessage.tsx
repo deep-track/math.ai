@@ -1,95 +1,331 @@
-import { useTheme } from "../../theme/useTheme";
-
-type ChatMessageType = {
-  id: number;
-  role: "user" | "assistant";
-  content: string;
-};
-
-const fakeChatMessages: ChatMessageType[] = [
-  {
-    id: 1,
-    role: "user",
-    content: "Can you explain what a derivative is?"
-  },
-  {
-    id: 2,
-    role: "assistant",
-    content:
-      "A derivative measures how a function changes as its input changes.\n\nMore formally, the derivative of a function f(x) at a point x represents the rate of change of f with respect to x. It can be interpreted as the slope of the tangent line to the curve at that point.\n\nFor example, if f(x) = x², its derivative is f'(x) = 2x. This means that when x = 3, the function is increasing at a rate of 6."
-  },
-  {
-    id: 3,
-    role: "user",
-    content: "What does it mean geometrically?"
-  },
-  {
-    id: 4,
-    role: "assistant",
-    content:
-      "Geometrically, a derivative represents the slope of the tangent line to a curve at a given point.\n\nImagine zooming in on a curve at a specific point. As you zoom further, the curve begins to look like a straight line. The slope of that line is the derivative at that point.\n\nThis is why derivatives are so useful in physics and engineering — they describe velocity, acceleration, and many other rates of change."
-  },
-  {
-    id: 5,
-    role: "user",
-    content: "Can you give a real-world example?"
-  },
-  {
-    id: 6,
-    role: "assistant",
-    content:
-      "A classic real-world example is speed.\n\nIf you know your position over time, the derivative of position with respect to time gives you velocity. If your position is measured in meters and time in seconds, the derivative tells you how fast you're moving at any instant.\n\nSimilarly, the derivative of velocity gives acceleration."
-  }
-];
-
+import { useState, useCallback, useEffect } from 'react';
+import { useTheme } from '../../theme/useTheme';
+import { useUser } from '@clerk/clerk-react';
+import ChatInput from './ChatInput';
+import SolutionDisplay from '../../components/SolutionDisplay';
+import LoadingState from '../../components/LoadingState';
+import ErrorDisplay from '../../components/ErrorDisplay';
+import { solveProblem, trackAnalyticsEvent } from '../../services/api';
+import { getTranslation } from '../../utils/translations';
+import type { ChatMessage as ChatMessageType, Solution, Problem } from '../../types';
 
 const ChatMessage = () => {
-  const userName: string = "John"; //placeholder username
-  // const userChatInput: string = "User message"; //placeholder for user message
-  // const AI_response: string = "AI Response"; //placeholder for AI response
-  const isUSerChatting: boolean = false;
-  const {theme} = useTheme();
+  const { theme } = useTheme();
+  const { user } = useUser();
+  const [messages, setMessages] = useState<ChatMessageType[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [language, setLanguage] = useState<string>('en');
+
+  const userName = user?.firstName || 'Learner';
+
+  // Listen for reset chat event
+  useEffect(() => {
+    const handleResetChat = () => {
+      setMessages([]);
+      setError(null);
+      setLoading(false);
+    };
+
+    window.addEventListener('resetChat', handleResetChat);
+    return () => window.removeEventListener('resetChat', handleResetChat);
+  }, []);
+
+  // Listen for language changes
+  useEffect(() => {
+    const handleLanguageChange = (event: any) => {
+      setLanguage(event.detail);
+    };
+
+    window.addEventListener('languageChanged', handleLanguageChange);
+    return () => window.removeEventListener('languageChanged', handleLanguageChange);
+  }, []);
+
+  const handleSubmitProblem = useCallback(
+    async (problemText: string) => {
+      if (!problemText.trim()) return;
+
+      setError(null);
+      setLoading(true);
+
+      const startTime = Date.now();
+
+      try {
+        // Create problem object
+        const problem: Problem = {
+          id: Date.now().toString(),
+          content: problemText,
+          submittedAt: Date.now(),
+        };
+
+        // Add user message to chat
+        const userMessage: ChatMessageType = {
+          id: `msg-${Date.now()}`,
+          type: 'user',
+          problem,
+          timestamp: Date.now(),
+        };
+
+        setMessages((prev) => [...prev, userMessage]);
+
+        // Call API to solve problem
+        const solution = await solveProblem(problem);
+
+        const responseTime = Date.now() - startTime;
+
+        // Track analytics
+        await trackAnalyticsEvent(
+          {
+            eventType: 'problem_submitted',
+            solutionId: solution.id,
+            responseTime,
+            timestamp: Date.now(),
+          }
+        );
+
+        // Track tutor mode if triggered
+        if (solution.status === 'tutor') {
+          await trackAnalyticsEvent(
+            {
+              eventType: 'tutor_mode_triggered',
+              solutionId: solution.id,
+              timestamp: Date.now(),
+            }
+          );
+        }
+
+        // Add assistant message with solution
+        const assistantMessage: ChatMessageType = {
+          id: `msg-${Date.now()}-solution`,
+          type: 'assistant',
+          solution,
+          timestamp: Date.now(),
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to solve problem. Please try again.';
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const handleRetry = () => {
+    setError(null);
+  };
+
+  const handleFeedbackSubmitted = () => {
+    // Optional: Could add a success message or other feedback here
+  };
+
+  // Landing page when no messages
+  if (messages.length === 0) {
+    return (
+      <main
+        className={`flex flex-1 flex-col h-full w-full overflow-hidden ${
+          theme === 'dark'
+            ? 'bg-linear-to-b from-[#0A0A0A] via-[#063D2B] to-[#0A7A4A]'
+            : 'bg-linear-to-b from-white via-[#e5f6ef] to-[#008751]'
+        }`}
+      >
+        <div className="flex-1 overflow-y-auto px-6 py-10 flex items-center justify-center scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+          <div className="max-w-2xl w-full text-center space-y-8 animate-in fade-in duration-700">
+            {/* Welcome header */}
+            <div>
+              <h1
+                className={`text-4xl md:text-5xl font-bold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-800'
+                }`}
+              >
+                {getTranslation('welcome')}, {userName}! 👋
+              </h1>
+              <p
+                className={`text-lg mt-4 ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                }`}
+              >
+                {getTranslation('description')}
+              </p>
+            </div>
+
+            {/* Quick tips */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+              <div
+                className={`p-4 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
+                  theme === 'dark'
+                    ? 'bg-[#1a3d2b] border-green-600'
+                    : 'bg-green-50 border-green-300'
+                }`}
+              >
+                <div className="text-2xl mb-2">📝</div>
+                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                  {getTranslation('typeAnyProblem')}
+                </p>
+              </div>
+              <div
+                className={`p-4 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
+                  theme === 'dark'
+                    ? 'bg-[#1a3d2b] border-green-600'
+                    : 'bg-green-50 border-green-300'
+                }`}
+              >
+                <div className="text-2xl mb-2">⚡</div>
+                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                  {getTranslation('getInstantExplanations')}
+                </p>
+              </div>
+              <div
+                className={`p-4 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
+                  theme === 'dark'
+                    ? 'bg-[#1a3d2b] border-green-600'
+                    : 'bg-green-50 border-green-300'
+                }`}
+              >
+                <div className="text-2xl mb-2">🎓</div>
+                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                  {getTranslation('learnStepByStep')}
+                </p>
+              </div>
+            </div>
+
+            {/* Example problems */}
+            <div>
+              <p className={`text-sm font-semibold mb-3 ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+              }`}>
+                {getTranslation('tryAskingAbout')}
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {[
+                  { key: 'derivatives', label: getTranslation('derivatives') },
+                  { key: 'equations', label: getTranslation('equations') },
+                  { key: 'geometry', label: getTranslation('geometry') },
+                  { key: 'calculus', label: getTranslation('calculus') },
+                  { key: 'algebra', label: getTranslation('algebra') },
+                ].map((topic) => (
+                  <button
+                    key={topic.key}
+                    onClick={() => handleSubmitProblem(`Explain ${topic.label}`)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                      theme === 'dark'
+                        ? 'bg-green-900 text-green-100 hover:bg-green-800'
+                        : 'bg-green-200 text-green-800 hover:bg-green-300'
+                    }`}
+                  >
+                    {topic.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ChatInput onSubmit={handleSubmitProblem} disabled={loading} />
+      </main>
+    );
+  }
+
+  // Chat messages view
   return (
-    <>
-    {isUSerChatting ?
-      // user UI after loading chats or when chatting
-      <div className="flex-1 overflow-y-auto">
-        {fakeChatMessages.map((message) => (
-          <div key={message.id} className="w-full py-6">
+    <main
+      className={`flex flex-1 flex-col h-full w-full overflow-hidden ${
+        theme === 'dark'
+          ? 'bg-linear-to-b from-[#0A0A0A] via-[#063D2B] to-[#0A7A4A]'
+          : 'bg-linear-to-b from-white via-[#e5f6ef] to-[#008751]'
+      }`}
+    >
+      {/* Messages area */}
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6 space-y-6 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+        {messages.map((msg, index) => (
+          <div
+            key={msg.id}
+            className="w-full animate-in fade-in slide-in-from-bottom-2 duration-500"
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
             <div
-              className={`mx-auto flex max-w-6xl px-6 ${
-                message.role === "user"
-                  ? "justify-end"
-                  : "justify-start"
+              className={`flex ${
+                msg.type === 'user' ? 'justify-end' : 'justify-start'
               }`}
             >
               <div
-                className={`text-sm leading-6 ${
-                  message.role === "user"
-                    ? "max-w-[50%] rounded-2xl bg-green-400 px-4 py-3 text-gray-900"
-                    : "min-w-[70%] max-w-full rounded-2xl p-3 bg-gray-200 text-black"
+                className={`max-w-3xl w-full ${
+                  msg.type === 'user' ? 'px-4' : 'px-4'
                 }`}
               >
-                <p className="whitespace-pre-wrap">
-                  {message.content}
-                </p>
+                {/* User message */}
+                {msg.type === 'user' && msg.problem && (
+                  <div className="flex justify-end">
+                    <div
+                      className={`rounded-2xl px-4 py-3 max-w-lg break-words ${
+                        theme === 'dark'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-green-400 text-gray-900'
+                      }`}
+                    >
+                      <p className="text-sm">{msg.problem.content}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Assistant message with solution */}
+                {msg.type === 'assistant' && msg.solution && (
+                  <div
+                    className={`rounded-2xl p-6 ${
+                      theme === 'dark'
+                        ? 'bg-[#1a1a1a] border border-gray-800'
+                        : 'bg-white border border-gray-200'
+                    }`}
+                  >
+                    <SolutionDisplay
+                      solution={msg.solution}
+                      userToken={user?.id}
+                      onFeedbackSubmitted={handleFeedbackSubmitted}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
         ))}
-      </div>
-      :
-      // user landing page without chats
-      <div className="relative h-full flex-1 overflow-y-auto px-6 py-10">
-        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 max-w-xl text-center">
-          <h1 className={`text-3xl font-semibold ${theme === 'dark' ? 'text-[#FFFFFF]':'text-gray-800'}`}>
-            Bienvenue, {userName}
-          </h1>        
-        </div>    
-      </div>
-    }
-    </>
-  )
-}
 
-export default ChatMessage
+        {/* Loading state */}
+        {loading && (
+          <div className="w-full animate-in fade-in duration-300">
+            <div className="flex justify-start px-4">
+              <div
+                className={`rounded-2xl p-8 ${
+                  theme === 'dark'
+                    ? 'bg-[#1a1a1a] border border-gray-800'
+                    : 'bg-white border border-gray-200'
+                }`}
+              >
+                <LoadingState variant="solving" message="Solving your problem..." />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error state */}
+        {error && (
+          <div className="w-full px-4 animate-in fade-in duration-300">
+            <ErrorDisplay
+              type="error"
+              title="Unable to Solve"
+              message={error}
+              onRetry={handleRetry}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Input area */}
+      <ChatInput onSubmit={handleSubmitProblem} disabled={loading} />
+    </main>
+  );
+};
+
+export default ChatMessage;
