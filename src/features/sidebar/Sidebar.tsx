@@ -1,6 +1,6 @@
 import DiscussionsIcon from '../../data/icons/Vector.png'
 import SidePanelDrawer from '../../data/icons/wordpress_drawer-left.png'
-import ProfileIcon from '../../data/icons/Group 27.png'
+import { UserAvatar } from '@clerk/clerk-react'
 
 const Sidebar = () => {
   return (
@@ -43,9 +43,11 @@ const Sidebar = () => {
       {/* user profile */}
       <div className="mt-4 flex items-center gap-3 p-3 rounded-md hover:bg-white/10 cursor-pointer">
         <div className="flex items-center justify-center rounded-full">
-          <img src={ProfileIcon} alt="Profile" className="h-8 w-8" />
+          <div className="h-8 w-8 rounded-full overflow-hidden">
+            <UserAvatar />
+          </div>
         </div>
-        <span className="text-xl text-gray-300">John Doe</span>
+        {/* <span className="text-xl text-gray-300"><UserButton showName/></span> */}
       </div>
     </aside>
   )
