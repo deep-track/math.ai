@@ -62,7 +62,7 @@ chroma_client = chromadb.PersistentClient(path=CHROMA_DB_DIR)
 # Connect to the collection using Cohere
 
 embedding_fn = CohereEmbeddingFunction(co_client)
-collection = chroma_client.get_collection(
+collection = chroma_client.get_or_create_collection(
     name="math_curriculum_benin", 
     embedding_function=embedding_fn
 )
