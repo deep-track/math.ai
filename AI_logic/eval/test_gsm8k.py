@@ -35,8 +35,12 @@ def extract_from_ai_response(text):
 
 def run_eval():
     # Paths to your JSON data
-    q_path = "/home/fritz-nvm/math.ai/AI_logic/eval/gsm8k_data/questions_fr.json"
-    a_path = "/home/fritz-nvm/math.ai/AI_logic/eval/gsm8k_data/answer_fr.json"
+    q_path = (
+        "/home/fritz-nvm/math.ai/AI_logic/eval/curriculum_questions/questions_fr.json"
+    )
+    a_path = (
+        "/home/fritz-nvm/math.ai/AI_logic/eval/curriculum_questions/answers_fr.json"
+    )
 
     # Load JSON files
     with open(q_path, "r") as f:
@@ -70,8 +74,8 @@ def run_eval():
         print("-" * 20)
 
     accuracy = (correct / total) * 100
-    print(f"\n📊 RESULTS: {correct}/{total} correct")
-    print(f"📈 Accuracy: {accuracy:.2f}%")
+    print(f"\nRESULTS: {correct}/{total} correct")
+    print(f"Accuracy: {accuracy:.2f}%")
 
 
 if __name__ == "__main__":
