@@ -18,7 +18,7 @@ langchain-community==0.0.28
 langchain-text-splitters==0.0.1
 
 # Document Processing
-pymupdf==1.23.26
+pymupdf==1.24.0
 
 # CLI Enhancement
 rich==13.7.1
