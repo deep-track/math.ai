@@ -19,7 +19,15 @@ VERBOSE_MODE = os.getenv("VERBOSE", "True").lower() == "true"
 
 # 1. Setup Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-CHROMA_DB_DIR = os.path.join(BASE_DIR, "chroma_db")
+
+# Use Render persistent disk path if available, otherwise use local path
+RENDER_DISK_PATH = "/opt/render/project/chroma_db"
+if os.path.exists("/opt/render"):
+    CHROMA_DB_DIR = RENDER_DISK_PATH
+    print(f"[CONFIG] Using Render persistent disk: {CHROMA_DB_DIR}")
+else:
+    CHROMA_DB_DIR = os.path.join(BASE_DIR, "chroma_db")
+    print(f"[CONFIG] Using local disk: {CHROMA_DB_DIR}")
 
 # INITIALIZE LOGGER 
 logger = AgentLogger(verbose=VERBOSE_MODE)
