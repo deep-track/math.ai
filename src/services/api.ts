@@ -1,6 +1,10 @@
 import type { Problem, Solution, Feedback, AnalyticsEvent, SubmitFeedbackResponse, AnalyticsResponse } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+// Get API base URL from environment, default to localhost
+let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+// Remove trailing slash to avoid double slashes in URLs
+API_BASE_URL = API_BASE_URL.replace(/\/$/, '');
 
 /**
  * Solve a math problem using the backend AI agent
