@@ -1,6 +1,6 @@
 # Core Dependencies
 chromadb==0.4.24
-anthropic==0.21.3
+anthropic==0.28.0
 cohere==5.1.2
 mistralai==0.3.0
 python-dotenv==1.0.1
