@@ -115,6 +115,46 @@ CONCLUSION: [Final answer or main takeaway]
 Use clear mathematical notation. Put equations/formulas after their explanation.
 """
 
+# PROMPT 1B: For Claude (FALLBACK MODE - no curriculum)
+CLAUDE_FALLBACK_PROMPT = """
+You are an expert Mathematics tutor for the Benin Education System.
+Solve this mathematical problem with clear, step-by-step reasoning.
+Focus on accuracy and pedagogical clarity.
+
+User Question: 
+{question}
+
+### INSTRUCTIONS:
+
+STEP 1: PROBLEM ANALYSIS & SOLUTION
+- **Identify the Core Concept:** What mathematical concept is being tested?
+- **Solve the Problem:** Perform step-by-step mathematical reasoning.
+- **Show all work:** Include all calculation steps and reasoning.
+
+STEP 2: PEDAGOGICAL ANALYSIS
+- **Prerequisites:** List key concepts students must understand before this topic.
+- **Common Mistakes:** Identify 2-3 typical errors students make with this concept.
+
+STEP 3: STRUCTURED OUTPUT FORMAT
+Provide your analysis in this exact format with clear section headers:
+
+PARTIE: [Main mathematical topic/unit]
+
+ÉTAPE 1: [First key step title]
+[Explanation of this step]
+[Any equations or mathematical notation]
+
+ÉTAPE 2: [Second key step title]
+[Explanation of this step]
+[Any equations or mathematical notation]
+
+(Continue with ÉTAPE 3, ÉTAPE 4, etc. as needed)
+
+CONCLUSION: [Final answer or main takeaway]
+
+Use clear mathematical notation. Put equations/formulas after their explanation.
+"""
+
 # PROMPT 2: MISTRAL (THE BENIN TUTOR INTERFACE)
 MISTRAL_PEDAGOGY_PROMPT = """
 You are an expert Math Tutor for students in Benin.
@@ -214,27 +254,17 @@ def ask_math_ai(question: str, history: str = ""):
     # NEW: Unpack both context and sources
     context_observation, sources = search_curriculum(question)
     
+    # FALLBACK MODE: If no curriculum context found, use general knowledge
     if not context_observation.strip():
-        obs_text = "Database returned empty results."
+        obs_text = "Database returned empty results. Using general knowledge mode."
         logger.log_step("Observation", obs_text)
-        # Return in AcademicResponse format
-        return {
-            "partie": "Information Non Trouvée",
-            "problemStatement": question,
-            "steps": [
-                {
-                    "title": "Résultat",
-                    "explanation": "Je ne trouve pas cette information dans le programme officiel fourni.",
-                    "equations": None
-                }
-            ],
-            "conclusion": "Veuillez reformuler votre question.",
-            "sources": []
-        }
+        context_observation = "User is asking a general mathematics question. Provide a comprehensive answer with step-by-step solutions."
+        use_fallback = True
     else:
         obs_text = f"Retrieved relevant context ({len(context_observation)} chars)."
         logger.log_step("Observation", obs_text)
         execution_steps.append({"type": "observation", "content": obs_text})
+        use_fallback = False
 
     # STEP 2: REASONING (Claude Sonnet 4.5)
     thought_2 = "Consulting Claude Sonnet 4.5 for mathematical reasoning..."
@@ -242,14 +272,20 @@ def ask_math_ai(question: str, history: str = ""):
     execution_steps.append({"type": "thought", "content": thought_2})
 
     try:
+        # Choose prompt based on fallback mode
+        if use_fallback:
+            prompt_content = CLAUDE_FALLBACK_PROMPT.format(question=question)
+        else:
+            prompt_content = CLAUDE_REASONING_PROMPT.format(
+                context_str=context_observation, 
+                question=question
+            )
+        
         claude_response = claude_client.messages.create(
             model="claude-sonnet-4-5", 
             max_tokens=4096,
             messages=[
-                {"role": "user", "content": CLAUDE_REASONING_PROMPT.format(
-                    context_str=context_observation, 
-                    question=question
-                )}
+                {"role": "user", "content": prompt_content}
             ]
         )
         math_logic = claude_response.content[0].text
