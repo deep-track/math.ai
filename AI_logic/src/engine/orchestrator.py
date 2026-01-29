@@ -3,7 +3,7 @@ import json
 from dotenv import load_dotenv
 import chromadb
 from chromadb import Documents, EmbeddingFunction, Embeddings
-from mistralai.client import MistralClient
+from mistralai import Mistral
 from anthropic import Anthropic 
 import cohere
 from rich.console import Console
@@ -28,7 +28,7 @@ logger = AgentLogger(verbose=VERBOSE_MODE)
 
 # A. Mistral (Pedagogue)
 mistral_api_key = os.getenv("MISTRAL_API_KEY")
-mistral_client = MistralClient(api_key=mistral_api_key)
+mistral_client = Mistral(api_key=mistral_api_key)
 
 # B. Claude (The Math Brain)
 anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
