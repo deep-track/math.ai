@@ -20,7 +20,7 @@ def initialize_database():
     # Check if already initialized (look for chroma.sqlite3 file)
     db_marker = os.path.join(chroma_path, "chroma.sqlite3")
     if os.path.exists(db_marker):
-        print(f"✅ [INIT] Database already initialized at {chroma_path}")
+        print(f"[INIT] Database already initialized at {chroma_path}")
         return True
     
     # Find curriculum file (check multiple possible locations)
@@ -35,12 +35,11 @@ def initialize_database():
     for path in possible_paths:
         if os.path.exists(path):
             curriculum_file = path
-            print(f"📚 [INIT] Found curriculum file at: {path}")
+            print(f"[INIT] Found curriculum file at: {path}")
             break
     
     if not curriculum_file:
-        print(f"⚠️  [INIT] Curriculum file not found. Checked: {possible_paths}")
-        print(f"⚠️  [INIT] Database will be empty. Questions will use fallback mode.")
+        print(f"[INIT] Curriculum file not found. Database will be empty. Questions will use fallback mode.")
         return False
     
     # Verify file has content
@@ -49,29 +48,29 @@ def initialize_database():
             data = json.load(f)
         
         if not data:
-            print(f"⚠️  [INIT] Curriculum file is empty")
+            print(f"[INIT] Curriculum file is empty")
             return False
         
-        print(f"📊 [INIT] Curriculum file contains {len(data)} chunks")
+        print(f"[INIT] Curriculum file contains {len(data)} chunks")
     except Exception as e:
-        print(f"❌ [INIT] Error reading curriculum file: {e}")
+        print(f"[INIT] Error reading curriculum file: {e}")
         return False
     
     # Import ingest function
     try:
         from src.retrieval.ingest_curriculum import run_ingestion
     except ImportError as e:
-        print(f"❌ [INIT] Could not import ingest module: {e}")
+        print(f"[INIT] Could not import ingest module: {e}")
         return False
     
     # Run ingestion
     try:
-        print(f"🚀 [INIT] Starting curriculum ingestion...")
+        print(f"[INIT] Starting curriculum ingestion...")
         run_ingestion(curriculum_file)
-        print(f"✅ [INIT] Database initialized successfully with curriculum data")
+        print(f"[INIT] Database initialized successfully with curriculum data")
         return True
     except Exception as e:
-        print(f"❌ [INIT] Error during ingestion: {e}")
+        print(f"[INIT] Error during ingestion: {e}")
         import traceback
         traceback.print_exc()
         return False
