@@ -3,7 +3,6 @@ import json
 from dotenv import load_dotenv
 import chromadb
 from chromadb import Documents, EmbeddingFunction, Embeddings
-from mistralai import Mistral
 from anthropic import Anthropic 
 import cohere
 from rich.console import Console
@@ -34,11 +33,7 @@ logger = AgentLogger(verbose=VERBOSE_MODE)
 
 # 2. Initialize Clients
 
-# A. Mistral (Pedagogue)
-mistral_api_key = os.getenv("MISTRAL_API_KEY")
-mistral_client = Mistral(api_key=mistral_api_key)
-
-# B. Claude (The Math Brain)
+# Claude (The Math Brain)
 anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 if not anthropic_api_key:
     print("WARNING: ANTHROPIC_API_KEY not found. Ensure it is in your .env")
@@ -163,24 +158,23 @@ CONCLUSION: [Réponse finale ou apprentissage principal]
 Utilisez une notation mathématique claire. Mettez les équations/formules après leur explication.
 """
 
-# PROMPT 2: MISTRAL (THE BENIN TUTOR INTERFACE)
-MISTRAL_PEDAGOGY_PROMPT = """
+# PROMPT 2: CLAUDE FINAL RESPONSE PROMPT
+CLAUDE_FINAL_RESPONSE_PROMPT = """
 Vous êtes un tuteur en mathématiques expert pour les étudiants du Bénin.
 Parlez en français simple et clair. Soyez encourageant et patient.
 Structurez votre réponse pour une lecture facile - utilisez uniquement le formatage en texte brut.
 Vous devez strictement montrer des étapes de travail clairement étiquetées, les étapes de calcul sont obligatoires.
 Vos réponses doivent être strictement en français.
 
-**Données d'entrée:**
-- **Analyse Expert:** {reasoning}
-- **Contexte du curriculum:** {context_str}
+**Analyse préalable:**
+{reasoning}
 
 **Votre objectif:** Guider les étudiants pour comprendre les concepts mathématiques grâce à des explications claires, étape par étape.
 
-EXIGENCE CRITIQUE: Vous DEVEZ fournir TOUTES les cinq sections ci-dessous - ne sautez aucune section, peu importe la longueur de la réponse.
+EXIGENCE CRITIQUE: Vous DEVEZ fournir TOUTES les sections ci-dessous - ne sautez aucune section, peu importe la longueur de la réponse.
 
 FORMAT DE RÉPONSE:
-Vous DEVEZ utiliser cette structure exacte avec des en-têtes en texte brut. Incluez TOUTES les sections:
+Utilisez cette structure exacte avec des en-têtes en texte brut. Incluez TOUTES les sections:
 
 APERÇU DU CONCEPT
 [2-3 phrases expliquant le concept mathématique et son importance]
@@ -190,7 +184,7 @@ SOLUTION ÉTAPE PAR ÉTAPE
 [Expliquez ce que vous faites à chaque étape]
 [Montrez les calculs clairement]
 [Utilisez des exemples du Bénin si pertinent]
-[Pour les calculs: vous devez montrer toutes les étapes, les règles appliquées]
+[Pour les calculs: montrez toutes les étapes, les règles appliquées]
 [Cette section doit être complète et détaillée]
 
 POINTS CLÉS D'APPRENTISSAGE
@@ -204,14 +198,12 @@ ENCOURAGEMENT
 [Terminez avec un très court retour positif et proposez d'aider davantage]
 
 RÈGLES IMPORTANTES:
-- Si l'analyse expert dit "STATUT: HORS_DU_PROGRAMME", répondez poliment en français: "Je suis désolé, mais cette question n'est pas dans le programme officiel que je peux enseigner."
-- Pour les questions d'explication: Fournissez des exemples clairs avec le contexte du Bénin
 - Gardez la langue simple et encourageante
 - Utilisez un espacement approprié entre les sections
 - Pas de markdown, gras ou formatage spécial - juste du texte brut
 - VOUS DEVEZ INCLURE TOUTES LES SECTIONS - ne pas tronquer ni sauter les sections
 
-**Question actuelle de l'étudiant:** {question}
+**Question de l'étudiant:** {question}
 """
 def search_curriculum(query):
     """
@@ -303,31 +295,30 @@ def ask_math_ai(question: str, history: str = ""):
         logger.log_step("Error", error_msg)
         math_logic = "Error in reasoning engine. Proceeding with raw context."
 
-    # STEP 3: COMMUNICATION (Mistral Large)
-    thought_3 = "Synthesizing final english response with Mistral..."
+    # STEP 3: FINAL RESPONSE (Claude)
+    thought_3 = "Generating final formatted response with Claude..."
     logger.log_step("Thought", thought_3)
     
-    final_prompt = MISTRAL_PEDAGOGY_PROMPT.format(
-        context_str=context_observation,
+    final_prompt = CLAUDE_FINAL_RESPONSE_PROMPT.format(
         reasoning=math_logic,
-        question=f"History: {history}\n\nCurrent Question: {question}"
+        question=question
     )
     
     try:
-        chat_response = mistral_client.chat.complete(
-            model="mistral-large-latest",
+        final_response = claude_client.messages.create(
+            model="claude-sonnet-4-5",
             max_tokens=4096,
             messages=[
                 {"role": "user", "content": final_prompt}
             ]
         )
         
-        answer = chat_response.choices[0].message.content
+        answer = final_response.content[0].text
         
         # SAVE LOG (JSONL)
         logger.save_request(
             prompt=question,
-            model="hybrid-claude-mistral",
+            model="claude-sonnet-4-5",
             steps=execution_steps,
             final_answer=answer,
             verifier_result="Passed", 
@@ -351,7 +342,7 @@ def ask_math_ai(question: str, history: str = ""):
         }
 
     except Exception as e:
-        error_msg = f"Error contacting Mistral: {e}"
+        error_msg = f"Error contacting Claude: {e}"
         logger.log_step("Error", error_msg)
         return {
             "partie": "Erreur",
