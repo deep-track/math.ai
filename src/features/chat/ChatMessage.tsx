@@ -5,7 +5,7 @@ import ChatInput from './ChatInput';
 import SolutionDisplay from '../../components/SolutionDisplay';
 import LoadingState from '../../components/LoadingState';
 import ErrorDisplay from '../../components/ErrorDisplay';
-import { solveProblem, trackAnalyticsEvent } from '../../services/api';
+import { solveProblemStream, trackAnalyticsEvent } from '../../services/api';
 import { getTranslation } from '../../utils/translations';
 import type { ChatMessage as ChatMessageType, Problem } from '../../types';
 
@@ -57,30 +57,69 @@ const ChatMessage = () => {
 
         setMessages((prev) => [...prev, userMessage]);
 
-        // Call API to solve problem
-        const apiResponse = await solveProblem(problem);
-
-        const responseTime = Date.now() - startTime;
-
-        // Track analytics
-        await trackAnalyticsEvent(
-          {
-            eventType: 'problem_submitted',
-            solutionId: apiResponse.id,
-            responseTime,
-            timestamp: Date.now(),
-          }
-        );
-
-        // Add assistant message with solution
+        // Create placeholder for assistant message
+        const assistantMessageId = `msg-${Date.now()}-solution`;
         const assistantMessage: ChatMessageType = {
-          id: `msg-${Date.now()}-solution`,
+          id: assistantMessageId,
           type: 'assistant',
-          solution: apiResponse,
+          solution: {
+            id: `solution-${Date.now()}`,
+            steps: [],
+            finalAnswer: '',
+            confidence: 95,
+            confidenceLevel: 'high',
+            status: 'streaming',
+            timestamp: Date.now(),
+            content: '',
+            sources: [],
+          },
           timestamp: Date.now(),
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
+
+        // Stream the response
+        let lastResponseTime = startTime;
+
+        for await (const solution of solveProblemStream(problem)) {
+          lastResponseTime = Date.now();
+
+          // Update the assistant message with streaming content
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? {
+                    ...msg,
+                    solution: {
+                      ...msg.solution!,
+                      content: solution.content,
+                      finalAnswer: solution.finalAnswer,
+                      status: solution.status,
+                      sources: solution.sources,
+                    } as any,
+                  }
+                : msg
+            )
+          );
+
+          // Scroll to bottom on each chunk
+          setTimeout(() => {
+            const scrollContainer = document.querySelector('.scrollbar-thin');
+            if (scrollContainer) {
+              scrollContainer.scrollTop = scrollContainer.scrollHeight;
+            }
+          }, 0);
+        }
+
+        const responseTime = lastResponseTime - startTime;
+
+        // Track analytics
+        await trackAnalyticsEvent({
+          eventType: 'problem_submitted',
+          solutionId: `solution-${Date.now()}`,
+          responseTime,
+          timestamp: Date.now(),
+        });
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to solve problem. Please try again.';

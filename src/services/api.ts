@@ -7,7 +7,120 @@ let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 API_BASE_URL = API_BASE_URL.replace(/\/$/, '');
 
 /**
- * Solve a math problem using the backend AI agent
+ * Solve a math problem using streaming - shows text word-by-word
+ * Returns stream of Solution chunks that can be rendered progressively
+ */
+export async function* solveProblemStream(problem: Problem): AsyncGenerator<Solution, void, unknown> {
+  try {
+    console.log('📤 Sending problem to backend (STREAM):', problem.content);
+
+    const response = await fetch(`${API_BASE_URL}/ask-stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: problem.content,
+        user_id: 'guest',
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || `API error: ${response.status}`);
+    }
+
+    // Read the response as a stream
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No response body available');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullContent = '';
+    let sources: any[] = [];
+    let solutionId = `solution-${Date.now()}`;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      
+      // Process all complete lines
+      for (let i = 0; i < lines.length - 1; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        try {
+          const chunk = JSON.parse(line);
+
+          if (chunk.type === 'start') {
+            // Initial metadata - ignore problem statement as it's in the problem object
+            sources = chunk.sources || [];
+            console.log('🟢 Stream started');
+            
+          } else if (chunk.type === 'chunk') {
+            // Text chunk - accumulate and yield
+            fullContent += chunk.text;
+            
+            // Yield solution with accumulated content
+            const solution: Solution = {
+              id: solutionId,
+              steps: [],
+              finalAnswer: fullContent,
+              confidence: 95,
+              confidenceLevel: 'high',
+              status: 'streaming',
+              timestamp: Date.now(),
+              content: fullContent,
+              sources: sources,
+            };
+            
+            yield solution;
+            
+          } else if (chunk.type === 'end') {
+            // Stream finished
+            console.log('✅ Stream completed');
+            
+            // Yield final solution
+            const solution: Solution = {
+              id: solutionId,
+              steps: [],
+              finalAnswer: fullContent,
+              confidence: 95,
+              confidenceLevel: 'high',
+              status: 'ok',
+              timestamp: Date.now(),
+              content: fullContent,
+              sources: sources,
+            };
+            
+            yield solution;
+            
+          } else if (chunk.type === 'error') {
+            throw new Error(chunk.error || 'Stream error');
+          }
+        } catch (parseError) {
+          console.error('Error parsing stream chunk:', parseError, line);
+        }
+      }
+
+      // Keep incomplete line in buffer
+      buffer = lines[lines.length - 1];
+    }
+
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to solve problem';
+    console.error('❌ Error solving problem (stream):', message);
+    throw new Error(message);
+  }
+}
+
+/**
+ * Solve a math problem using the backend AI agent (original non-streaming version)
  * Returns an AcademicResponse with structured step-by-step solution
  */
 export async function solveProblem(problem: Problem): Promise<Solution> {

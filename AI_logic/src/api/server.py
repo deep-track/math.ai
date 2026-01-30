@@ -7,6 +7,7 @@ Run with: uvicorn src.api.server:app --reload --port 8000
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List
 import sys
@@ -18,7 +19,7 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 # 2. Import the AI orchestrator
-from src.engine.orchestrator import ask_math_ai
+from src.engine.orchestrator import ask_math_ai, ask_math_ai_stream
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -32,14 +33,23 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",      # Vite dev server
+        "http://localhost:5174",      # Vite dev server (alt port)
+        "http://localhost:5175",      # Vite dev server (alt port)
         "http://localhost:3000",      # Alternative dev port
         "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:5175",
         "http://127.0.0.1:3000",
+        "http://192.168.0.101:5173",  # Local network IP
+        "http://192.168.0.101:5174",  # Local network IP (alt port)
+        "http://192.168.0.101:5175",  # Local network IP (alt port)
+        "http://192.168.0.101:3000",  # Local network IP alt port
         "https://deep-track-mathai.vercel.app",  # Vercel production 
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # 4. Define request/response data models
@@ -161,6 +171,77 @@ async def ask_endpoint(request: QuestionRequest):
         print(f"\n[ERROR] {datetime.now().isoformat()}")
         print(f"  User: {request.user_id}")
         print(f"  Question: {request.text[:100]}...")
+        print(f"  Error: {error_message}")
+        print(f"{'='*60}\n")
+        
+        import traceback
+        traceback.print_exc()
+        
+        # Return error response
+        raise HTTPException(
+            status_code=500,
+            detail=error_message
+        )
+
+# 6b. Streaming endpoint - Ask a question with streaming response
+@app.post("/ask-stream")
+async def ask_stream_endpoint(request: QuestionRequest):
+    """
+    Streaming endpoint for solving math problems.
+    
+    Streams the response back line-by-line as Server-Sent Events (SSE) format.
+    Each line is a JSON object that can be one of:
+    - {"type": "start", "partie": "...", "problemStatement": "...", "sources": [...]}
+    - {"type": "chunk", "text": "..."}
+    - {"type": "end", "conclusion": "...", "sources": [...]}
+    - {"type": "error", "error": "..."}
+    
+    This allows the frontend to show text appearing word-by-word.
+    
+    Args:
+        request: QuestionRequest containing the math problem
+        
+    Returns:
+        StreamingResponse with NDJSON (newline-delimited JSON) format
+    """
+    try:
+        # Log the incoming request
+        print(f"\n{'='*60}")
+        print(f"[STREAM REQUEST] {datetime.now().isoformat()}")
+        print(f"  User ID: {request.user_id}")
+        print(f"  Session: {request.session_id}")
+        print(f"  Question: {request.text[:100]}...")
+        print(f"{'='*60}")
+        
+        # Create async generator that yields from the orchestrator
+        async def generate():
+            try:
+                for chunk in ask_math_ai_stream(request.text, history=""):
+                    # Each chunk is already a JSON line with newline
+                    yield chunk
+            except Exception as e:
+                # Send error as final JSON
+                error_response = {
+                    "type": "error",
+                    "error": str(e)
+                }
+                yield json.dumps(error_response) + "\n"
+                print(f"[STREAM ERROR] {e}")
+        
+        # Return streaming response
+        return StreamingResponse(
+            generate(),
+            media_type="application/x-ndjson",  # Newline-delimited JSON
+            headers={
+                "X-Accel-Buffering": "no",  # Disable proxy buffering
+            }
+        )
+        
+    except Exception as e:
+        # Log error
+        error_message = str(e)
+        print(f"\n[STREAM ERROR] {datetime.now().isoformat()}")
+        print(f"  User: {request.user_id}")
         print(f"  Error: {error_message}")
         print(f"{'='*60}\n")
         

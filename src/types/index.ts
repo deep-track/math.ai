@@ -1,6 +1,6 @@
 // Solution and Problem types
 export type ConfidenceLevel = 'high' | 'medium' | 'low';
-export type ResponseStatus = 'ok' | 'tutor' | 'refusal';
+export type ResponseStatus = 'ok' | 'tutor' | 'refusal' | 'streaming';
 export type FeedbackType = 'helpful' | 'incorrect';
 
 export interface Step {
