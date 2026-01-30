@@ -2,6 +2,7 @@
 chromadb==0.4.24
 anthropic==0.39.0
 cohere==5.1.2
+mistralai==1.0.0
 python-dotenv==1.0.1
 numpy==1.26.4
 
