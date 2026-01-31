@@ -7,11 +7,10 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  askMathAI, 
+  solveProblem,
   checkBackendHealth,
-  getBackendStatus
-} from '../services/mathAiApi';
-import type { MathQuestion } from '../services/mathAiApi';
+} from '../services/api';
+import type { Problem } from '../types';
 
 export function ChatExample() {
   // State management
@@ -88,15 +87,17 @@ export function ChatExample() {
     setLoading(true);
 
     try {
-      // Send to backend
-      const question: MathQuestion = {
-        text: inputValue,
-        sessionId: 'session-' + Date.now(),
+      // Send to backend using current API (solveProblem)
+      const question: Problem = {
+        id: `prob-${Date.now()}`,
+        content: inputValue,
+        submittedAt: Date.now(),
       };
 
       console.log('Sending question:', question);
 
-      const answer = await askMathAI(question);
+      const solution = await solveProblem(question);
+      const answer = solution.content || solution.finalAnswer || 'No answer returned';
 
       // Add AI response to chat
       setMessages(prev => [
@@ -132,9 +133,9 @@ export function ChatExample() {
   // Reconnect to backend
   const handleReconnect = async () => {
     setBackendStatus('Checking...');
-    const status = await getBackendStatus();
-    
-    if (status.isHealthy) {
+    const isReady = await checkBackendHealth();
+
+    if (isReady) {
       setBackendReady(true);
       setBackendStatus('✅ Backend Connected');
       setMessages(prev => [
@@ -154,7 +155,7 @@ export function ChatExample() {
         {
           id: Date.now().toString(),
           role: 'system',
-          content: `❌ Failed to connect: ${status.message}`,
+          content: `❌ Failed to connect to backend.`,
           timestamp: new Date().toISOString(),
         }
       ]);
