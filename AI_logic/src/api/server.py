@@ -186,73 +186,65 @@ async def ask_endpoint(request: QuestionRequest):
 # 6b. Streaming endpoint - Ask a question with streaming response
 @app.post("/ask-stream")
 async def ask_stream_endpoint(request: QuestionRequest):
-    """
-    Streaming endpoint for solving math problems.
+    """Streaming endpoint - SSE format"""
     
-    Streams the response back line-by-line as Server-Sent Events (SSE) format.
-    Each line is a JSON object that can be one of:
-    - {"type": "start", "partie": "...", "problemStatement": "...", "sources": [...]}
-    - {"type": "chunk", "text": "..."}
-    - {"type": "end", "conclusion": "...", "sources": [...]}
-    - {"type": "error", "error": "..."}
+    print(f"\n[STREAM] Question: {request.text}")
     
-    This allows the frontend to show text appearing word-by-word.
+    def generate():  # NOT async - your orchestrator is sync!
+        try:
+            # Send connection
+            yield ": connected\n\n"
+            
+            chunk_count = 0
+            
+            # Get stream from orchestrator (it's a regular generator, not async)
+            for ndjson_line in ask_math_ai_stream(request.text, history=""):
+                # Parse the NDJSON line
+                line = ndjson_line.strip()
+                if not line:
+                    continue
+                
+                try:
+                    chunk_obj = json.loads(line)
+                    chunk_type = chunk_obj.get("type", "")
+                    
+                    if chunk_type == "chunk":
+                        text = chunk_obj.get("text", "")
+                        if text:
+                            chunk_count += 1
+                            # Send as SSE
+                            yield f"data: {json.dumps({'token': text})}\n\n"
+                            print(f"→ Chunk {chunk_count}: {text[:30]}")
+                    
+                    elif chunk_type == "start":
+                        # Send metadata
+                        yield f"data: {json.dumps({'metadata': chunk_obj})}\n\n"
+                    
+                    elif chunk_type == "end":
+                        yield f"data: {json.dumps({'conclusion': chunk_obj.get('conclusion', '')})}\n\n"
+                    
+                except json.JSONDecodeError:
+                    continue
+            
+            # Send done
+            yield f"data: {json.dumps({'done': True})}\n\n"
+            print(f"✅ Complete - {chunk_count} chunks")
+            
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            import traceback
+            traceback.print_exc()
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
     
-    Args:
-        request: QuestionRequest containing the math problem
-        
-    Returns:
-        StreamingResponse with NDJSON (newline-delimited JSON) format
-    """
-    try:
-        # Log the incoming request
-        print(f"\n{'='*60}")
-        print(f"[STREAM REQUEST] {datetime.now().isoformat()}")
-        print(f"  User ID: {request.user_id}")
-        print(f"  Session: {request.session_id}")
-        print(f"  Question: {request.text[:100]}...")
-        print(f"{'='*60}")
-        
-        # Create async generator that yields from the orchestrator
-        async def generate():
-            try:
-                for chunk in ask_math_ai_stream(request.text, history=""):
-                    # Each chunk is already a JSON line with newline
-                    yield chunk
-            except Exception as e:
-                # Send error as final JSON
-                error_response = {
-                    "type": "error",
-                    "error": str(e)
-                }
-                yield json.dumps(error_response) + "\n"
-                print(f"[STREAM ERROR] {e}")
-        
-        # Return streaming response
-        return StreamingResponse(
-            generate(),
-            media_type="application/x-ndjson",  # Newline-delimited JSON
-            headers={
-                "X-Accel-Buffering": "no",  # Disable proxy buffering
-            }
-        )
-        
-    except Exception as e:
-        # Log error
-        error_message = str(e)
-        print(f"\n[STREAM ERROR] {datetime.now().isoformat()}")
-        print(f"  User: {request.user_id}")
-        print(f"  Error: {error_message}")
-        print(f"{'='*60}\n")
-        
-        import traceback
-        traceback.print_exc()
-        
-        # Return error response
-        raise HTTPException(
-            status_code=500,
-            detail=error_message
-        )
+    return StreamingResponse(
+        generate(),  # Pass generator directly
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        }
+    )
 
 # 6. Health check endpoint
 @app.get("/health", response_model=HealthResponse)
@@ -297,15 +289,14 @@ async def value_error_handler(request, exc):
 async def startup_event():
     """Run on server startup"""
     print("\n" + "="*60)
-    print("🚀 Math.AI Backend Starting...")
-    print("="*60)
+    print("Math.AI Backend Starting...")
     print("✓ FastAPI server initialized")
     print("✓ CORS enabled for frontend communication")
     print("✓ AI orchestrator ready")
-    print("\n📝 API Documentation available at:")
+    print("\nAPI Documentation available at:")
     print("   http://localhost:8000/docs")
     print("   http://localhost:8000/redoc")
-    print("\n💬 Ready to process questions!")
+    print("\nReady to process questions!")
     print("="*60 + "\n")
 
 # Shutdown event
@@ -313,7 +304,7 @@ async def startup_event():
 async def shutdown_event():
     """Run on server shutdown"""
     print("\n" + "="*60)
-    print("🛑 Math.AI Backend Shutting Down...")
+    print(" Math.AI Backend Shutting Down...")
     print("="*60 + "\n")
 
 if __name__ == "__main__":

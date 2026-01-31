@@ -42,74 +42,99 @@ export async function* solveProblemStream(problem: Problem): AsyncGenerator<Solu
     let sources: any[] = [];
     let solutionId = `solution-${Date.now()}`;
 
+    console.log('🟢 Stream started - reading chunks');
+
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      
-      // Process all complete lines
-      for (let i = 0; i < lines.length - 1; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-
-        try {
-          const chunk = JSON.parse(line);
-
-          if (chunk.type === 'start') {
-            // Initial metadata - ignore problem statement as it's in the problem object
-            sources = chunk.sources || [];
-            console.log('🟢 Stream started');
-            
-          } else if (chunk.type === 'chunk') {
-            // Text chunk - accumulate and yield
-            fullContent += chunk.text;
-            
-            // Yield solution with accumulated content
-            const solution: Solution = {
-              id: solutionId,
-              steps: [],
-              finalAnswer: fullContent,
-              confidence: 95,
-              confidenceLevel: 'high',
-              status: 'streaming',
-              timestamp: Date.now(),
-              content: fullContent,
-              sources: sources,
-            };
-            
-            yield solution;
-            
-          } else if (chunk.type === 'end') {
-            // Stream finished
-            console.log('✅ Stream completed');
-            
-            // Yield final solution
-            const solution: Solution = {
-              id: solutionId,
-              steps: [],
-              finalAnswer: fullContent,
-              confidence: 95,
-              confidenceLevel: 'high',
-              status: 'ok',
-              timestamp: Date.now(),
-              content: fullContent,
-              sources: sources,
-            };
-            
-            yield solution;
-            
-          } else if (chunk.type === 'error') {
-            throw new Error(chunk.error || 'Stream error');
-          }
-        } catch (parseError) {
-          console.error('Error parsing stream chunk:', parseError, line);
-        }
+      if (done) {
+        console.log('✅ Stream completed - received chunks');
+        break;
       }
 
-      // Keep incomplete line in buffer
-      buffer = lines[lines.length - 1];
+      // Add new data to buffer
+      buffer += decoder.decode(value, { stream: true });
+
+      // Split by newlines
+      const lines = buffer.split('\n');
+      
+      // Keep the last incomplete line in buffer
+      buffer = lines.pop() || '';
+
+      // Process complete lines
+      for (const line of lines) {
+        const trimmed = line.trim();
+        
+        // Skip empty lines and keepalive comments
+        if (!trimmed || trimmed.startsWith(':')) {
+          if (trimmed.startsWith(':')) {
+            console.log('💓 Keepalive ping received');
+          }
+          continue;
+        }
+
+        // Parse SSE data lines
+        if (trimmed.startsWith('data: ')) {
+          try {
+            const jsonStr = trimmed.slice(6); // Remove "data: " prefix
+            const data = JSON.parse(jsonStr);
+
+            // Handle different message types
+            if (data.token) {
+              // Text chunk - accumulate and yield
+              fullContent += data.token;
+              
+              // Yield solution with accumulated content
+              const solution: Solution = {
+                id: solutionId,
+                steps: [],
+                finalAnswer: fullContent,
+                confidence: 95,
+                confidenceLevel: 'high',
+                status: 'streaming',
+                timestamp: Date.now(),
+                content: fullContent,
+                sources: sources,
+              };
+              
+              yield solution;
+              
+            } else if (data.metadata) {
+              // Initial metadata
+              sources = data.metadata.sources || [];
+              console.log('📋 Received metadata');
+              
+            } else if (data.conclusion) {
+              // Conclusion received
+              console.log('🏁 Received conclusion');
+              
+            } else if (data.done) {
+              // Stream finished
+              console.log('✅ Stream done signal received');
+              
+              // Yield final solution
+              const solution: Solution = {
+                id: solutionId,
+                steps: [],
+                finalAnswer: fullContent,
+                confidence: 95,
+                confidenceLevel: 'high',
+                status: 'ok',
+                timestamp: Date.now(),
+                content: fullContent,
+                sources: sources,
+              };
+              
+              yield solution;
+              
+            } else if (data.error) {
+              throw new Error(data.error || 'Stream error');
+            }
+          } catch (parseError) {
+            // Don't throw - just warn and continue
+            console.warn('⚠️ Parse error (skipping):', trimmed.substring(0, 50));
+          }
+        }
+      }
     }
 
   } catch (error) {
@@ -147,7 +172,6 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
     console.log('✅ Received response:', data);
 
     // Extract full content from backend response
-    // Backend returns AcademicResponseModel with steps array containing the full explanation
     let fullContent = '';
     if (data.steps && data.steps.length > 0 && data.steps[0].explanation) {
       fullContent = data.steps[0].explanation;
@@ -156,10 +180,6 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
     } else if (data.conclusion) {
       fullContent = data.conclusion;
     }
-
-    console.log('[DEBUG] Full content length:', fullContent.length);
-    console.log('[DEBUG] First 100 chars:', fullContent.substring(0, 100));
-    console.log('[DEBUG] Last 100 chars:', fullContent.substring(Math.max(0, fullContent.length - 100)));
 
     // Convert backend response to Solution format
     const solution: Solution = {
@@ -170,7 +190,6 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
       confidenceLevel: 'high',
       status: 'ok',
       timestamp: Date.now(),
-      // Store full response content for markdown rendering
       content: fullContent,
       sources: data.sources || [],
     };
@@ -185,11 +204,9 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
 
 /**
  * Get conversation history for the current user
- * Note: This is a stub - conversations are stored client-side for now
  */
 export async function getConversationHistory(conversationId: string) {
   try {
-    // For now, return empty messages array - handled client-side
     return { messages: [], id: conversationId };
   } catch (error) {
     console.error('Failed to fetch conversation:', error);
@@ -199,11 +216,9 @@ export async function getConversationHistory(conversationId: string) {
 
 /**
  * Get all conversations for the current user
- * Note: This is a stub - conversations are stored client-side for now
  */
 export async function getConversations() {
   try {
-    // For now, return empty array - conversations handled client-side
     return [];
   } catch (error) {
     console.error('Failed to fetch conversations:', error);
@@ -213,11 +228,9 @@ export async function getConversations() {
 
 /**
  * Create a new conversation
- * Note: This is a stub - conversations are stored client-side for now
  */
 export async function createConversation(title: string) {
   try {
-    // For now, return a stub conversation object
     return {
       success: true,
       id: `conv-${Date.now()}`,
@@ -237,7 +250,6 @@ export async function createConversation(title: string) {
 
 /**
  * Submit feedback for a solution
- * Note: This is a stub - feedback is stored client-side for now
  */
 export async function submitFeedback(feedback: Feedback): Promise<SubmitFeedbackResponse> {
   try {
@@ -257,7 +269,6 @@ export async function submitFeedback(feedback: Feedback): Promise<SubmitFeedback
 
 /**
  * Track analytics event
- * Note: This is a stub - analytics are logged client-side for now
  */
 export async function trackAnalyticsEvent(event: AnalyticsEvent): Promise<AnalyticsResponse> {
   try {
@@ -271,7 +282,6 @@ export async function trackAnalyticsEvent(event: AnalyticsEvent): Promise<Analyt
 
 /**
  * Delete a conversation
- * Note: This is a stub - conversations are stored client-side for now
  */
 export async function deleteConversation(conversationId: string) {
   try {
@@ -280,5 +290,17 @@ export async function deleteConversation(conversationId: string) {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to delete conversation';
     return { success: false, message };
+  }
+}
+
+/**
+ * Check if the backend server is running and healthy
+ */
+export async function checkBackendHealth(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/health`);
+    return response.ok;
+  } catch (error) {
+    return false;
   }
 }

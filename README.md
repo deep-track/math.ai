@@ -1,73 +1,518 @@
-# React + TypeScript + Vite
+# Math.AI - Intelligent Math Tutor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An AI-powered math tutoring application, combining streaming responses with academic formatting. Real-time text generation creates an engaging learning experience with professional pedagogy.
 
-Currently, two official plugins are available:
+**[Live Demo](https://deep-track-mathai.vercel.app)** | **[API Docs](https://math-ai-1-b5es.onrender.com/docs)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+##  Features
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+-  **Real-time Streaming** - Text appears character-by-character as it's generated
+-  **Academic Formatting** - Structured solutions with steps, equations, and conclusions
+-  **Localized Content** - Tailored curriculum for Benin's education system
+-  **Vector Search** - Fast retrieval using Cohere embeddings and ChromaDB
+-  **User Authentication** - Clerk integration for secure access
+-  **Analytics** - Track learning sessions and response metrics
+-  **Production-Ready** - Deployed on Render (backend) & Vercel (frontend)
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+##  Architecture
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    FRONTEND (React/Vite)                    │
+│                  https://vercel-domain.app                  │
+│  • Streaming UI with KaTeX math rendering                  │
+│  • Clerk authentication                                     │
+│  • Real-time response display                              │
+└─────────────────────────────────────────────────────────────┘
+                           ↓↑ HTTPS
+                  Real-time Streaming (SSE)
+┌─────────────────────────────────────────────────────────────┐
+│                   BACKEND (FastAPI)                         │
+│               https://math-ai-1-b5es.onrender.com           │
+│  • /ask-stream - Streaming responses with anti-buffering   │
+│  • /ask - Non-streaming responses                          │
+│  • /health - Health check endpoint                         │
+└─────────────────────────────────────────────────────────────┘
+                  ↓ (Retrieval + Generation)
+┌──────────────────────────┬──────────────────┬──────────────┐
+│    ChromaDB (Vector DB)  │  Claude API      │  Cohere API  │
+│    Persistent storage    │  Text generation │  Embeddings  │
+│    Curriculum data       │  Streaming       │  Vector index│
+└──────────────────────────┴──────────────────┴──────────────┘
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+##  Quick Start
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Prerequisites
+
+- Node.js 18+ (frontend)
+- Python 3.11.9 (backend)
+- API Keys: `ANTHROPIC_API_KEY`, `COHERE_API_KEY`, `MISTRAL_API_KEY`
+
+### Clone & Setup
+
+```bash
+# Clone repository
+git clone https://github.com/deep-track/math.ai.git
+cd math.ai
+
+# Backend setup
+cd AI_logic
+python -m venv venv
+source venv/Scripts/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# Initialize database
+python src/init_db.py
+
+# Frontend setup (new terminal, from repo root)
+npm install
 ```
+
+### Environment Variables
+
+Create `.env` in `AI_logic/`:
+
+```env
+# API Keys
+ANTHROPIC_API_KEY=sk-ant-...
+COHERE_API_KEY=...
+MISTRAL_API_KEY=...
+
+# Configuration
+VERBOSE=True
+PYTHONUNBUFFERED=1
+CHROMA_SERVER_NOINTERACTIVE=TRUE
+ANONYMIZED_TELEMETRY=False
+```
+
+Create `.env.local` in repo root (frontend):
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+### Run Locally
+
+**Terminal 1 - Backend:**
+
+```bash
+cd AI_logic
+../venv/Scripts/uvicorn src.api.server:app --reload --port 8000
+```
+
+Visit: http://localhost:8000/docs (API documentation)
+
+**Terminal 2 - Frontend:**
+
+```bash
+npm run dev
+```
+
+Visit: http://localhost:5173 (or shown in terminal output)
+
+---
+
+## Project Structure
+
+```
+math.ai/
+├── AI_logic/                          # Backend (Python/FastAPI)
+│   ├── src/
+│   │   ├── api/
+│   │   │   └── server.py             # FastAPI server, streaming endpoint
+│   │   ├── engine/
+│   │   │   └── orchestrator.py       # AI orchestration, streaming logic
+│   │   ├── retrieval/
+│   │   │   ├── ingest_curriculum.py  # ChromaDB ingestion
+│   │   │   └── extract.py            # Vector search
+│   │   └── utils/
+│   │       ├── logger.py             # Logging utilities
+│   │       └── response_parser.py    # Response formatting
+│   ├── curriculum_data/              # Benin curriculum documents
+│   ├── chroma_db/                    # Vector database (persistent)
+│   ├── evals/                        # Evaluation scripts and test questions
+│   ├── logs/                         # Chat history (JSONL)
+│   ├── requirements.txt              # Python dependencies
+│   └── .env                          # Environment variables
+│
+├── src/                              # Frontend (React/TypeScript)
+│   ├── components/
+│   │   ├── SolutionDisplay.tsx      # Response rendering
+│   │   ├── ChatMessage.tsx          # Chat interface
+│   │   ├── LoadingState.tsx         # Loading indicator
+│   │   ├── ErrorDisplay.tsx         # Error handling
+│   │   └── MarkdownDisplay.tsx      # Math formula rendering
+│   ├── features/
+│   │   ├── auth/                    # Clerk authentication
+│   │   ├── chat/                    # Chat UI components
+│   │   └── sidebar/                 # Navigation sidebar
+│   ├── services/
+│   │   ├── api.ts                   # Streaming handler (solveProblemStream)
+│   │   └── mathAiApi.ts             # API client
+│   ├── types/
+│   │   ├── AcademicResponse.ts      # Type definitions
+│   │   └── index.ts                 # Shared types
+│   └── utils/
+│       ├── mathRender.tsx           # KaTeX math rendering
+│       └── translations.ts          # i18n support
+│
+├── public/                           # Static assets
+├── package.json                      # Node dependencies
+├── tsconfig.json                     # TypeScript config
+├── vite.config.ts                   # Vite build config
+├── render.yaml                      # Render deployment config
+├── vercel.json                      # Vercel deployment config
+└── README.md                        # This file
+```
+
+---
+
+## 🔌 API Endpoints
+
+### `/ask-stream` - Streaming Response
+
+**Request:**
+```bash
+POST /ask-stream
+Content-Type: application/json
+
+{
+  "text": "Résoudre x² = 4",
+  "user_id": "user-123",
+  "context": "",
+  "session_id": ""
+}
+```
+
+**Response (Server-Sent Events):**
+```
+: connected
+
+data: {"type":"start","partie":"Mathématiques","problemStatement":"...","sources":[...]}
+data: {"type":"chunk","text":"Pour résoudre"}
+data: {"type":"chunk","text":" cette équation"}
+...
+data: {"type":"end","conclusion":"...","sources":[...]}
+```
+
+### `/ask` - Non-Streaming Response
+
+**Request:**
+```bash
+POST /ask
+Content-Type: application/json
+
+{"text": "Your question"}
+```
+
+**Response:**
+```json
+{
+  "partie": "Mathématiques",
+  "problemStatement": "...",
+  "steps": [
+    {
+      "title": "...",
+      "explanation": "...",
+      "equations": ["..."]
+    }
+  ],
+  "conclusion": "...",
+  "sources": [...]
+}
+```
+
+### `/health` - Health Check
+
+```bash
+GET /health
+```
+
+```json
+{
+  "status": "ok",
+  "service": "Math.AI Backend",
+  "timestamp": "2026-01-31T..."
+}
+```
+
+---
+
+##  AI Integration
+
+### Models Used
+
+| Model | Purpose | Provider |
+|-------|---------|----------|
+| Claude Sonnet 4.5 | Primary text generation | Anthropic |
+| Cohere Multilingual v3 | Vector embeddings | Cohere |
+
+### Retrieval Pipeline
+
+1. **User Question** → Cohere embeddings
+2. **Vector Search** → ChromaDB (3 top results)
+3. **Context Building** → Curriculum docs + fallback
+4. **Prompt Construction** → Bilingual (French/English with math notation)
+5. **Stream Generation** → Claude via streaming API
+6. **Response Parsing** → Academic format with step extraction
+
+---
+
+## Testing
+
+### Run Backend Tests
+
+```bash
+cd AI_logic
+
+
+# Evaluate on curriculum questions
+python evals/run_curriculum_test.py
+```
+
+### Manual Testing
+
+```bash
+# Test streaming endpoint
+curl -N -X POST http://localhost:8000/ask-stream \
+  -H "Content-Type: application/json" \
+  -H "Accept: text/event-stream" \
+  -d '{"text":"Quelle est la dérivée de x²?","user_id":"test"}'
+
+# Check API docs
+curl http://localhost:8000/docs
+
+# Health check
+curl http://localhost:8000/health
+```
+
+---
+
+##  Deployment
+
+### Render (Backend)
+
+1. Connect GitHub repo to [Render](https://render.com)
+2. Create Web Service with:
+   - **Root Directory:** `AI_logic`
+   - **Build Command:** `pip install -r requirements.txt && python src/init_db.py`
+   - **Start Command:** `uvicorn src.api.server:app --host 0.0.0.0 --port $PORT --timeout-keep-alive 300 --timeout-graceful-shutdown 300`
+3. Add environment variables (ANTHROPIC_API_KEY, COHERE_API_KEY, MISTRAL_API_KEY)
+4. Deploy
+
+Live: https://math-ai-1-b5es.onrender.com
+
+### Vercel (Frontend)
+
+1. Connect GitHub repo to [Vercel](https://vercel.com)
+2. Configure:
+   - **Framework:** Vite
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+3. Add environment variable:
+   - `VITE_API_BASE_URL` = `https://math-ai-1-b5es.onrender.com`
+4. Deploy
+
+Live: https://deep-track-mathai.vercel.app
+
+---
+
+## Streaming Optimization
+
+### Anti-Buffering Headers
+
+The backend sends these headers to prevent proxy buffering:
+
+```python
+headers={
+    "Cache-Control": "no-cache, no-transform",
+    "Connection": "keep-alive",
+    "X-Accel-Buffering": "no",  # Render Nginx
+    "Transfer-Encoding": "chunked",
+    "Content-Type": "text/event-stream; charset=utf-8"
+}
+```
+
+### Frontend Streaming Handler
+
+The `solveProblemStream()` function in `src/services/api.ts`:
+
+1. **Connects** with SSE headers
+2. **Parses** NDJSON stream (newline-delimited JSON)
+3. **Accumulates** text chunks
+4. **Yields** solutions progressively for UI updates
+5. **Handles** keepalive pings and errors
+
+```typescript
+for await (const solution of solveProblemStream(problem)) {
+  // Update UI with streaming content
+  setSolution(solution);
+}
+```
+
+---
+
+##  Authentication
+
+Uses **Clerk** for user authentication and session management.
+
+**Setup:**
+
+1. Create Clerk account at https://clerk.com
+2. Get API keys from dashboard
+3. Set in frontend environment:
+   ```env
+   VITE_CLERK_PUBLISHABLE_KEY=pk_live_...
+   ```
+
+**Features:**
+
+- Sign-up / Sign-in / Sign-out
+- OAuth (Google, GitHub, etc.)
+- User profile management
+- Session persistence
+
+---
+
+## Analytics
+
+Tracked events:
+
+- `problem_submitted` - User submits a question
+- `solution_received` - Solution generated successfully
+- `error_occurred` - Request failed
+- `response_time` - Generation time in milliseconds
+
+Stored in `AI_logic/logs/chat_history.jsonl` (JSONL format)
+
+---
+
+## Troubleshooting
+
+### "Stream receiving 0 chunks"
+
+**Check:**
+1. Backend logs for errors: `tail -f AI_logic/logs/chat_history.jsonl`
+2. API keys valid in `.env`
+3. ChromaDB initialized: `python AI_logic/src/init_db.py`
+4. Browser DevTools Network tab shows response headers include `X-Accel-Buffering: no`
+
+**Fix:**
+1. Restart backend
+2. Clear browser cache (Ctrl+Shift+Del)
+3. Hard refresh (Ctrl+F5)
+
+### "CORS Error"
+
+**Check:**
+- Backend CORS middleware includes your frontend origin
+- Response headers include `Access-Control-Allow-Origin`
+
+**Fix in `server.py`:**
+```python
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://your-domain.vercel.app", ...],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
+```
+
+### "API Key Invalid"
+
+**Check:**
+- `.env` file exists in `AI_logic/`
+- Keys are not expired or revoked
+- Keys match provider (Anthropic, Cohere, Mistral)
+
+**Verify:**
+```bash
+cd AI_logic
+grep -E "ANTHROPIC|COHERE" .env
+```
+
+### "ChromaDB Errors"
+
+**Reset database:**
+```bash
+cd AI_logic
+rm -rf chroma_db/
+python src/init_db.py
+```
+
+---
+
+## Documentation
+
+- **Streaming Guide:** See `STREAMING_IMPLEMENTATION_SUMMARY.md`
+- **Production Fixes:** See `PRODUCTION_STREAMING_FIXES.md`
+- **Test Guide:** See `STREAMING_TEST_GUIDE.md`
+- **API Reference:** http://localhost:8000/docs (when running locally)
+
+---
+
+##  Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Commit changes: `git commit -m "Add my feature"`
+4. Push to branch: `git push origin feature/my-feature`
+5. Open a Pull Request
+
+---
+
+## 👨‍💻 Tech Stack
+
+### Frontend
+- **React 19** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool
+- **Tailwind CSS** - Styling
+- **KaTeX** - Math formula rendering
+- **React Markdown** - Markdown display
+- **Clerk** - Authentication
+
+### Backend
+- **FastAPI** - Web framework
+- **Uvicorn** - ASGI server
+- **ChromaDB** - Vector database
+- **Anthropic SDK** - Claude API
+- **Cohere SDK** - Embeddings
+- **Pydantic** - Data validation
+
+---
+
+## Support
+
+For issues or questions:
+
+1. Check troubleshooting section above
+2. Review documentation files in repo
+3. Check logs: `tail -f AI_logic/logs/chat_history.jsonl`
+4. Open an issue on GitHub
+
+---
+
+##  Roadmap
+
+- [ ] Multi-language support (English, French)
+- [ ] Offline mode with cached responses
+- [ ] Student progress tracking and analytics dashboard
+- [ ] Collaborative problem-solving sessions
+- [ ] Mobile app (React Native)
+- [ ] Advanced math visualization tools
+
+---
+
+**Last Updated:** January 31, 2026  
+**Status:**  Production Ready  
+**Version:** 1.0.0

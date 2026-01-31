@@ -79,7 +79,7 @@ def main():
         json.dump(results, f, ensure_ascii=False, indent=2)
 
     console.rule("[bold green]Evaluation Complete[/bold green]")
-    console.print(f"📄 Results saved to: [underline]{output_file}[/underline]")
+    console.print(f"Results saved to: [underline]{output_file}[/underline]")
 
 if __name__ == "__main__":
     main()

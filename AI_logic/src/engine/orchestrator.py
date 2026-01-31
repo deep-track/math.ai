@@ -69,9 +69,7 @@ collection = chroma_client.get_or_create_collection(
     embedding_function=embedding_fn
 )
 
-# ---------------------------------------------------------
 # UNIFIED PROMPT (LOGIC + PEDAGOGY IN ONE)
-# ---------------------------------------------------------
 CLAUDE_TUTOR_PROMPT = """
 Vous êtes "Professeur Bio", un tuteur expert en mathématiques pour le système éducatif du Bénin.
 Votre rôle est d'agir à la fois comme un validateur strict du programme et un pédagogue encourageant.
