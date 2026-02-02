@@ -4,16 +4,16 @@ from dotenv import load_dotenv
 import chromadb
 from chromadb import Documents, EmbeddingFunction, Embeddings
 from mistralai import Mistral
-from anthropic import Anthropic 
+from anthropic import Anthropic
 import cohere
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 
-# IMPORT LOGGER 
+# IMPORT LOGGER
 from src.utils.logger import AgentLogger
 
-# CONFIGURATION 
+# CONFIGURATION
 load_dotenv()
 VERBOSE_MODE = os.getenv("VERBOSE", "True").lower() == "true"
 
@@ -29,7 +29,7 @@ else:
     CHROMA_DB_DIR = os.path.join(BASE_DIR, "chroma_db")
     print(f"[CONFIG] Using local disk: {CHROMA_DB_DIR}")
 
-# INITIALIZE LOGGER 
+# INITIALIZE LOGGER
 logger = AgentLogger(verbose=VERBOSE_MODE)
 
 # 2. Initialize Clients
@@ -50,6 +50,7 @@ if not cohere_api_key:
     raise ValueError("COHERE_API_KEY is missing in .env file")
 co_client = cohere.Client(api_key=cohere_api_key)
 
+
 # COHERE EMBEDDING FUNCTION
 class CohereEmbeddingFunction(EmbeddingFunction):
     def __init__(self, client):
@@ -57,11 +58,10 @@ class CohereEmbeddingFunction(EmbeddingFunction):
 
     def __call__(self, input: Documents) -> Embeddings:
         response = self.client.embed(
-            texts=input,
-            model="embed-multilingual-v3.0",
-            input_type="search_query" 
+            texts=input, model="embed-multilingual-v3.0", input_type="search_query"
         )
         return response.embeddings
+
 
 # 3. Initialize Database
 print(f"Connecting to Database at: {CHROMA_DB_DIR}...")
@@ -71,12 +71,11 @@ chroma_client = chromadb.PersistentClient(path=CHROMA_DB_DIR)
 
 embedding_fn = CohereEmbeddingFunction(co_client)
 collection = chroma_client.get_or_create_collection(
-    name="math_curriculum_benin", 
-    embedding_function=embedding_fn
+    name="math_curriculum_benin", embedding_function=embedding_fn
 )
 
-# PROMPT TEMPLATES 
-# Prompt 1: For Claude 
+# PROMPT TEMPLATES
+# Prompt 1: For Claude
 CLAUDE_REASONING_PROMPT = """
 Vous êtes un validateur de curriculum strict et un moteur de logique mathématique pour le système éducatif du Bénin.
 Soyez concis mais minutieux. Concentrez-vous sur l'exactitude et la valeur pédagogique.
@@ -88,6 +87,14 @@ Contexte de la base de données (Curriculum):
 {context_str}
 
 ### INSTRUCTIONS:
+
+ÉTAPE 0: VALIDATION DU NIVEAU ET DU CONTEXTE (STRICT)
+- Analyse de pertinence: Le [Contexte du Curriculum] fourni contient-il la méthodologie spécifique pour répondre 
+  à la question au niveau scolaire approprié (Collège/Lycée) ?
+- La Règle "Anti-Université": Si le contexte provient de sources universitaires avancées (ex: Rombaldi, Analyse 
+  Complexe, Agrégation) alors que la question est de niveau secondaire, vous DEVEZ considérer cela comme une absence de contexte pertinent.
+- Décision Critique: Si le contexte est absent, non pertinent, ou d'un niveau trop élevé, répondez EXACTEMENT par : 
+  "STATUT: HORS_DU_PROGRAMME". Arrêtez tout traitement immédiatement.
 
 ÉTAPE 1: VALIDATION DU CURRICULUM (CRITIQUE)
 - **Analyser le contexte:** La question de l'utilisateur s'aligne-t-elle *strictement* avec le contexte fourni?
@@ -213,55 +220,52 @@ RÈGLES IMPORTANTES:
 
 **Question actuelle de l'étudiant:** {question}
 """
+
+
 def search_curriculum(query):
     """
     Action: Searches the vector database for relevant content.
     Returns: Tuple (formatted_context_string, list_of_source_dicts)
     """
     logger.log_step("Action", f"Searching ChromaDB (via Cohere) for: '{query}'")
-    
-    results = collection.query(
-        query_texts=[query],
-        n_results=5
-    )
-    
-    documents = results['documents'][0]
-    metadatas = results['metadatas'][0]
-    
+
+    results = collection.query(query_texts=[query], n_results=5)
+
+    documents = results["documents"][0]
+    metadatas = results["metadatas"][0]
+
     context_text = ""
     sources = []  # NEW: List to store structured source info
-    
+
     for i, doc in enumerate(documents):
         meta = metadatas[i]
-        source = meta.get('source', 'Unknown')
-        page = meta.get('page', '?')
-        
+        source = meta.get("source", "Unknown")
+        page = meta.get("page", "?")
+
         # Build context string for the AI
         context_text += f"\n--- Source: {source} (Page {page}) ---\n{doc}\n"
-        
+
         # Build structured data for the User
-        sources.append({
-            "text": doc,
-            "source": source,
-            "page": page
-        })
-    
+        sources.append({"text": doc, "source": source, "page": page})
+
     return context_text, sources
 
-#  MAIN ORCHESTRATOR LOOP 
+
+#  MAIN ORCHESTRATOR LOOP
+
 
 def ask_math_ai(question: str, history: str = ""):
     logger.log_step("Thought", f"Processing new user question: {question}")
     execution_steps = []
-    
+
     # STEP 1: RETRIEVAL (Cohere + Chroma)
     thought_1 = "Retrieving official curriculum data..."
     logger.log_step("Thought", thought_1)
     execution_steps.append({"type": "thought", "content": thought_1})
-    
+
     # NEW: Unpack both context and sources
     context_observation, sources = search_curriculum(question)
-    
+
     # FALLBACK MODE: If no curriculum context found, use general knowledge
     if not context_observation.strip():
         obs_text = "Database returned empty results. Using general knowledge mode."
@@ -285,16 +289,13 @@ def ask_math_ai(question: str, history: str = ""):
             prompt_content = CLAUDE_FALLBACK_PROMPT.format(question=question)
         else:
             prompt_content = CLAUDE_REASONING_PROMPT.format(
-                context_str=context_observation, 
-                question=question
+                context_str=context_observation, question=question
             )
-        
+
         claude_response = claude_client.messages.create(
-            model="claude-sonnet-4-5", 
+            model="claude-sonnet-4-5",
             max_tokens=4096,
-            messages=[
-                {"role": "user", "content": prompt_content}
-            ]
+            messages=[{"role": "user", "content": prompt_content}],
         )
         math_logic = claude_response.content[0].text
         logger.log_step("Action", "Claude has generated the logic.")
@@ -306,34 +307,32 @@ def ask_math_ai(question: str, history: str = ""):
     # STEP 3: COMMUNICATION (Mistral Large)
     thought_3 = "Synthesizing final english response with Mistral..."
     logger.log_step("Thought", thought_3)
-    
+
     final_prompt = MISTRAL_PEDAGOGY_PROMPT.format(
         context_str=context_observation,
         reasoning=math_logic,
-        question=f"History: {history}\n\nCurrent Question: {question}"
+        question=f"History: {history}\n\nCurrent Question: {question}",
     )
-    
+
     try:
         chat_response = mistral_client.chat.complete(
             model="mistral-large-latest",
             max_tokens=4096,
-            messages=[
-                {"role": "user", "content": final_prompt}
-            ]
+            messages=[{"role": "user", "content": final_prompt}],
         )
-        
+
         answer = chat_response.choices[0].message.content
-        
+
         # SAVE LOG (JSONL)
         logger.save_request(
             prompt=question,
             model="hybrid-claude-mistral",
             steps=execution_steps,
             final_answer=answer,
-            verifier_result="Passed", 
-            confidence=0.98 
+            verifier_result="Passed",
+            confidence=0.98,
         )
-        
+
         # Return in AcademicResponse format for the API
         # IMPORTANT: Return FULL answer, not truncated
         return {
@@ -343,11 +342,11 @@ def ask_math_ai(question: str, history: str = ""):
                 {
                     "title": "Solution",
                     "explanation": answer,  # Full answer, NOT truncated
-                    "equations": None
+                    "equations": None,
                 }
             ],
             "conclusion": "Solution provided above",  # Brief conclusion, don't truncate answer
-            "sources": sources
+            "sources": sources,
         }
 
     except Exception as e:
@@ -360,43 +359,45 @@ def ask_math_ai(question: str, history: str = ""):
                 {
                     "title": "Erreur de Système",
                     "explanation": error_msg,
-                    "equations": None
+                    "equations": None,
                 }
             ],
             "conclusion": None,
-            "sources": []
+            "sources": [],
         }
 
 
-# CLI DISPLAY 
+# CLI DISPLAY
 console = Console()
 
 if __name__ == "__main__":
     # Test Question
     user_query = "Qu'est-ce qu'un espace vectoriel ?"
-    
+
     # Get structured response
     result = ask_math_ai(user_query)
-    
+
     print("\n")
     # Access the 'answer' key for Markdown display
     formatted_response = Markdown(result["answer"])
-    
-    console.print(Panel(
-        formatted_response,
-        title="RÉPONSE DU MENTOR (Math.AI)",
-        subtitle="Reasoning: Claude Sonnet 4.5 | Responder: Mistral Large",
-        border_style="green",
-        expand=False
-    ))
+
+    console.print(
+        Panel(
+            formatted_response,
+            title="RÉPONSE DU MENTOR (Math.AI)",
+            subtitle="Reasoning: Claude Sonnet 4.5 | Responder: Mistral Large",
+            border_style="green",
+            expand=False,
+        )
+    )
 
     # NEW: Display Sources in CLI
     if result["sources"]:
-        print("\n" + "-"*50)
+        print("\n" + "-" * 50)
         console.print("[bold blue] SOURCES DU PROGRAMME OFFICIEL :[/bold blue]")
         for i, src in enumerate(result["sources"]):
             console.print(f"[cyan]{i+1}. {src['source']}[/cyan] (Page {src['page']})")
             # Optional: Print snippet
             # console.print(f"   \"{src['text'][:100]}...\"\n")
-    
-    print("\n" + "="*50)
+
+    print("\n" + "=" * 50)
