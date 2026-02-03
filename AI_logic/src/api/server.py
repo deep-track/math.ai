@@ -29,23 +29,35 @@ app = FastAPI(
 )
 
 # 3. CORS Configuration - Allow frontend to communicate
+# Load allowed origins from environment to support multiple deployments
+DEFAULT_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:5175",
+    "http://127.0.0.1:3000",
+    "http://192.168.0.101:5173",
+    "http://192.168.0.101:5174",
+    "http://192.168.0.101:5175",
+    "http://192.168.0.101:3000",
+    "https://deep-track-mathai.vercel.app",
+    "https://www.mathai.fr",
+]
+
+# Allow overriding via environment variable FRONTEND_ORIGINS (comma separated)
+env_origins = os.getenv("FRONTEND_ORIGINS")
+if env_origins:
+    # split and strip whitespace
+    origins = [o.strip() for o in env_origins.split(",") if o.strip()]
+else:
+    origins = DEFAULT_ORIGINS
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",      # Vite dev server
-        "http://localhost:5174",      # Vite dev server (alt port)
-        "http://localhost:5175",      # Vite dev server (alt port)
-        "http://localhost:3000",      # Alternative dev port
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-        "http://127.0.0.1:5175",
-        "http://127.0.0.1:3000",
-        "http://192.168.0.101:5173",  # Local network IP
-        "http://192.168.0.101:5174",  # Local network IP (alt port)
-        "http://192.168.0.101:5175",  # Local network IP (alt port)
-        "http://192.168.0.101:3000",  # Local network IP alt port
-        "https://deep-track-mathai.vercel.app",  # Vercel production 
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
     allow_headers=["*"],
