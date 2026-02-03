@@ -258,6 +258,118 @@ async def ask_stream_endpoint(request: QuestionRequest):
         }
     )
 
+# --- Simple credits storage and endpoints ---
+STORAGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+if not os.path.exists(STORAGE_DIR):
+    os.makedirs(STORAGE_DIR, exist_ok=True)
+
+CREDITS_FILE = os.path.join(STORAGE_DIR, "credits.json")
+DEFAULT_CREDITS = 100
+
+# Simple JSON helpers
+from threading import Lock
+_storage_lock = Lock()
+
+def _load_json(path, default):
+    try:
+        if not os.path.exists(path):
+            return default
+        with open(path, "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    except Exception:
+        return default
+
+
+def _save_json(path, data):
+    with _storage_lock:
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(data, fh, indent=2, default=str)
+
+
+def get_credits_record(user_id: str):
+    records = _load_json(CREDITS_FILE, {})
+    today = datetime.utcnow().date().isoformat()
+    rec = records.get(user_id)
+    if not rec or rec.get('lastReset') < today:
+        rec = {'remaining': DEFAULT_CREDITS, 'lastReset': today}
+        records[user_id] = rec
+        _save_json(CREDITS_FILE, records)
+    return rec
+
+
+def spend_credit_record(user_id: str):
+    records = _load_json(CREDITS_FILE, {})
+    rec = records.get(user_id) or {'remaining': DEFAULT_CREDITS, 'lastReset': datetime.utcnow().date().isoformat()}
+    if rec.get('remaining', 0) <= 0:
+        return None
+    rec['remaining'] = rec.get('remaining', 0) - 1
+    records[user_id] = rec
+    _save_json(CREDITS_FILE, records)
+    return rec
+
+
+def reset_all_credits():
+    today = datetime.utcnow().date().isoformat()
+    records = _load_json(CREDITS_FILE, {})
+    for uid in list(records.keys()):
+        records[uid] = {'remaining': DEFAULT_CREDITS, 'lastReset': today}
+    _save_json(CREDITS_FILE, records)
+    return records
+
+
+# Async wrappers
+import asyncio
+
+async def _get_credits_record_async(user_id: str):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, get_credits_record, user_id)
+
+
+async def _spend_credit_record_async(user_id: str):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, spend_credit_record, user_id)
+
+
+@api_router.get("/credits/{user_id}")
+async def api_get_credits(user_id: str):
+    rec = await _get_credits_record_async(user_id)
+    return {"user_id": user_id, "remaining": rec["remaining"], "lastReset": rec["lastReset"]}
+
+
+@api_router.post("/credits/{user_id}/spend")
+async def api_spend_credit(user_id: str):
+    rec = await _spend_credit_record_async(user_id)
+    if rec is None:
+        raise HTTPException(status_code=402, detail="No credits remaining")
+    return {"user_id": user_id, "remaining": rec["remaining"]}
+
+# Midnight reset background task (Europe/Paris when available)
+from datetime import timedelta
+try:
+    from zoneinfo import ZoneInfo
+    PARIS_TZ = ZoneInfo('Europe/Paris')
+except Exception:
+    from datetime import timezone
+    PARIS_TZ = timezone(timedelta(hours=1))
+    print("[CREDITS] zoneinfo not available; falling back to fixed CET (UTC+1). Install tzdata for DST-aware behavior.")
+
+async def _midnight_reset_loop():
+    while True:
+        now = datetime.now(tz=PARIS_TZ)
+        tomorrow = (now + timedelta(days=1)).date()
+        midnight = datetime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 0, 0, tzinfo=PARIS_TZ)
+        seconds = (midnight - now).total_seconds() + 1
+        print(f"[CREDITS] Sleeping {int(seconds)}s until next Paris midnight reset (next at {midnight.isoformat()})")
+        await asyncio.sleep(seconds)
+        try:
+            await asyncio.get_running_loop().run_in_executor(None, reset_all_credits)
+            print("[CREDITS] Reset all credits to default at Paris midnight (Europe/Paris)")
+        except Exception as e:
+            print("[CREDITS] Error resetting credits:", e)
+
+# Start background reset loop
+asyncio.create_task(_midnight_reset_loop())
+
 # 6. Health check endpoint
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
