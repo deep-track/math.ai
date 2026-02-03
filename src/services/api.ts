@@ -17,7 +17,7 @@ export async function* solveProblemStream(problem: Problem & any, signal?: Abort
     const headers: Record<string,string> = { 'Content-Type': 'application/json' };
     if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
 
-    const response = await fetch(`${API_BASE_URL}/ask-stream`, {
+    const response = await fetch(`${API_BASE_URL}/api/ask-stream`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -162,7 +162,7 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
   try {
     console.log('📤 Sending problem to backend:', problem.content);
 
-    const response = await fetch(`${API_BASE_URL}/ask`, {
+    const response = await fetch(`${API_BASE_URL}/api/ask`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -217,7 +217,7 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
  */
 export async function getConversationHistory(conversationId: string, userId: string = 'guest') {
   try {
-    const res = await fetch(`${API_BASE_URL}/conversations/${userId}/${conversationId}`);
+    const res = await fetch(`${API_BASE_URL}/api/conversations/${userId}/${conversationId}`);
     if (!res.ok) return { messages: [], id: conversationId };
     const conv = await res.json();
     return { messages: conv.messages || [], id: conversationId };
@@ -233,7 +233,7 @@ export async function getConversationHistory(conversationId: string, userId: str
 export async function getConversations(userId: string = 'guest') {
   try {
     // Try backend first
-    const res = await fetch(`${API_BASE_URL}/conversations/${userId}`);
+    const res = await fetch(`${API_BASE_URL}/api/conversations/${userId}`);
     if (res.ok) {
       const conversations = await res.json();
       return conversations.sort((a: any, b: any) => (a.updatedAt || a.createdAt) < (b.updatedAt || b.createdAt) ? 1 : -1);
@@ -261,7 +261,7 @@ export async function getConversations(userId: string = 'guest') {
 export async function createConversation(title: string = 'Chat', userId: string = 'guest') {
   try {
     // Try backend first
-    const res = await fetch(`${API_BASE_URL}/conversations/${userId}`, {
+    const res = await fetch(`${API_BASE_URL}/api/conversations/${userId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title }),
@@ -306,7 +306,7 @@ export async function updateConversation(conversationId: string, userId: string 
     if (messages !== undefined) payload.messages = messages;
     if (title !== undefined) payload.title = title;
 
-    const res = await fetch(`${API_BASE_URL}/conversations/${userId}/${conversationId}`, {
+    const res = await fetch(`${API_BASE_URL}/api/conversations/${userId}/${conversationId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -376,7 +376,7 @@ export async function trackAnalyticsEvent(event: AnalyticsEvent): Promise<Analyt
  */
 export async function deleteConversation(conversationId: string, userId: string = 'guest') {
   try {
-    const res = await fetch(`${API_BASE_URL}/conversations/${userId}/${conversationId}`, { method: 'DELETE' });
+    const res = await fetch(`${API_BASE_URL}/api/conversations/${userId}/${conversationId}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete');
     return { success: true };
   } catch (error) {
@@ -392,7 +392,7 @@ export async function getCredits(userId: string = 'guest', sessionToken?: string
   try {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
-    const res = await fetch(`${API_BASE_URL}/credits/${userId}`, { headers });
+    const res = await fetch(`${API_BASE_URL}/api/credits/${userId}`, { headers });
     if (!res.ok) return { remaining: null };
     return await res.json();
   } catch (error) {
@@ -406,7 +406,7 @@ export async function spendCredits(userId: string = 'guest', sessionToken?: stri
   try {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
-    const res = await fetch(`${API_BASE_URL}/credits/${userId}/spend`, { method: 'POST', headers });
+    const res = await fetch(`${API_BASE_URL}/api/credits/${userId}/spend`, { method: 'POST', headers });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || 'Failed to spend credit');

@@ -73,6 +73,7 @@ wheels/
 
 # Python virtual env in AI_logic
 AI_logic/.venv/
+AI_logic/.render-venv/
 
 # OS
 .DS_Store
