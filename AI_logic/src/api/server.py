@@ -32,16 +32,6 @@ app = FastAPI(
 from fastapi import APIRouter
 api_router = APIRouter(prefix="/api")
 
-# Add CORS middleware to the API router as well
-api_router.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-)
-
 # 3. CORS Configuration - Allow frontend to communicate
 # During local development relax CORS to avoid preflight blocking. In production set stricter origins.
 app.add_middleware(
