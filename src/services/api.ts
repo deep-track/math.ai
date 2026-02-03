@@ -10,15 +10,20 @@ API_BASE_URL = API_BASE_URL.replace(/\/$/, '');
  * Solve a math problem using streaming - shows text word-by-word
  * Returns stream of Solution chunks that can be rendered progressively
  */
-export async function* solveProblemStream(problem: Problem): AsyncGenerator<Solution, void, unknown> {
+export async function* solveProblemStream(problem: Problem, sessionToken?: string): AsyncGenerator<Solution, void, unknown> {
   try {
     console.log('📤 Sending problem to backend (STREAM):', problem.content);
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (sessionToken) {
+      headers['Authorization'] = `Bearer ${sessionToken}`;
+    }
+
     const response = await fetch(`${API_BASE_URL}/ask-stream`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
         text: problem.content,
         user_id: 'guest',
@@ -41,6 +46,7 @@ export async function* solveProblemStream(problem: Problem): AsyncGenerator<Solu
     let fullContent = '';
     let sources: any[] = [];
     let solutionId = `solution-${Date.now()}`;
+    let chargedRemaining: number | undefined = undefined;
 
     console.log('🟢 Stream started - reading chunks');
 
@@ -122,11 +128,20 @@ export async function* solveProblemStream(problem: Problem): AsyncGenerator<Solu
                 timestamp: Date.now(),
                 content: fullContent,
                 sources: sources,
+                chargedRemaining: chargedRemaining,
               };
               
               yield solution;
               
+            } else if (data.charged || data.remaining !== undefined) {
+              // Server-side charge info
+              chargedRemaining = data.remaining ?? chargedRemaining;
+              console.log('💳 Server-side charged, remaining:', chargedRemaining);
+              
             } else if (data.error) {
+              if (data.error && data.error.toLowerCase().includes('no credits')) {
+                throw new Error('No credits remaining');
+              }
               throw new Error(data.error || 'Stream error');
             }
           } catch (parseError) {

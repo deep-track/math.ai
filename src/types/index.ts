@@ -28,6 +28,7 @@ export interface Solution {
   timestamp: number;
   content?: string; // Full markdown content for rendering
   sources?: Source[]; // Source references from curriculum
+  chargedRemaining?: number; // Optional - server-side charged remaining credits
 }
 
 export interface Problem {

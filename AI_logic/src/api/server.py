@@ -8,12 +8,16 @@ Run with: uvicorn src.api.server:app --reload --port 8000
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Request
 from pydantic import BaseModel, Field
 from typing import Optional, List
 import sys
 import os
 import json
 from datetime import datetime
+
+# Create an API router for grouped endpoints (e.g., credits)
+api_router = APIRouter(prefix="/api")
 
 # 1. Add project root to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -197,7 +201,7 @@ async def ask_endpoint(request: QuestionRequest):
 
 # 6b. Streaming endpoint - Ask a question with streaming response
 @app.post("/ask-stream")
-async def ask_stream_endpoint(request: QuestionRequest):
+async def ask_stream_endpoint(request: QuestionRequest, http_req: Request):
     """Streaming endpoint - SSE format"""
     
     print(f"\n[STREAM] Question: {request.text}")
@@ -238,6 +242,36 @@ async def ask_stream_endpoint(request: QuestionRequest):
                 except json.JSONDecodeError:
                     continue
             
+            # After successful stream, attempt server-side charge if a session header exists
+            try:
+                session_header = http_req.headers.get('x-session-id') or http_req.headers.get('authorization')
+                if session_header:
+                    # Extract token if Bearer
+                    if session_header.lower().startswith('bearer '):
+                        session_token = session_header.split(' ', 1)[1]
+                    else:
+                        session_token = session_header
+
+                    user_id = request.user_id or 'guest'
+                    # Attempt to spend a credit on behalf of the user
+                    rec = None
+                    try:
+                        rec = asyncio.get_event_loop().run_until_complete(_spend_credit_record_async(user_id))
+                    except Exception:
+                        # Fallback to synchronous helper
+                        rec = spend_credit_record(user_id)
+
+                    if rec is None:
+                        # Inform client that there were no credits
+                        yield f"data: {json.dumps({'error': 'No credits remaining'})}\n\n"
+                        print(f"[CREDITS] No credits remaining for user: {user_id}")
+                    else:
+                        # Inform client of remaining credits so UI can be updated
+                        yield f"data: {json.dumps({'charged': True, 'remaining': rec['remaining']})}\n\n"
+                        print(f"[CREDITS] Charged user {user_id}, remaining={rec['remaining']}")
+            except Exception as e:
+                print(f"[CREDITS] Server-side charge failed: {e}")
+
             # Send done
             yield f"data: {json.dumps({'done': True})}\n\n"
             print(f"✅ Complete - {chunk_count} chunks")
@@ -367,8 +401,8 @@ async def _midnight_reset_loop():
         except Exception as e:
             print("[CREDITS] Error resetting credits:", e)
 
-# Start background reset loop
-asyncio.create_task(_midnight_reset_loop())
+# Start background reset loop on startup (avoid creating tasks at import time)
+# The task will be scheduled from the startup event below.
 
 # 6. Health check endpoint
 @app.get("/health", response_model=HealthResponse)
@@ -422,6 +456,16 @@ async def startup_event():
     print("   http://localhost:8000/redoc")
     print("\nReady to process questions!")
     print("="*60 + "\n")
+
+    # Start midnight reset background task
+    try:
+        asyncio.create_task(_midnight_reset_loop())
+    except Exception as e:
+        print('[CREDITS] Failed to start midnight reset task:', e)
+
+# Include API router for grouped endpoints
+app.include_router(api_router)
+
 
 # Shutdown event
 @app.on_event("shutdown")

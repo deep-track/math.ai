@@ -32,7 +32,7 @@ const ChatMessage = () => {
 
   const handleSubmitProblem = useCallback(
     async (problemText: string) => {
-      console.debug('[ChatMessage] handleSubmitProblem called', { problemText, conversationId, creditsRemaining });
+      console.debug('[ChatMessage] handleSubmitProblem called', { problemText });
       if (!problemText.trim()) return;
 
       setError(null);
@@ -82,7 +82,17 @@ const ChatMessage = () => {
         // Stream the response
         let lastResponseTime = startTime;
 
-        for await (const solution of solveProblemStream(problem)) {
+        // Try to obtain a session token if user is logged in
+        let sessionToken: string | undefined = undefined;
+        try {
+          if (user && (user as any).getToken) {
+            sessionToken = await (user as any).getToken();
+          }
+        } catch (tokErr) {
+          console.debug('[ChatMessage] Failed to get session token - proceeding as guest', tokErr);
+        }
+
+        for await (const solution of solveProblemStream(problem, sessionToken)) {
           lastResponseTime = Date.now();
 
           // Update the assistant message with streaming content
@@ -102,6 +112,13 @@ const ChatMessage = () => {
                 : msg
             )
           );
+
+          // If server-side charged info is present, notify other components
+          if ((solution as any).chargedRemaining !== undefined) {
+            const remaining = (solution as any).chargedRemaining as number;
+            console.debug('[ChatMessage] Server-side charged remaining:', remaining);
+            window.dispatchEvent(new CustomEvent('creditsUpdated', { detail: { remaining } }));
+          }
 
           // Scroll to bottom on each chunk
           setTimeout(() => {
