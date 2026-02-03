@@ -71,6 +71,9 @@ wheels/
 .env
 .env.local
 
+# Python virtual env in AI_logic
+AI_logic/.venv/
+
 # OS
 .DS_Store
 Thumbs.db
