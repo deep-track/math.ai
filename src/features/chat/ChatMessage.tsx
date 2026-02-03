@@ -32,6 +32,7 @@ const ChatMessage = () => {
 
   const handleSubmitProblem = useCallback(
     async (problemText: string) => {
+      console.debug('[ChatMessage] handleSubmitProblem called', { problemText, conversationId, creditsRemaining });
       if (!problemText.trim()) return;
 
       setError(null);
