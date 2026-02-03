@@ -203,20 +203,21 @@ async def ask_stream_endpoint(request: QuestionRequest, http_req: Request):
                 try:
                     chunk_obj = json.loads(line)
                     chunk_type = chunk_obj.get("type", "")
-                    
+
                     if chunk_type == "chunk":
                         text = chunk_obj.get("text", "")
                         if text:
                             chunk_count += 1
-                            # Send as SSE
+                            # Send as SSE - frontend expects {token: text}
                             yield f"data: {json.dumps({'token': text})}\n\n"
                             print(f"→ Chunk {chunk_count}: {text[:30]}")
-                    
+
                     elif chunk_type == "start":
-                        # Send metadata
+                        # Send metadata - frontend expects {metadata: chunk_obj}
                         yield f"data: {json.dumps({'metadata': chunk_obj})}\n\n"
-                    
+
                     elif chunk_type == "end":
+                        # Send conclusion - frontend expects {conclusion: text}
                         yield f"data: {json.dumps({'conclusion': chunk_obj.get('conclusion', '')})}\n\n"
                     
                 except json.JSONDecodeError:

@@ -272,8 +272,7 @@ def ask_math_ai(question: str, history: str = ""):
         
         # Single API Call
         claude_response = claude_client.messages.create(
-            # Using the new model ID as requested
-            model="claude-sonnet-4-5", 
+            model="claude-3-5-sonnet-20241022",
             max_tokens=2048,
             messages=[
                 {"role": "user", "content": final_system_prompt}
@@ -379,7 +378,7 @@ def ask_math_ai_stream(question: str, history: str = ""):
         # Streaming API Call with yield
         full_response = ""
         with claude_client.messages.stream(
-            model="claude-sonnet-4-5",
+            model="claude-3-5-sonnet-20241022",
             max_tokens=2048,
             messages=[
                 {"role": "user", "content": final_system_prompt}
