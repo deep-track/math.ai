@@ -28,6 +28,8 @@ export interface Solution {
   timestamp: number;
   content?: string; // Full markdown content for rendering
   sources?: Source[]; // Source references from curriculum
+  // If server performs charge during streaming it will set remaining here
+  chargedRemaining?: number;
 }
 
 export interface Problem {

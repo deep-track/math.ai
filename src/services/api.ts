@@ -10,19 +10,22 @@ API_BASE_URL = API_BASE_URL.replace(/\/$/, '');
  * Solve a math problem using streaming - shows text word-by-word
  * Returns stream of Solution chunks that can be rendered progressively
  */
-export async function* solveProblemStream(problem: Problem): AsyncGenerator<Solution, void, unknown> {
+export async function* solveProblemStream(problem: Problem & any, signal?: AbortSignal, sessionToken?: string): AsyncGenerator<Solution, void, unknown> {
   try {
     console.log('📤 Sending problem to backend (STREAM):', problem.content);
 
+    const headers: Record<string,string> = { 'Content-Type': 'application/json' };
+    if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
+
     const response = await fetch(`${API_BASE_URL}/ask-stream`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
         text: problem.content,
-        user_id: 'guest',
+        user_id: (problem as any).userId || 'guest',
+        session_id: sessionToken || ''
       }),
+      signal,
     });
 
     if (!response.ok) {
@@ -41,6 +44,7 @@ export async function* solveProblemStream(problem: Problem): AsyncGenerator<Solu
     let fullContent = '';
     let sources: any[] = [];
     let solutionId = `solution-${Date.now()}`;
+    let serverChargedRemaining: number | undefined = undefined;
 
     console.log('🟢 Stream started - reading chunks');
 
@@ -107,12 +111,17 @@ export async function* solveProblemStream(problem: Problem): AsyncGenerator<Solu
               // Conclusion received
               console.log('🏁 Received conclusion');
               
+            } else if (data.charged) {
+              // Server-side charge happened; capture remaining credits
+              console.log('💶 Server-side charge detected, remaining:', data.remaining);
+              serverChargedRemaining = data.remaining;
+
             } else if (data.done) {
               // Stream finished
               console.log('✅ Stream done signal received');
               
               // Yield final solution
-              const solution: Solution = {
+              const solution: Solution & any = {
                 id: solutionId,
                 steps: [],
                 finalAnswer: fullContent,
@@ -123,7 +132,8 @@ export async function* solveProblemStream(problem: Problem): AsyncGenerator<Solu
                 content: fullContent,
                 sources: sources,
               };
-              
+              if (typeof serverChargedRemaining === 'number') (solution as any).chargedRemaining = serverChargedRemaining;
+
               yield solution;
               
             } else if (data.error) {
@@ -159,7 +169,7 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
       },
       body: JSON.stringify({
         text: problem.content,
-        user_id: 'guest',
+        user_id: (problem as any).userId || 'guest',
       }),
     });
 
@@ -205,9 +215,12 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
 /**
  * Get conversation history for the current user
  */
-export async function getConversationHistory(conversationId: string) {
+export async function getConversationHistory(conversationId: string, userId: string = 'guest') {
   try {
-    return { messages: [], id: conversationId };
+    const res = await fetch(`${API_BASE_URL}/conversations/${userId}/${conversationId}`);
+    if (!res.ok) return { messages: [], id: conversationId };
+    const conv = await res.json();
+    return { messages: conv.messages || [], id: conversationId };
   } catch (error) {
     console.error('Failed to fetch conversation:', error);
     return { messages: [], id: conversationId };
@@ -217,9 +230,25 @@ export async function getConversationHistory(conversationId: string) {
 /**
  * Get all conversations for the current user
  */
-export async function getConversations() {
+export async function getConversations(userId: string = 'guest') {
   try {
-    return [];
+    // Try backend first
+    const res = await fetch(`${API_BASE_URL}/conversations/${userId}`);
+    if (res.ok) {
+      const conversations = await res.json();
+      return conversations.sort((a: any, b: any) => (a.updatedAt || a.createdAt) < (b.updatedAt || b.createdAt) ? 1 : -1);
+    }
+  } catch (error) {
+    console.warn('Failed to fetch conversations from backend:', error);
+  }
+  
+  // Fallback to localStorage
+  try {
+    const key = `conversations_${userId || 'guest'}`;
+    const raw = localStorage.getItem(key);
+    if (!raw) return [];
+    const conversations = JSON.parse(raw) as any[];
+    return conversations.sort((a, b) => (a.updatedAt || a.createdAt) < (b.updatedAt || b.createdAt) ? 1 : -1);
   } catch (error) {
     console.error('Failed to fetch conversations:', error);
     return [];
@@ -229,22 +258,84 @@ export async function getConversations() {
 /**
  * Create a new conversation
  */
-export async function createConversation(title: string) {
+export async function createConversation(title: string = 'Chat', userId: string = 'guest') {
   try {
-    return {
-      success: true,
-      id: `conv-${Date.now()}`,
-      title: title,
-      createdAt: new Date().toISOString(),
-    };
+    // Try backend first
+    const res = await fetch(`${API_BASE_URL}/conversations/${userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title }),
+    });
+    if (res.ok) {
+      return await res.json();
+    }
   } catch (error) {
-    console.error('Failed to create conversation:', error);
-    return {
-      success: false,
-      id: '',
-      title: '',
-      createdAt: '',
-    };
+    console.warn('Failed to create conversation on backend:', error);
+  }
+
+  // Fallback: create locally
+  const conv = {
+    success: true,
+    id: `conv-${Date.now()}`,
+    title: title,
+    createdAt: new Date().toISOString(),
+    messages: [],
+  };
+  
+  // Save to localStorage as backup
+  try {
+    const key = `conversations_${userId || 'guest'}`;
+    const raw = localStorage.getItem(key);
+    const conversations = raw ? JSON.parse(raw) : [];
+    conversations.push(conv);
+    localStorage.setItem(key, JSON.stringify(conversations));
+  } catch (e) {
+    console.warn('Failed to save conversation to localStorage:', e);
+  }
+  
+  return conv;
+}
+
+/**
+ * Update an existing conversation with new messages
+ */
+export async function updateConversation(conversationId: string, userId: string = 'guest', messages: any[] = [], title?: string) {
+  try {
+    // Try backend first - send messages and/or title (API accepts optional title)
+    const payload: any = {};
+    if (messages !== undefined) payload.messages = messages;
+    if (title !== undefined) payload.title = title;
+
+    const res = await fetch(`${API_BASE_URL}/conversations/${userId}/${conversationId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      return { success: true };
+    }
+  } catch (error) {
+    console.warn('Failed to update conversation on backend:', error);
+  }
+
+  // Fallback: save to localStorage
+  try {
+    const key = `conversations_${userId || 'guest'}`;
+    const raw = localStorage.getItem(key);
+    const conversations = raw ? JSON.parse(raw) : [];
+
+    const index = conversations.findIndex((c: any) => c.id === conversationId);
+    if (index >= 0) {
+      if (messages !== undefined) conversations[index].messages = messages;
+      if (title !== undefined) conversations[index].title = title;
+      conversations[index].updatedAt = new Date().toISOString();
+    }
+    
+    localStorage.setItem(key, JSON.stringify(conversations));
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update conversation:', error);
+    return { success: false };
   }
 }
 
@@ -283,13 +374,47 @@ export async function trackAnalyticsEvent(event: AnalyticsEvent): Promise<Analyt
 /**
  * Delete a conversation
  */
-export async function deleteConversation(conversationId: string) {
+export async function deleteConversation(conversationId: string, userId: string = 'guest') {
   try {
-    console.log('[DELETE CONVERSATION]', conversationId);
+    const res = await fetch(`${API_BASE_URL}/conversations/${userId}/${conversationId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete');
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to delete conversation';
     return { success: false, message };
+  }
+}
+
+/**
+ * Credits endpoints (backend)
+ */
+export async function getCredits(userId: string = 'guest', sessionToken?: string) {
+  try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
+    const res = await fetch(`${API_BASE_URL}/credits/${userId}`, { headers });
+    if (!res.ok) return { remaining: null };
+    return await res.json();
+  } catch (error) {
+    console.error('Failed to get credits', error);
+    // Return null to indicate the backend couldn't be reached or verified
+    return { remaining: null };
+  }
+} 
+
+export async function spendCredits(userId: string = 'guest', sessionToken?: string) {
+  try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
+    const res = await fetch(`${API_BASE_URL}/credits/${userId}/spend`, { method: 'POST', headers });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to spend credit');
+    }
+    return await res.json();
+  } catch (error) {
+    console.error('Failed to spend credit', error);
+    throw error;
   }
 }
 

@@ -12,12 +12,16 @@ interface ChatInputProps {
   onSubmit?: (message: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  isStreaming?: boolean;
+  onStop?: () => void;
 }
 
 const ChatInput = ({ 
   onSubmit, 
   disabled = false,
-  placeholder
+  placeholder,
+  isStreaming = false,
+  onStop
 }: ChatInputProps) => {
   const { theme } = useTheme();
   const [message, setMessage] = useState('');
@@ -36,7 +40,8 @@ const ChatInput = ({
   };
 
   const handleSubmit = () => {
-    if (message.trim() && !disabled) {
+    console.debug('[ChatInput] handleSubmit called, message:', message, 'disabled:', disabled, 'isStreaming:', isStreaming);
+    if (message.trim() && !disabled && !isStreaming) {
       onSubmit?.(message.trim());
       setMessage('');
       if (textareaRef.current) {
@@ -46,9 +51,18 @@ const ChatInput = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && e.ctrlKey) {
-      handleSubmit();
+    console.debug('[ChatInput] keydown:', e.key, e.code, 'shift:', e.shiftKey);
+    // Don't send while streaming
+    if (isStreaming) {
       e.preventDefault();
+      return;
+    }
+
+    // Press Enter to send, Shift+Enter for newline
+    if ((e.key === 'Enter' || e.code === 'Enter') && !e.shiftKey) {
+      // Prevent default first then call submit asynchronously to avoid any focus issues
+      e.preventDefault();
+      setTimeout(() => handleSubmit(), 0);
     }
   };
 
@@ -65,6 +79,7 @@ const ChatInput = ({
     >
       <TextareaAutosize
         ref={textareaRef}
+        autoFocus
         minRows={1}
         maxRows={6}
         value={message}
@@ -131,25 +146,35 @@ const ChatInput = ({
             <img src={downArrow} className="h-3 w-3" />
           </button>
 
-          <button 
-            onClick={handleSubmit}
-            disabled={isEmpty || disabled}
-            className={`flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95 ${
-              isEmpty || disabled
-                ? theme === 'dark'
-                  ? 'bg-gray-700 cursor-not-allowed opacity-50'
-                  : 'bg-gray-300 cursor-not-allowed opacity-50'
-                : 'bg-gradient-to-r from-[#008751] to-[#00b876] hover:shadow-lg'
-            }`}
-            title="Send message (Ctrl+Enter)"
-          >
-            <img 
-              src={arrowIcon} 
-              className={`h-4 w-4 transition-all ${
-                isEmpty || disabled ? 'opacity-60' : 'brightness-0 invert'
-              }`} 
-            />
-          </button>
+          {isStreaming ? (
+            <button
+              onClick={onStop}
+              className="flex h-8 items-center px-3 rounded-md bg-red-500 text-white hover:bg-red-600 transition-all duration-200"
+              title="Stop generation"
+            >
+              Stop
+            </button>
+          ) : (
+            <button 
+              onClick={handleSubmit}
+              disabled={isEmpty || disabled}
+              className={`flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95 ${
+                isEmpty || disabled
+                  ? theme === 'dark'
+                    ? 'bg-gray-700 cursor-not-allowed opacity-50'
+                    : 'bg-gray-300 cursor-not-allowed opacity-50'
+                  : 'bg-gradient-to-r from-[#008751] to-[#00b876] hover:shadow-lg'
+              }`}
+              title="Send message (Enter)"
+            >
+              <img 
+                src={arrowIcon} 
+                className={`h-4 w-4 transition-all ${
+                  isEmpty || disabled ? 'opacity-60' : 'brightness-0 invert'
+                }`} 
+              />
+            </button>
+          )} 
         </div>
       </div>
     </div>
