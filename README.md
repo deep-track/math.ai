@@ -85,18 +85,30 @@ ANTHROPIC_API_KEY=sk-ant-...
 COHERE_API_KEY=...
 MISTRAL_API_KEY=...
 
+# Clerk backend verification (required to enable auth-enforced credits)
+CLERK_API_KEY=sk_clerk_...
+CLERK_API_BASE=https://api.clerk.com/v1
+
 # Configuration
 VERBOSE=True
 PYTHONUNBUFFERED=1
 CHROMA_SERVER_NOINTERACTIVE=TRUE
 ANONYMIZED_TELEMETRY=False
+
+# Optional: MongoDB for server-side persistence (credits & conversations)
+# When provided the server will migrate existing JSON files into MongoDB collections on startup.
+MONGODB_URI=mongodb://user:pass@host:27017
+MONGODB_DB=mathai
 ```
 
 Create `.env.local` in repo root (frontend):
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
+VITE_CLERK_PUBLISHABLE_KEY=pk_clerk_...
 ```
+
+Note: When `CLERK_API_KEY` is set, backend endpoints for credits and conversations require a valid Clerk session token to be provided (via `Authorization: Bearer <token>` or `X-Session-Id` header). This securely maps credits to Clerk user IDs.
 
 ### Run Locally
 

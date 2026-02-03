@@ -297,6 +297,8 @@ The frontend expects the backend API to provide:
 4. **GET /api/conversations**
    - Response: Array of conversation objects
 
+Note: The backend supports optional MongoDB persistence. When `MONGODB_URI` is provided the server will migrate existing JSON-based credits and conversations into MongoDB on startup and use Mongo collections (credits, conversations) for all operations. Ensure `MONGODB_URI` and `MONGODB_DB` are set in the `.env` for production usage.
+
 5. **POST /api/conversations**
    - Request: `{ title: string }`
    - Response: Conversation object

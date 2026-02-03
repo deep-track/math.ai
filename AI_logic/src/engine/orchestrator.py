@@ -1,10 +1,23 @@
 import os
 import json
 from dotenv import load_dotenv
-import chromadb
-from chromadb import Documents, EmbeddingFunction, Embeddings
+try:
+    import chromadb
+    from chromadb import Documents, EmbeddingFunction, Embeddings
+    CHROMADB_AVAILABLE = True
+except Exception as e:
+    print("[WARN] chromadb not available:", e)
+    chromadb = None
+    CHROMADB_AVAILABLE = False
+
 from anthropic import Anthropic 
-import cohere
+try:
+    import cohere
+    COHERE_AVAILABLE = True
+except Exception as e:
+    print("[WARN] cohere not available or incompatible:", e)
+    cohere = None
+    COHERE_AVAILABLE = False
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
@@ -36,38 +49,68 @@ logger = AgentLogger(verbose=VERBOSE_MODE)
 # A. Claude (The Unified Agent)
 anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 if not anthropic_api_key:
-    print("WARNING: ANTHROPIC_API_KEY not found. Ensure it is in your .env")
-claude_client = Anthropic(api_key=anthropic_api_key)
+    print("WARNING: ANTHROPIC_API_KEY not found. Claude/Anthropic features will be disabled.")
+    claude_client = None
+else:
+    try:
+        claude_client = Anthropic(api_key=anthropic_api_key)
+    except Exception as e:
+        print("[WARN] Failed to initialize Anthropic client:", e)
+        claude_client = None
 
-# B. Cohere (Search)
+# B. Cohere (Search) — optional for local dev
 cohere_api_key = os.getenv("COHERE_API_KEY")
-if not cohere_api_key:
-    raise ValueError("COHERE_API_KEY is missing in .env file")
-co_client = cohere.Client(api_key=cohere_api_key)
+if not COHERE_AVAILABLE:
+    co_client = None
+    print("WARNING: Cohere library unavailable; Cohere-dependent search will be disabled.")
+elif not cohere_api_key:
+    print("WARNING: COHERE_API_KEY not found. Cohere-dependent search will be disabled.")
+    co_client = None
+else:
+    co_client = cohere.Client(api_key=cohere_api_key)
 
 # COHERE EMBEDDING FUNCTION
-class CohereEmbeddingFunction(EmbeddingFunction):
-    def __init__(self, client):
-        self.client = client
+if CHROMADB_AVAILABLE:
+    class CohereEmbeddingFunction(EmbeddingFunction):
+        def __init__(self, client):
+            self.client = client
 
-    def __call__(self, input: Documents) -> Embeddings:
-        response = self.client.embed(
-            texts=input,
-            model="embed-multilingual-v3.0",
-            input_type="search_query" 
-        )
-        return response.embeddings
+        def __call__(self, input: Documents) -> Embeddings:
+            if not self.client:
+                # Return dummy zero embeddings if Cohere not available
+                return [[0.0] for _ in input]
+            response = self.client.embed(
+                texts=input,
+                model="embed-multilingual-v3.0",
+                input_type="search_query" 
+            )
+            return response.embeddings
+else:
+    # Minimal fallback for when chromadb is not installed
+    class CohereEmbeddingFunction:
+        def __init__(self, client):
+            self.client = client
+
+        def __call__(self, input):
+            return [[0.0] for _ in input]
 
 # 3. Initialize Database
 print(f"Connecting to Database at: {CHROMA_DB_DIR}...")
-chroma_client = chromadb.PersistentClient(path=CHROMA_DB_DIR)
-
-# Connect to the collection using Cohere
-embedding_fn = CohereEmbeddingFunction(co_client)
-collection = chroma_client.get_or_create_collection(
-    name="math_curriculum_benin", 
-    embedding_function=embedding_fn
-)
+if CHROMADB_AVAILABLE and co_client is not None:
+    try:
+        chroma_client = chromadb.PersistentClient(path=CHROMA_DB_DIR)
+        # Connect to the collection using Cohere
+        embedding_fn = CohereEmbeddingFunction(co_client)
+        collection = chroma_client.get_or_create_collection(
+            name="math_curriculum_benin", 
+            embedding_function=embedding_fn
+        )
+    except Exception as e:
+        print("[WARN] Failed to initialize ChromaDB:", e)
+        collection = None
+else:
+    print("[WARN] ChromaDB or Cohere not available — search disabled.")
+    collection = None
 
 # UNIFIED PROMPT (LOGIC + PEDAGOGY IN ONE)
 CLAUDE_TUTOR_PROMPT = """
@@ -182,7 +225,24 @@ def ask_math_ai(question: str, history: str = ""):
     execution_steps.append({"type": "thought", "content": thought_1})
     
     context_observation, sources = search_curriculum(question)
-    
+
+    # If the Anthropic client is not configured, return a helpful error response
+    if claude_client is None:
+        logger.log_step("Error", "Anthropic client not configured")
+        return {
+            "partie": "Erreur",
+            "problemStatement": question,
+            "steps": [
+                {
+                    "title": "Model Unavailable",
+                    "explanation": "Anthropic/Claude client is not configured. Set ANTHROPIC_API_KEY to enable model responses.",
+                    "equations": None
+                }
+            ],
+            "conclusion": None,
+            "sources": []
+        }
+
     # Check if context was found
     use_fallback = False
     if not context_observation.strip():
@@ -282,7 +342,13 @@ def ask_math_ai_stream(question: str, history: str = ""):
     execution_steps.append({"type": "thought", "content": thought_1})
     
     context_observation, sources = search_curriculum(question)
-    
+
+    # If Anthropic client not configured, yield an error chunk and finish
+    if claude_client is None:
+        logger.log_step("Error", "Anthropic client not configured (streaming)")
+        yield json.dumps({"type": "error", "error": "Anthropic/Claude client not configured. Set ANTHROPIC_API_KEY to enable model responses."}) + "\n"
+        return
+
     # Check if context was found
     use_fallback = False
     if not context_observation.strip():
