@@ -353,7 +353,7 @@ CREDITS_FILE = os.path.join(STORAGE_DIR, "credits.json")
 CONVERSATIONS_FILE = os.path.join(STORAGE_DIR, "conversations.json")
 DEFAULT_CREDITS = 100
 
-# MongoDB support (optional)
+# MongoDB support (optional) with SSL/TLS certificate handling
 MONGODB_URI = os.environ.get('MONGODB_URI')
 MONGODB_DB = os.environ.get('MONGODB_DB', 'mathai')
 USE_MONGO = bool(MONGODB_URI)
@@ -362,12 +362,26 @@ if USE_MONGO:
     try:
         from motor.motor_asyncio import AsyncIOMotorClient
         from pymongo import ReturnDocument
-        mongo_client = AsyncIOMotorClient(MONGODB_URI)
+        import certifi
+        
+        # Add SSL certificate verification using certifi
+        # This fixes "SSL: TLSV1_ALERT_INTERNAL_ERROR" on Windows/macOS
+        mongo_client = AsyncIOMotorClient(
+            MONGODB_URI,
+            tlsCAFile=certifi.where(),  # Use certifi's CA bundle for SSL verification
+            serverSelectionTimeoutMS=5000  # Timeout after 5 seconds if unreachable
+        )
         mongo_db = mongo_client[MONGODB_DB]
         credits_coll = mongo_db['credits']
         conversations_coll = mongo_db['conversations']
+        print('[MONGO] MongoDB client initialized with SSL/TLS certificate verification')
+    except ImportError:
+        print('[MONGO] certifi not installed. Run: pip install certifi')
+        print('[MONGO] Falling back to file-based storage')
+        USE_MONGO = False
     except Exception as e:
-        print('[MONGO] Failed to initialize MongoDB client:', e)
+        print(f'[MONGO] Failed to initialize MongoDB client: {e}')
+        print('[MONGO] Using file-based storage as fallback')
         USE_MONGO = False
 
 from threading import Lock
