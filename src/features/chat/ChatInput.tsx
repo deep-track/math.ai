@@ -103,7 +103,7 @@ const ChatInput = ({
         value={message}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        placeholder={placeholder || "Ask a question about an image or math problem..."}
+        placeholder={placeholder || "Posez une question sur une image ou un problème de mathématiques..."}
         disabled={disabled}
         className={`w-full resize-none bg-transparent text-sm outline-none transition-colors ${
           theme === 'dark'
