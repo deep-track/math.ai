@@ -44,7 +44,7 @@ const CreditsBadge: React.FC<{ userId?: string }> = ({ userId }) => {
 
       {/* Desktop / larger screens */}
       <div className="hidden md:flex items-baseline gap-2">
-        <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Credits</span>
+        <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">crédits</span>
         <span className={`text-2xl font-bold ${remaining === null ? 'text-gray-500' : remaining > 0 ? 'text-blue-600' : 'text-red-500'}`}>{remaining === null ? '—' : remaining}</span>
       </div>
 
