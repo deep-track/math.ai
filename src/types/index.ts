@@ -1,6 +1,6 @@
 // Solution and Problem types
 export type ConfidenceLevel = 'high' | 'medium' | 'low';
-export type ResponseStatus = 'ok' | 'tutor' | 'refusal';
+export type ResponseStatus = 'ok' | 'tutor' | 'refusal' | 'streaming';
 export type FeedbackType = 'helpful' | 'incorrect';
 
 export interface Step {
@@ -28,6 +28,8 @@ export interface Solution {
   timestamp: number;
   content?: string; // Full markdown content for rendering
   sources?: Source[]; // Source references from curriculum
+  // If server performs charge during streaming it will set remaining here
+  chargedRemaining?: number;
 }
 
 export interface Problem {
