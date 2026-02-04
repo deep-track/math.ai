@@ -217,9 +217,37 @@ def search_curriculum(query):
 
 #  MAIN ORCHESTRATOR LOOP 
 
-def ask_math_ai(question: str, history: str = ""):
+def ask_math_ai(question: str, history: str = "", attachment=None):
     logger.log_step("Thought", f"Processing new user question: {question}")
     execution_steps = []
+    if attachment:
+        response = claude_client.messages.create(
+            model="claude-sonnet-4-5",
+            max_tokens=1024,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": attachment.get('type'),
+                                "data": attachment.get('image'),
+                            },
+                        },
+                        {
+                            "type": "text",
+                            "text": "Extract all information on the image. DO NOT ATTEMPT IF ITS A QUESTION. ONLY RETURN THE EXTRACTED CONTENT> NOTHING ELSE."
+                        }
+                    ],
+                }
+            ],
+        )
+
+        img_ctx = response.content[0].text
+        question = question + img_ctx  
+        print(question)
     
     # STEP 1: RETRIEVAL (Cohere + Chroma)
     thought_1 = "Retrieving official curriculum data..."
@@ -327,7 +355,7 @@ def ask_math_ai(question: str, history: str = ""):
 
 
 # STREAMING VERSION FOR API
-def ask_math_ai_stream(question: str, history: str = ""):
+def ask_math_ai_stream(question: str, history: str = "", attachment=None):
     """
     Streaming version of ask_math_ai that yields text chunks.
     Used by FastAPI to stream responses to the frontend.
@@ -336,6 +364,36 @@ def ask_math_ai_stream(question: str, history: str = ""):
     """
     logger.log_step("Thought", f"Processing new user question (STREAM): {question}")
     execution_steps = []
+    
+    # Handle image attachment if provided
+    if attachment:
+        response = claude_client.messages.create(
+            model="claude-sonnet-4-5",
+            max_tokens=1024,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": attachment.get('type'),
+                                "data": attachment.get('image'),
+                            },
+                        },
+                        {
+                            "type": "text",
+                            "text": "Extract all information on the image. DO NOT ATTEMPT IF ITS A QUESTION. ONLY RETURN THE EXTRACTED CONTENT> NOTHING ELSE."
+                        }
+                    ],
+                }
+            ],
+        )
+
+        img_ctx = response.content[0].text
+        question = question + " " + img_ctx  
+        logger.log_step("Observation", f"Image processed, enhanced question: {question[:100]}...")
     
     # STEP 1: RETRIEVAL (Cohere + Chroma)
     thought_1 = "Retrieving official curriculum data..."

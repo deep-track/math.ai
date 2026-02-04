@@ -28,10 +28,13 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
 
   // Fetch conversations when component mounts or user changes
   useEffect(() => {
+    // Only fetch if we have a user and are not in a render cycle
+    if (!user?.id) return;
+
     const fetchConversations = async () => {
       try {
         setLoading(true);
-        const convs = (await getConversations(user?.id || 'guest')) || [];
+        const convs = (await getConversations()) || [];
         // ensure sorted newest -> oldest
         convs.sort((a: any, b: any) => (a.updatedAt || a.createdAt) < (b.updatedAt || b.createdAt) ? 1 : -1);
         setConversations(convs);
@@ -43,7 +46,9 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
       }
     };
 
-    fetchConversations();
+    // Use setTimeout to defer the API call until after render
+    const timeoutId = setTimeout(fetchConversations, 0);
+    return () => clearTimeout(timeoutId);
 
     const handler = () => fetchConversations();
     window.addEventListener('conversationUpdated', handler);
@@ -58,9 +63,9 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
 
   const handleDeleteConversation = async (id: string) => {
     try {
-      await deleteConversation(id, user?.id || 'guest');
+      await deleteConversation(id);
       // Refresh list
-      const convs = await getConversations(user?.id || 'guest');
+      const convs = await getConversations();
       setConversations(convs);
       window.dispatchEvent(new CustomEvent('conversationUpdated'));
     } catch (err) {

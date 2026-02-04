@@ -37,6 +37,7 @@ export interface Problem {
   content: string;
   submittedAt: number;
   sourceLanguage?: 'en' | 'fr';
+  image?: File; // Optional image attachment
 }
 
 export interface ChatMessage {

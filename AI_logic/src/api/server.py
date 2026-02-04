@@ -5,7 +5,7 @@ This server connects the AI logic (orchestrator.py) to the React frontend.
 Run with: uvicorn src.api.server:app --reload --port 8000
 """
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
@@ -20,6 +20,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 # 2. Import the AI orchestrator
 from src.engine.orchestrator import ask_math_ai, ask_math_ai_stream
+from src.utils.process_uploads import process_uploaded_image
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -130,11 +131,14 @@ app.add_middleware(
         "http://localhost:5173",
         "http://localhost:5174",
         "http://localhost:5175",
+        "http://localhost:5176",
         "http://localhost:3000",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
         "http://127.0.0.1:5175",
-        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3000",      
+        "http://127.0.0.1:5176",
+
         # Local network
         "http://192.168.0.101:5173",
         "http://192.168.0.101:5174",
@@ -197,7 +201,10 @@ async def test_endpoint():
 
 # 6. Main endpoint - Ask a question
 @api_router.post("/ask", response_model=AcademicResponseModel)
-async def ask_endpoint(request: QuestionRequest):
+async def ask_endpoint(
+    text : str = Form(...),
+    image : UploadFile = File(None)
+):
     """
     Main endpoint for solving math problems.
     
@@ -205,7 +212,8 @@ async def ask_endpoint(request: QuestionRequest):
     the AI orchestrator, and returns a structured academic response.
     
     Args:
-        request: QuestionRequest containing the math problem
+        text: The math question
+        image: Optional uploaded image file
         
     Returns:
         AcademicResponseModel with structured solution
@@ -214,17 +222,23 @@ async def ask_endpoint(request: QuestionRequest):
         HTTPException: If processing fails
     """
     try:
+        attachment = None
+        if image:
+            print(f"[INFO] Processing uploaded image: {image.filename}")
+            attachment = await process_uploaded_image(image)
+            print(f"[INFO] Image processed successfully,type: {attachment['type']}")
+
         # Log the incoming request
         print(f"\n{'='*60}")
         print(f"[REQUEST] {datetime.now().isoformat()}")
-        print(f"  User ID: {request.user_id}")
-        print(f"  Session: {request.session_id}")
-        print(f"  Question: {request.text[:100]}...")
+        print(f"  Question: {text[:100]}...")
+        print(f"  Attachment: {attachment is not None}")
         print(f"{'='*60}")
+        
         
         # Call the AI orchestrator - returns AcademicResponse format
         print("[INFO] Calling orchestrator...")
-        result = ask_math_ai(request.text)
+        result = ask_math_ai(text, attachment=attachment)
         print(f"[DEBUG] Result type: {type(result)}")
         print(f"[DEBUG] Result keys: {list(result.keys()) if isinstance(result, dict) else 'N/A'}")
         
@@ -249,7 +263,7 @@ async def ask_endpoint(request: QuestionRequest):
             # Build academic response
             response_data = AcademicResponseModel(
                 partie=result.get('partie', 'Analysis'),
-                problemStatement=result.get('problemStatement', request.text),
+                problemStatement=result.get('problemStatement', text),
                 steps=steps,
                 conclusion=result.get('conclusion')
             )
@@ -268,8 +282,7 @@ async def ask_endpoint(request: QuestionRequest):
         # Log error with traceback
         error_message = str(e)
         print(f"\n[ERROR] {datetime.now().isoformat()}")
-        print(f"  User: {request.user_id}")
-        print(f"  Question: {request.text[:100]}...")
+        print(f"  Question: {text[:100]}...")
         print(f"  Error: {error_message}")
         print(f"{'='*60}\n")
         
@@ -284,25 +297,61 @@ async def ask_endpoint(request: QuestionRequest):
 
 # 6b. Streaming endpoint - Ask a question with streaming response
 @api_router.post("/ask-stream")
-async def ask_stream_endpoint(request: QuestionRequest, http_req: Request):
+async def ask_stream_endpoint(http_req: Request):
     """Streaming endpoint - SSE format
 
+    Accepts both JSON (QuestionRequest) and FormData (text + optional image) formats.
     Accepts optional session headers (X-Session-Id or Authorization: Bearer <token>) and will attempt
     to charge the user's credits on successful completion of the stream. Returns a 'charged' SSE event
     with remaining credits if the server performed the charge.
     """
-    
-    print(f"\n[STREAM] Question: {request.text}")
-    
+
+    # Determine content type
+    content_type = http_req.headers.get("content-type", "").lower()
+
+    question_text = None
+    attachment = None
+
+    if "multipart/form-data" in content_type:
+        # Handle FormData input
+        form = await http_req.form()
+        text = form.get("text")
+        image = form.get("image")
+        if text:
+            question_text = text
+            if image and isinstance(image, UploadFile):
+                print(f"[STREAM] Processing uploaded image: {image.filename}")
+                attachment = await process_uploaded_image(image)
+                print(f"[STREAM] Image processed successfully, type: {attachment['type']}")
+        else:
+            raise HTTPException(status_code=400, detail="FormData must include 'text' field")
+    elif "application/json" in content_type:
+        # Handle JSON input
+        try:
+            json_data = await http_req.json()
+            question_request = QuestionRequest(**json_data)
+            question_text = question_request.text
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid JSON request: {str(e)}")
+    else:
+        raise HTTPException(status_code=400, detail="Content-Type must be multipart/form-data or application/json")
+
+    if not question_text:
+        raise HTTPException(status_code=400, detail="Question text is required")
+
+    print(f"\n[STREAM] Question: {question_text}")
+    if attachment:
+        print(f"[STREAM] With attachment: {attachment['type']}")
+
     def generate():  # NOT async - your orchestrator is sync!
         try:
             # Send connection
             yield ": connected\n\n"
-            
+
             chunk_count = 0
-            
+
             # Get stream from orchestrator (it's a regular generator, not async)
-            for ndjson_line in ask_math_ai_stream(request.text, history=""):
+            for ndjson_line in ask_math_ai_stream(question_text, history="", attachment=attachment):
                 # Parse the NDJSON line
                 line = ndjson_line.strip()
                 if not line:
@@ -342,12 +391,14 @@ async def ask_stream_endpoint(request: QuestionRequest, http_req: Request):
 
                     # Determine verified user id (respect dev bypass)
                     if DEV_SKIP_CLERK_VERIFY:
-                        user_id_verified = request.user_id
+                        # For FormData, user_id comes from the request body or defaults to 'guest'
+                        # For JSON, it comes from request.user_id
+                        user_id_verified = request.user_id if request else 'guest'
                     else:
                         if CLERK_API_KEY:
                             user_id_verified = _verify_clerk_session(session_token)
                         else:
-                            user_id_verified = request.user_id
+                            user_id_verified = request.user_id if request else 'guest'
 
                     if user_id_verified:
                         print(f"[CREDITS] Attempting server-side charge for user: {user_id_verified}")
@@ -444,6 +495,14 @@ if USE_MONGO:
 from threading import Lock
 _storage_lock = Lock()
 
+# Load email whitelist from environment
+WHITELIST_EMAILS = set()
+whitelist_env = os.environ.get('WHITELIST_EMAILS', '')
+if whitelist_env:
+    WHITELIST_EMAILS = set(email.strip().lower() for email in whitelist_env.split(',') if email.strip())
+    print(f'[WHITELIST] Loaded {len(WHITELIST_EMAILS)} whitelisted emails')
+else:
+    print('[WHITELIST] No whitelist configured; all signed-up users will have access')
 
 def _load_json(path, default):
     try:
@@ -656,6 +715,32 @@ async def _migrate_json_to_mongo():
             print('[MONGO] Migrated conversations.json to MongoDB')
     except Exception as e:
         print('[MONGO] Migration error:', e)
+
+
+# API: Whitelist verification endpoint
+class EmailVerifyRequest(BaseModel):
+    email: str = Field(..., description="Email to verify against whitelist")
+
+
+@api_router.post("/verify-whitelist")
+async def verify_whitelist(req: EmailVerifyRequest):
+    """
+    Verify if an email is on the whitelist.
+    Returns {allowed: True} if whitelisted or no whitelist configured,
+    else {allowed: False, reason: '...'}
+    """
+    if not WHITELIST_EMAILS:
+        # No whitelist configured; all users allowed
+        return {"allowed": True}
+    
+    email_lower = req.email.strip().lower()
+    if email_lower in WHITELIST_EMAILS:
+        return {"allowed": True}
+    else:
+        return {
+            "allowed": False,
+            "reason": "Your email is not authorized to access this application. Please contact the administrator."
+        }
 
 
 # API: Credits endpoints (now using async wrappers with error handling)
@@ -890,7 +975,7 @@ async def _start_midnight_task():
 
 
 # 6. Health check endpoint
-@app.get("/health", response_model=HealthResponse)
+@api_router.get("/health", response_model=HealthResponse)
 async def health_check():
     """
     Check if the backend is running and healthy.
@@ -931,26 +1016,32 @@ async def value_error_handler(request, exc):
 @app.on_event("startup")
 async def startup_event():
     """Run on server startup"""
-    print("\n" + "="*60)
-    print("Math.AI Backend Starting...")
-    print("✓ FastAPI server initialized")
-    print("✓ CORS enabled for frontend communication")
-    print("✓ AI orchestrator ready")
-    if USE_MONGO:
-        print("✓ MongoDB enabled")
-        # Ensure indexes for collections
-        try:
-            await credits_coll.create_index("user_id", unique=True)
-            await conversations_coll.create_index([("user_id", 1), ("id", 1)], unique=True)
-            print("[MONGO] Ensured indexes on credits and conversations collections")
-        except Exception as e:
-            print("[MONGO] Index creation failed:", e)
+    try:
+        print("\n" + "="*60)
+        print("Math.AI Backend Starting...")
+        print("✓ FastAPI server initialized")
+        print("✓ CORS enabled for frontend communication")
+        print("✓ AI orchestrator ready")
+        if USE_MONGO:
+            print("✓ MongoDB enabled")
+            # Ensure indexes for collections
+            try:
+                await credits_coll.create_index("user_id", unique=True)
+                await conversations_coll.create_index([("user_id", 1), ("id", 1)], unique=True)
+                print("[MONGO] Ensured indexes on credits and conversations collections")
+            except Exception as e:
+                print("[MONGO] Index creation failed:", e)
 
-    print("\nAPI Documentation available at:")
-    print("   http://localhost:8000/docs")
-    print("   http://localhost:8000/redoc")
-    print("\nReady to process questions!")
-    print("="*60 + "\n")
+        print("\nAPI Documentation available at:")
+        print("   http://localhost:8000/docs")
+        print("   http://localhost:8000/redoc")
+        print("\nReady to process questions!")
+        print("="*60 + "\n")
+    except Exception as e:
+        print(f"[STARTUP ERROR] {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 # Shutdown event
 @app.on_event("shutdown")

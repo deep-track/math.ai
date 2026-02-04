@@ -55,7 +55,7 @@ const ChatMessage = () => {
       const ev = e as CustomEvent;
       const id = ev.detail?.id as string;
       if (!id) return;
-      const hist = await getConversationHistory(id, user?.id || 'guest');
+      const hist = await getConversationHistory(id);
       setConversationId(id);
       setMessages(hist.messages || []);
       setFollowWhileStreaming(false); // user is viewing an older convo - don't auto-follow until they submit
@@ -73,10 +73,10 @@ const ChatMessage = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const conv = await createConversation('Chat', user?.id || 'guest');
+        const conv = await createConversation('Chat');
         setConversationId(conv.id);
         // Load any existing history if available
-        const hist = await getConversationHistory(conv.id, user?.id || 'guest');
+        const hist = await getConversationHistory(conv.id);
         setMessages(hist.messages || []);
       } catch (err) {
         // ignore
@@ -150,7 +150,7 @@ const ChatMessage = () => {
   };
 
   const handleSubmitProblem = useCallback(
-    async (problemText: string) => {
+    async (problemText: string, image?: File) => {
       // Re-enable follow-on-submit (user explicitly asked for new content)
       setFollowWhileStreaming(true); 
       if (!problemText.trim()) return;
@@ -188,7 +188,7 @@ const ChatMessage = () => {
       try {
         // Ensure a conversation exists and capture its id locally
         if (!activeConversationId) {
-          const conv = await createConversation('Chat', user?.id || 'guest');
+          const conv = await createConversation('Chat');
           activeConversationId = conv.id;
           setConversationId(conv.id);
         }
@@ -200,6 +200,7 @@ const ChatMessage = () => {
           submittedAt: Date.now(),
           userId: user?.id || 'guest',
           sessionId: token,
+          image: image,
         };
 
         // Add user message to chat and placeholder assistant message
@@ -266,7 +267,7 @@ const ChatMessage = () => {
         (entryRef as any).current.serverRemaining = undefined; 
 
         try {
-          for await (const solution of solveProblemStream(problem, controller.signal, token)) {
+          for await (const solution of solveProblemStream(problem, controller.signal, token, user?.id || 'guest')) {
             lastResponseTime = Date.now();
 
             // If server reported it charged the user during the stream, update state and mark it
@@ -275,7 +276,8 @@ const ChatMessage = () => {
               (entryRef as any).current.serverRemaining = (solution as any).chargedRemaining;
               try {
                 window.dispatchEvent(new CustomEvent('creditsUpdated', { detail: { userId: user?.id || 'guest', remaining: (solution as any).chargedRemaining } }));
-                setCreditsRemaining((solution as any).chargedRemaining);
+                // Update credits asynchronously to avoid setState during render
+                setTimeout(() => setCreditsRemaining((solution as any).chargedRemaining), 0);
               } catch (e) {
                 // ignore
               }
@@ -300,7 +302,10 @@ const ChatMessage = () => {
                       length: newContent.length,
                       status: solution.status,
                       snippet: newContent.substring(0, 50),
+                      hasContent: !!newContent,
                     });
+                  } else {
+                    console.log('[ChatMessage] No content in solution update:', solution);
                   }
                   
                   return {
@@ -655,6 +660,15 @@ const ChatMessage = () => {
                           : 'bg-green-400 text-gray-900'
                       }`}
                     >
+                      {msg.problem.image && (
+                        <div className="mb-2">
+                          <img
+                            src={URL.createObjectURL(msg.problem.image)}
+                            alt="Uploaded"
+                            className="max-w-full h-auto rounded-md max-h-48 object-contain"
+                          />
+                        </div>
+                      )}
                       <p className="text-sm">{msg.problem.content}</p>
                     </div>
                   </div>
@@ -671,6 +685,7 @@ const ChatMessage = () => {
                   >
                     <SolutionDisplay
                       solution={msg.solution}
+                      response={undefined}
                       confidence={msg.solution.confidence}
                       confidenceLevel={msg.solution.confidenceLevel}
                       solutionId={msg.solution.id}

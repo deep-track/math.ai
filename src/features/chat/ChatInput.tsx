@@ -4,12 +4,11 @@ import arrowIcon from '../../data/icons/fluent-mdl2_up.png';
 import downArrow from '../../data/icons/mingcute_down-line.png';
 import TextareaAutosize from 'react-textarea-autosize';
 import { useTheme } from '../../theme/useTheme';
-import { getTranslation } from '../../utils/translations';
 
 const MAX_CHAR_LIMIT = 5000;
 
 interface ChatInputProps {
-  onSubmit?: (message: string) => void;
+  onSubmit?: (message: string, image?: File) => void;
   disabled?: boolean;
   placeholder?: string;
   isStreaming?: boolean;
@@ -26,7 +25,9 @@ const ChatInput = ({
   const { theme } = useTheme();
   const [message, setMessage] = useState('');
   const [charCount, setCharCount] = useState(0);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setCharCount(message.length);
@@ -40,29 +41,47 @@ const ChatInput = ({
   };
 
   const handleSubmit = () => {
-    console.debug('[ChatInput] handleSubmit called, message:', message, 'disabled:', disabled, 'isStreaming:', isStreaming);
-    if (message.trim() && !disabled && !isStreaming) {
-      onSubmit?.(message.trim());
+    if ((message.trim() || selectedImage) && !disabled) {
+      onSubmit?.(message.trim(), selectedImage || undefined);
       setMessage('');
+      setSelectedImage(null);
       if (textareaRef.current) {
         textareaRef.current.focus();
       }
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    console.debug('[ChatInput] keydown:', e.key, e.code, 'shift:', e.shiftKey);
-    // Don't send while streaming
-    if (isStreaming) {
-      e.preventDefault();
-      return;
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        return;
+      }
+      
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        alert('Image file is too large. Please select an image under 10MB.');
+        return;
+      }
+      
+      setSelectedImage(file);
     }
+  };
 
-    // Press Enter to send, Shift+Enter for newline
-    if ((e.key === 'Enter' || e.code === 'Enter') && !e.shiftKey) {
-      // Prevent default first then call submit asynchronously to avoid any focus issues
+  const removeImage = () => {
+    setSelectedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && e.ctrlKey) {
+      handleSubmit();
       e.preventDefault();
-      setTimeout(() => handleSubmit(), 0);
     }
   };
 
@@ -79,13 +98,12 @@ const ChatInput = ({
     >
       <TextareaAutosize
         ref={textareaRef}
-        autoFocus
         minRows={1}
         maxRows={6}
         value={message}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        placeholder={placeholder || getTranslation('askQuestion')}
+        placeholder={placeholder || "Ask a question about an image or math problem..."}
         disabled={disabled}
         className={`w-full resize-none bg-transparent text-sm outline-none transition-colors ${
           theme === 'dark'
@@ -93,6 +111,39 @@ const ChatInput = ({
             : 'placeholder-[#00000081] text-gray-900'
         } ${disabled ? 'cursor-not-allowed' : ''}`}
       />
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageSelect}
+        className="hidden"
+      />
+
+      {/* Selected image preview */}
+      {selectedImage && (
+        <div className="mt-2 flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+          <img
+            src={URL.createObjectURL(selectedImage)}
+            alt="Selected"
+            className="h-8 w-8 object-cover rounded"
+          />
+          <div className="flex-1 min-w-0">
+            <span className="text-sm text-gray-700 truncate block">{selectedImage.name}</span>
+            <span className="text-xs text-gray-500">
+              {(selectedImage.size / 1024 / 1024).toFixed(2)}MB • Will be analyzed with your question
+            </span>
+          </div>
+          <button
+            onClick={removeImage}
+            className="text-red-500 hover:text-red-700 text-sm ml-2"
+            title="Remove image"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Character count */}
       <div className="mt-2 flex items-center justify-between">
@@ -109,6 +160,22 @@ const ChatInput = ({
           >
             <span className="text-lg font-light text-[#008751]">⌫</span>
           </button>
+          
+          {/* Image Upload Button */}
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className={`flex items-center gap-1 rounded-md px-2 py-1 transition-all duration-200 ${
+              theme === 'dark'
+                ? 'hover:bg-gray-900 text-gray-400 hover:text-gray-200'
+                : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title="Upload image"
+            disabled={disabled}
+          >
+            <span className="text-lg">📷</span>
+            <span className="text-xs hidden sm:inline">Image</span>
+          </button>
+          
           <button 
             className={`flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200 ${
               theme === 'dark'
@@ -146,35 +213,31 @@ const ChatInput = ({
             <img src={downArrow} className="h-3 w-3" />
           </button>
 
-          {isStreaming ? (
-            <button
-              onClick={onStop}
-              className="flex h-8 items-center px-3 rounded-md bg-red-500 text-white hover:bg-red-600 transition-all duration-200"
-              title="Stop generation"
-            >
-              Stop
-            </button>
-          ) : (
-            <button 
-              onClick={handleSubmit}
-              disabled={isEmpty || disabled}
-              className={`flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95 ${
-                isEmpty || disabled
-                  ? theme === 'dark'
-                    ? 'bg-gray-700 cursor-not-allowed opacity-50'
-                    : 'bg-gray-300 cursor-not-allowed opacity-50'
-                  : 'bg-gradient-to-r from-[#008751] to-[#00b876] hover:shadow-lg'
-              }`}
-              title="Send message (Enter)"
-            >
+          <button 
+            onClick={isStreaming ? onStop : handleSubmit}
+            disabled={isStreaming ? false : ((isEmpty && !selectedImage) || disabled)}
+            className={`flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95 ${
+              isStreaming
+                ? 'bg-gradient-to-r from-red-500 to-red-600 hover:shadow-lg'
+                : (isEmpty && !selectedImage) || disabled
+                ? theme === 'dark'
+                  ? 'bg-gray-700 cursor-not-allowed opacity-50'
+                  : 'bg-gray-300 cursor-not-allowed opacity-50'
+                : 'bg-gradient-to-r from-[#008751] to-[#00b876] hover:shadow-lg'
+            }`}
+            title={isStreaming ? "Stop generation" : "Send message (Ctrl+Enter)"}
+          >
+            {isStreaming ? (
+              <span className="text-white text-lg">⏹️</span>
+            ) : (
               <img 
                 src={arrowIcon} 
                 className={`h-4 w-4 transition-all ${
                   isEmpty || disabled ? 'opacity-60' : 'brightness-0 invert'
                 }`} 
               />
-            </button>
-          )} 
+            )}
+          </button>
         </div>
       </div>
     </div>
