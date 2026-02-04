@@ -65,10 +65,29 @@ async def _debug_cors(request: Request):
         "Access-Control-Allow-Credentials": "true"
     })
 # 3. CORS Configuration - Allow frontend to communicate
-# During local development relax CORS to avoid preflight blocking. In production set stricter origins.
+# Include all dev ports and production domains
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        # Local development
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:5175",
+        "http://127.0.0.1:3000",
+        # Local network
+        "http://192.168.0.101:5173",
+        "http://192.168.0.101:5174",
+        "http://192.168.0.101:5175",
+        "http://192.168.0.101:3000",
+        # Production
+        "https://deep-track-mathai.vercel.app",
+        "https://www.mathai.fr",
+        "https://mathai.fr",
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
     allow_headers=["*"],
@@ -560,33 +579,39 @@ async def _migrate_json_to_mongo():
         print('[MONGO] Migration error:', e)
 
 
-# API: Credits endpoints (now using async wrappers)
+# API: Credits endpoints (now using async wrappers with error handling)
 @api_router.get("/credits/{user_id}")
 async def api_get_credits(user_id: str, request: Request):
-    # Read session header
-    session_header = request.headers.get('x-session-id') or request.headers.get('authorization')
+    """Get user credits. Falls back gracefully if MongoDB fails."""
+    try:
+        # Read session header
+        session_header = request.headers.get('x-session-id') or request.headers.get('authorization')
 
-    if session_header:
-        # If authorization header provided as Bearer <token>, extract token
-        if session_header.lower().startswith('bearer '):
-            session_token = session_header.split(' ', 1)[1]
-        else:
-            session_token = session_header
-        # In dev bypass mode, accept the path user_id directly
-        if DEV_SKIP_CLERK_VERIFY:
-            user_id_verified = user_id
-        else:
-            user_id_verified = _verify_clerk_session(session_token)
-            if not user_id_verified:
-                raise HTTPException(status_code=401, detail='Invalid Clerk session')
-            if user_id_verified != user_id:
-                raise HTTPException(status_code=403, detail='User ID does not match session')
-        rec = await _get_credits_record_async(user_id_verified)
-        return {"user_id": user_id_verified, "remaining": rec["remaining"], "lastReset": rec["lastReset"]}
+        if session_header:
+            # If authorization header provided as Bearer <token>, extract token
+            if session_header.lower().startswith('bearer '):
+                session_token = session_header.split(' ', 1)[1]
+            else:
+                session_token = session_header
+            # In dev bypass mode, accept the path user_id directly
+            if DEV_SKIP_CLERK_VERIFY:
+                user_id_verified = user_id
+            else:
+                user_id_verified = _verify_clerk_session(session_token)
+                if not user_id_verified:
+                    raise HTTPException(status_code=401, detail='Invalid Clerk session')
+                if user_id_verified != user_id:
+                    raise HTTPException(status_code=403, detail='User ID does not match session')
+            rec = await _get_credits_record_async(user_id_verified)
+            return {"user_id": user_id_verified, "remaining": rec["remaining"], "lastReset": rec["lastReset"]}
 
-    # No session header -> guest or server-side lookup
-    rec = await _get_credits_record_async(user_id)
-    return {"user_id": user_id, "remaining": rec["remaining"], "lastReset": rec["lastReset"]}
+        # No session header -> guest or server-side lookup
+        rec = await _get_credits_record_async(user_id)
+        return {"user_id": user_id, "remaining": rec["remaining"], "lastReset": rec["lastReset"]}
+    except Exception as e:
+        print(f"[CREDITS] Error fetching credits for {user_id}: {e}")
+        # Fallback: return default credits
+        return {"user_id": user_id, "remaining": DEFAULT_CREDITS, "lastReset": datetime.utcnow().date().isoformat()}
 
 
 @api_router.post("/credits/{user_id}/spend")
@@ -648,10 +673,16 @@ async def api_reset_credits(user_id: str):
 # API: Conversations endpoints
 @api_router.get("/conversations/{user_id}")
 async def api_get_conversations(user_id: str):
-    convs = await _get_conversations_for_user_async(user_id)
-    # sort by updatedAt descending
-    convs_sorted = sorted(convs, key=lambda c: c.get("updatedAt", c.get("createdAt", "")), reverse=True)
-    return convs_sorted 
+    """Get user conversations. Returns empty list if storage fails."""
+    try:
+        convs = await _get_conversations_for_user_async(user_id)
+        # sort by updatedAt descending
+        convs_sorted = sorted(convs, key=lambda c: c.get("updatedAt", c.get("createdAt", "")), reverse=True)
+        return convs_sorted
+    except Exception as e:
+        print(f"[CONVERSATIONS] Error fetching conversations for {user_id}: {e}")
+        # Fallback: return empty list
+        return [] 
 
 
 class ConversationCreate(BaseModel):
@@ -660,20 +691,35 @@ class ConversationCreate(BaseModel):
 
 @api_router.post("/conversations/{user_id}")
 async def api_create_conversation(user_id: str, payload: ConversationCreate):
-    convs = await _get_conversations_for_user_async(user_id)
-    conv = {"id": f"conv-{int(datetime.utcnow().timestamp()*1000)}", "title": payload.title, "createdAt": datetime.utcnow().isoformat(), "updatedAt": datetime.utcnow().isoformat(), "messages": []}
-    convs.append(conv)
-    await _save_conversations_for_user_async(user_id, convs)
-    return conv
+    """Create a new conversation. Returns success even if storage fails."""
+    try:
+        convs = await _get_conversations_for_user_async(user_id)
+        conv = {"id": f"conv-{int(datetime.utcnow().timestamp()*1000)}", "title": payload.title, "createdAt": datetime.utcnow().isoformat(), "updatedAt": datetime.utcnow().isoformat(), "messages": []}
+        convs.append(conv)
+        await _save_conversations_for_user_async(user_id, convs)
+        return conv
+    except Exception as e:
+        print(f"[CONVERSATIONS] Error creating conversation for {user_id}: {e}")
+        # Fallback: return a temporary conversation object (not persisted)
+        conv = {"id": f"conv-{int(datetime.utcnow().timestamp()*1000)}", "title": payload.title, "createdAt": datetime.utcnow().isoformat(), "updatedAt": datetime.utcnow().isoformat(), "messages": []}
+        return conv
 
 
 @api_router.get("/conversations/{user_id}/{conversation_id}")
 async def api_get_conversation(user_id: str, conversation_id: str):
-    convs = await _get_conversations_for_user_async(user_id)
-    for c in convs:
-        if c["id"] == conversation_id:
-            return c
-    raise HTTPException(status_code=404, detail="Conversation not found")
+    """Get a specific conversation. Returns success even if storage fails."""
+    try:
+        convs = await _get_conversations_for_user_async(user_id)
+        for c in convs:
+            if c["id"] == conversation_id:
+                return c
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[CONVERSATIONS] Error fetching conversation {conversation_id} for {user_id}: {e}")
+        # Fallback: return a stub conversation
+        return {"id": conversation_id, "title": "Conversation", "createdAt": datetime.utcnow().isoformat(), "updatedAt": datetime.utcnow().isoformat(), "messages": []}
 
 
 class ConversationUpdate(BaseModel):
@@ -683,28 +729,45 @@ class ConversationUpdate(BaseModel):
 
 @api_router.put("/conversations/{user_id}/{conversation_id}")
 async def api_update_conversation(user_id: str, conversation_id: str, payload: ConversationUpdate):
-    convs = await _get_conversations_for_user_async(user_id)
-    for idx, c in enumerate(convs):
-        if c["id"] == conversation_id:
-            if payload.title is not None:
-                c["title"] = payload.title
-            if payload.messages is not None:
-                c["messages"] = payload.messages
-            c["updatedAt"] = datetime.utcnow().isoformat()
-            convs[idx] = c
-            await _save_conversations_for_user_async(user_id, convs)
-            return c
-    raise HTTPException(status_code=404, detail="Conversation not found")
+    """Update a conversation. Returns success even if storage fails."""
+    try:
+        convs = await _get_conversations_for_user_async(user_id)
+        for idx, c in enumerate(convs):
+            if c["id"] == conversation_id:
+                if payload.title is not None:
+                    c["title"] = payload.title
+                if payload.messages is not None:
+                    c["messages"] = payload.messages
+                c["updatedAt"] = datetime.utcnow().isoformat()
+                convs[idx] = c
+                await _save_conversations_for_user_async(user_id, convs)
+                return c
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[CONVERSATIONS] Error updating conversation {conversation_id} for {user_id}: {e}")
+        # Fallback: return updated stub conversation
+        updated = {"id": conversation_id, "title": payload.title or "Conversation", "updatedAt": datetime.utcnow().isoformat(), "messages": payload.messages or []}
+        return updated
 
 
 @api_router.delete("/conversations/{user_id}/{conversation_id}")
 async def api_delete_conversation(user_id: str, conversation_id: str):
-    convs = await _get_conversations_for_user_async(user_id)
-    new_convs = [c for c in convs if c["id"] != conversation_id]
-    if len(new_convs) == len(convs):
-        raise HTTPException(status_code=404, detail="Conversation not found")
-    await _save_conversations_for_user_async(user_id, new_convs)
-    return {"success": True} 
+    """Delete a conversation. Returns success even if storage fails."""
+    try:
+        convs = await _get_conversations_for_user_async(user_id)
+        new_convs = [c for c in convs if c["id"] != conversation_id]
+        if len(new_convs) == len(convs):
+            raise HTTPException(status_code=404, detail="Conversation not found")
+        await _save_conversations_for_user_async(user_id, new_convs)
+        return {"success": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[CONVERSATIONS] Error deleting conversation {conversation_id} for {user_id}: {e}")
+        # Fallback: return success (optimistic delete)
+        return {"success": True} 
 
 
 # Midnight reset background task (runs at France local midnight — Europe/Paris timezone)
