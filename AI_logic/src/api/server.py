@@ -64,6 +64,63 @@ async def _debug_cors(request: Request):
         "Access-Control-Allow-Origin": origin or "*",
         "Access-Control-Allow-Credentials": "true"
     })
+
+
+# Debug endpoint to identify outbound IP for MongoDB whitelisting
+@api_router.get("/debug-ip")
+async def _debug_ip(request: Request):
+    """
+    Identify the outbound IP address that this Render service uses.
+    This is the IP you need to whitelist on MongoDB Atlas.
+    
+    MongoDB Atlas will see connections coming from this IP address.
+    """
+    import socket
+    
+    # Get inbound headers (what the browser/client sees)
+    client_ip = request.client.host if request.client else "unknown"
+    forwarded_for = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+    cf_connecting_ip = request.headers.get("cf-connecting-ip", "")
+    true_client_ip = request.headers.get("true-client-ip", "")
+    
+    # Try to detect outbound IP by attempting DNS resolution
+    outbound_ip_info = {
+        "method": "unknown",
+        "ip": "unknown",
+        "note": "Could not determine outbound IP"
+    }
+    
+    try:
+        # Method 1: Get hostname and resolve to IP (this might be the outbound IP on Render)
+        hostname = socket.gethostname()
+        try:
+            outbound_ip = socket.gethostbyname(hostname)
+            outbound_ip_info = {
+                "method": "hostname_resolution",
+                "ip": outbound_ip,
+                "hostname": hostname,
+                "note": "This is the IP Render uses for outbound connections"
+            }
+        except Exception as e:
+            print(f"[DEBUG-IP] Failed to resolve hostname: {e}")
+    except Exception as e:
+        print(f"[DEBUG-IP] Error getting outbound IP: {e}")
+    
+    return JSONResponse({
+        "inbound": {
+            "client_ip": client_ip,
+            "x_forwarded_for": forwarded_for,
+            "cf_connecting_ip": cf_connecting_ip,
+            "true_client_ip": true_client_ip,
+            "note": "These are IPs from which requests appear to come"
+        },
+        "outbound": outbound_ip_info,
+        "instruction": "Whitelist the 'outbound.ip' on MongoDB Atlas > Network Access > Add IP Address",
+        "all_headers": {k: v for k, v in request.headers.items()}
+    }, headers={
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": "true"
+    })
 # 3. CORS Configuration - Allow frontend to communicate
 # Include all dev ports and production domains
 app.add_middleware(
