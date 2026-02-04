@@ -36,5 +36,6 @@ pymongo==4.9.1
 
 # Timezone data (needed for Europe/Paris midnight scheduling)
 tzdata==2024.1
+python-multipart>=0.0.6
 
 # Note: added by dev to support timezone-aware midnight resets (Europe/Paris)
