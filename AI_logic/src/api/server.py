@@ -609,16 +609,24 @@ async def _get_conversations_for_user_async(user_id: str):
 
 async def _save_conversations_for_user_async(user_id: str, conversations: list):
     if USE_MONGO:
-        # Replace user's conversations (simple approach)
-        # Remove existing for user then insert docs with user_id (drop any existing _id to avoid duplicate key)
-        await conversations_coll.delete_many({'user_id': user_id})
+        # Update each conversation using upsert to avoid duplicate key errors
+        # This prevents E11000 errors when updating existing conversations
         if conversations:
             for c in conversations:
                 c_copy = dict(c)
                 # Remove any pre-existing Mongo _id to avoid duplicate key insert errors
                 c_copy.pop('_id', None)
                 c_copy['user_id'] = user_id
-                await conversations_coll.insert_one(c_copy)
+                # Use update_one with upsert=True to update if exists, insert if new
+                # This prevents duplicate key errors when conversation already exists
+                await conversations_coll.update_one(
+                    {'user_id': user_id, 'id': c_copy.get('id')},  # Match by user_id and conversation id
+                    {'$set': c_copy},  # Update all fields
+                    upsert=True  # Insert if doesn't exist
+                )
+        else:
+            # If no conversations, clear them for this user
+            await conversations_coll.delete_many({'user_id': user_id})
         return
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, _save_conversations_for_user, user_id, conversations)
