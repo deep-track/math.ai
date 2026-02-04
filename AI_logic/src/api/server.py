@@ -7,7 +7,7 @@ Run with: uvicorn src.api.server:app --reload --port 8000
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
 from typing import Optional, List
 import sys
@@ -32,6 +32,38 @@ app = FastAPI(
 from fastapi import APIRouter
 api_router = APIRouter(prefix="/api")
 
+# CORS preflight catch-all for environments that strip middleware headers
+@api_router.options("/{path:path}")
+async def _cors_preflight(path: str, request: Request):
+    """Handle CORS preflight (OPTIONS) requests for any API path.
+
+    Some proxies or hosting layers may not preserve FastAPI's CORS middleware
+    for OPTIONS requests routed to streaming or proxied endpoints. This
+    explicit handler ensures we always return the expected Access-Control
+    headers for the requesting origin.
+    """
+    origin = request.headers.get("origin") or "*"
+    ac_req_headers = request.headers.get("access-control-request-headers", "*")
+    headers = {
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
+        "Access-Control-Allow-Headers": ac_req_headers,
+        "Access-Control-Allow-Credentials": "true",
+    }
+    return Response(status_code=204, headers=headers)
+
+
+# Debug endpoint to inspect incoming Origin and response headers
+@api_router.get("/debug-cors")
+async def _debug_cors(request: Request):
+    origin = request.headers.get("origin")
+    return JSONResponse({
+        "origin": origin,
+        "received_headers": {k: v for k, v in request.headers.items()}
+    }, headers={
+        "Access-Control-Allow-Origin": origin or "*",
+        "Access-Control-Allow-Credentials": "true"
+    })
 # 3. CORS Configuration - Allow frontend to communicate
 # During local development relax CORS to avoid preflight blocking. In production set stricter origins.
 app.add_middleware(

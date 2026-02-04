@@ -58,11 +58,8 @@ const SolutionDisplay: React.FC<SolutionDisplayProps> = ({
   }
 
   if (!content) {
-    return (
-      <div className="w-full p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <p className="text-yellow-800">No solution available</p>
-      </div>
-    );
+    // Intentionally render nothing when no content is available
+    return null;
   }
 
   return (
