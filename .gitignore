@@ -25,7 +25,6 @@ dist-ssr
 
 # Ignore curriculum data folder
 curriculum_data/
-curriculum-data/
 
 # Ignore dist folder
 .dist/

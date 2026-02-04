@@ -5,7 +5,7 @@ This server connects the AI logic (orchestrator.py) to the React frontend.
 Run with: uvicorn src.api.server:app --reload --port 8000
 """
 
-from fastapi import FastAPI, HTTPException, File, UploadFile, Form
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
@@ -13,34 +13,13 @@ from typing import Optional, List
 import sys
 import os
 import json
-from datetime import datetime
-import sentry_sdk
-from dotenv import load_dotenv
-
-load_dotenv()
+from datetime import datetime, timedelta
 
 # 1. Add project root to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 # 2. Import the AI orchestrator
-from src.engine.orchestrator import ask_math_ai
-from src.utils.process_uploads import process_uploaded_image
-
-# Sentry config
-SENTRY_DSN = os.getenv("SENTRY_DSN")
-SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENV", "development")
-SENTRY_DEBUG = os.getenv("SENTRY_DEBUG", "False").lower() == "true"
-SENTRY_ENABLE_LOGS = os.getenv("SENTRY_ENABLE_LOGS", "True").lower() == "true"
-
-# Initialize Sentry 
-sentry_sdk.init(
-    dsn=SENTRY_DSN,
-    debug = SENTRY_DEBUG,
-    environment = SENTRY_ENVIRONMENT,
-    enable_logs = SENTRY_ENABLE_LOGS,
-    send_default_pii = False,
-    traces_sample_rate=1.0,
-    )
+from src.engine.orchestrator import ask_math_ai, ask_math_ai_stream
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -218,10 +197,7 @@ async def test_endpoint():
 
 # 6. Main endpoint - Ask a question
 @api_router.post("/ask", response_model=AcademicResponseModel)
-async def ask_endpoint(
-    text : str = Form(...),
-    image : UploadFile=File(None)
-):
+async def ask_endpoint(request: QuestionRequest):
     """
     Main endpoint for solving math problems.
     
@@ -238,24 +214,17 @@ async def ask_endpoint(
         HTTPException: If processing fails
     """
     try:
-        attachment = None
-        if image:
-            print(f"[INFO] Processing uploaded image: {image.filename}")
-            attachment = await process_uploaded_image(image)
-            print(f"[INFO] Image processed successfully,type: {attachment['type']}")
-
-# Log the incoming request
-        """print(f"\n{'='*60}")
+        # Log the incoming request
+        print(f"\n{'='*60}")
         print(f"[REQUEST] {datetime.now().isoformat()}")
         print(f"  User ID: {request.user_id}")
         print(f"  Session: {request.session_id}")
         print(f"  Question: {request.text[:100]}...")
-        print(f"{'='*60}")"""
-        
+        print(f"{'='*60}")
         
         # Call the AI orchestrator - returns AcademicResponse format
         print("[INFO] Calling orchestrator...")
-        result = ask_math_ai(text, attachment=attachment)
+        result = ask_math_ai(request.text)
         print(f"[DEBUG] Result type: {type(result)}")
         print(f"[DEBUG] Result keys: {list(result.keys()) if isinstance(result, dict) else 'N/A'}")
         
@@ -280,7 +249,7 @@ async def ask_endpoint(
             # Build academic response
             response_data = AcademicResponseModel(
                 partie=result.get('partie', 'Analysis'),
-                problemStatement=result.get('problemStatement', text),
+                problemStatement=result.get('problemStatement', request.text),
                 steps=steps,
                 conclusion=result.get('conclusion')
             )
@@ -299,9 +268,9 @@ async def ask_endpoint(
         # Log error with traceback
         error_message = str(e)
         print(f"\n[ERROR] {datetime.now().isoformat()}")
-        """print(f"  User: {request.user_id}")
+        print(f"  User: {request.user_id}")
         print(f"  Question: {request.text[:100]}...")
-        print(f"  Error: {error_message}")"""
+        print(f"  Error: {error_message}")
         print(f"{'='*60}\n")
         
         import traceback
