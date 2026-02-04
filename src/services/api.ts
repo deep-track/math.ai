@@ -6,173 +6,62 @@ let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 // Remove trailing slash to avoid double slashes in URLs
 API_BASE_URL = API_BASE_URL.replace(/\/$/, '');
 
+// Add /api prefix for backend endpoints
+API_BASE_URL = `${API_BASE_URL}/api`;
+
 /**
- * Solve a math problem using streaming - shows text word-by-word
- * Returns stream of Solution chunks that can be rendered progressively
+ * Check backend health status
  */
-export async function* solveProblemStream(problem: Problem & any, signal?: AbortSignal, sessionToken?: string): AsyncGenerator<Solution, void, unknown> {
+export async function checkBackendHealth() {
   try {
-    console.log('📤 Sending problem to backend (STREAM):', problem.content);
-
-    const headers: Record<string,string> = { 'Content-Type': 'application/json' };
-    if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
-
-    const response = await fetch(`${API_BASE_URL}/api/ask-stream`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        text: problem.content,
-        user_id: (problem as any).userId || 'guest',
-        session_id: sessionToken || ''
-      }),
-      signal,
+    const response = await fetch(`${API_BASE_URL}/health`, {
+      method: 'GET',
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.detail || `API error: ${response.status}`);
+      throw new Error(`Health check failed: ${response.status}`);
     }
 
-    // Read the response as a stream
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error('No response body available');
-    }
-
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let fullContent = '';
-    let sources: any[] = [];
-    let solutionId = `solution-${Date.now()}`;
-    let serverChargedRemaining: number | undefined = undefined;
-
-    console.log('🟢 Stream started - reading chunks');
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
-        console.log('✅ Stream completed - received chunks, fullContent length:', fullContent.length, 'final:', fullContent.substring(0, 100));
-        break;
-      }
-
-      // Add new data to buffer
-      buffer += decoder.decode(value, { stream: true });
-
-      // Split by newlines
-      const lines = buffer.split('\n');
-      
-      // Keep the last incomplete line in buffer
-      buffer = lines.pop() || '';
-
-      // Process complete lines
-      for (const line of lines) {
-        const trimmed = line.trim();
-        
-        // Skip empty lines and keepalive comments
-        if (!trimmed || trimmed.startsWith(':')) {
-          if (trimmed.startsWith(':')) {
-            console.log('💓 Keepalive ping received');
-          }
-          continue;
-        }
-
-        // Parse SSE data lines
-        if (trimmed.startsWith('data: ')) {
-          try {
-            const jsonStr = trimmed.slice(6); // Remove "data: " prefix
-            const data = JSON.parse(jsonStr);
-
-            // Handle different message types
-            if (data.token) {
-              // Text chunk - accumulate and yield
-              fullContent += data.token;
-              console.log('[Stream] Chunk received, token length:', data.token.length, 'total:', fullContent.length, 'snippet:', data.token.substring(0, 30));
-              
-              // Yield solution with accumulated content
-              const solution: Solution = {
-                id: solutionId,
-                steps: [],
-                finalAnswer: fullContent,
-                confidence: 95,
-                confidenceLevel: 'high',
-                status: 'streaming',
-                timestamp: Date.now(),
-                content: fullContent,
-                sources: sources,
-              };
-              
-              yield solution;
-              
-            } else if (data.metadata) {
-              // Initial metadata
-              sources = data.metadata.sources || [];
-              console.log('📋 Received metadata');
-              
-            } else if (data.conclusion) {
-              // Conclusion received
-              console.log('🏁 Received conclusion');
-              
-            } else if (data.charged) {
-              // Server-side charge happened; capture remaining credits
-              console.log('💶 Server-side charge detected, remaining:', data.remaining);
-              serverChargedRemaining = data.remaining;
-
-            } else if (data.done) {
-              // Stream finished
-              console.log('✅ Stream done signal received');
-              
-              // Yield final solution
-              const solution: Solution & any = {
-                id: solutionId,
-                steps: [],
-                finalAnswer: fullContent,
-                confidence: 95,
-                confidenceLevel: 'high',
-                status: 'ok',
-                timestamp: Date.now(),
-                content: fullContent,
-                sources: sources,
-              };
-              if (typeof serverChargedRemaining === 'number') (solution as any).chargedRemaining = serverChargedRemaining;
-
-              yield solution;
-              
-            } else if (data.error) {
-              throw new Error(data.error || 'Stream error');
-            }
-          } catch (parseError) {
-            // Don't throw - just warn and continue
-            console.warn('⚠️ Parse error (skipping):', trimmed.substring(0, 50));
-          }
-        }
-      }
-    }
-
+    const data = await response.json();
+    return data;
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to solve problem';
-    console.error('❌ Error solving problem (stream):', message);
-    throw new Error(message);
+    console.error('Health check failed:', error);
+    return { status: 'error', service: 'backend', timestamp: new Date().toISOString() };
   }
 }
 
 /**
- * Solve a math problem using the backend AI agent (original non-streaming version)
+ * Solve a math problem using the backend AI agent
  * Returns an AcademicResponse with structured step-by-step solution
  */
 export async function solveProblem(problem: Problem): Promise<Solution> {
   try {
     console.log('📤 Sending problem to backend:', problem.content);
 
-    const response = await fetch(`${API_BASE_URL}/api/ask`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text: problem.content,
-        user_id: (problem as any).userId || 'guest',
-      }),
-    });
+    let response: Response;
+    if (problem.image) {
+      // Send as FormData for image uploads
+      const formData = new FormData();
+      formData.append('text', problem.content);
+      formData.append('image', problem.image);
+
+      response = await fetch(`${API_BASE_URL}/ask`, {
+        method: 'POST',
+        body: formData,
+      });
+    } else {
+      // Send as JSON for text-only problems
+      response = await fetch(`${API_BASE_URL}/ask`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: problem.content,
+          user_id: 'guest',
+        }),
+      });
+    }
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
@@ -183,6 +72,7 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
     console.log('✅ Received response:', data);
 
     // Extract full content from backend response
+    // Backend returns AcademicResponseModel with steps array containing the full explanation
     let fullContent = '';
     if (data.steps && data.steps.length > 0 && data.steps[0].explanation) {
       fullContent = data.steps[0].explanation;
@@ -191,6 +81,10 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
     } else if (data.conclusion) {
       fullContent = data.conclusion;
     }
+
+    console.log('[DEBUG] Full content length:', fullContent.length);
+    console.log('[DEBUG] First 100 chars:', fullContent.substring(0, 100));
+    console.log('[DEBUG] Last 100 chars:', fullContent.substring(Math.max(0, fullContent.length - 100)));
 
     // Convert backend response to Solution format
     const solution: Solution = {
@@ -201,6 +95,7 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
       confidenceLevel: 'high',
       status: 'ok',
       timestamp: Date.now(),
+      // Store full response content for markdown rendering
       content: fullContent,
       sources: data.sources || [],
     };
@@ -215,13 +110,25 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
 
 /**
  * Get conversation history for the current user
+ * Conversations are stored client-side in localStorage
  */
-export async function getConversationHistory(conversationId: string, userId: string = 'guest') {
+export async function getConversationHistory(conversationId: string) {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/conversations/${userId}/${conversationId}`);
-    if (!res.ok) return { messages: [], id: conversationId };
-    const conv = await res.json();
-    return { messages: conv.messages || [], id: conversationId };
+    const userId = 'guest'; // For now, all users share the same local storage
+    const key = `conversations_${userId}`;
+    const stored = localStorage.getItem(key);
+    if (!stored) return { messages: [], id: conversationId };
+
+    const conversations = JSON.parse(stored);
+    const conversation = conversations.find((c: any) => c.id === conversationId);
+
+    if (!conversation) return { messages: [], id: conversationId };
+
+    return {
+      messages: conversation.messages || [],
+      id: conversationId,
+      title: conversation.title,
+    };
   } catch (error) {
     console.error('Failed to fetch conversation:', error);
     return { messages: [], id: conversationId };
@@ -230,26 +137,24 @@ export async function getConversationHistory(conversationId: string, userId: str
 
 /**
  * Get all conversations for the current user
+ * Conversations are stored client-side in localStorage
  */
-export async function getConversations(userId: string = 'guest') {
+export async function getConversations() {
   try {
-    // Try backend first
-    const res = await fetch(`${API_BASE_URL}/api/conversations/${userId}`);
-    if (res.ok) {
-      const conversations = await res.json();
-      return conversations.sort((a: any, b: any) => (a.updatedAt || a.createdAt) < (b.updatedAt || b.createdAt) ? 1 : -1);
-    }
-  } catch (error) {
-    console.warn('Failed to fetch conversations from backend:', error);
-  }
-  
-  // Fallback to localStorage
-  try {
-    const key = `conversations_${userId || 'guest'}`;
-    const raw = localStorage.getItem(key);
-    if (!raw) return [];
-    const conversations = JSON.parse(raw) as any[];
-    return conversations.sort((a, b) => (a.updatedAt || a.createdAt) < (b.updatedAt || b.createdAt) ? 1 : -1);
+    const userId = 'guest'; // For now, all users share the same local storage
+    const key = `conversations_${userId}`;
+    const stored = localStorage.getItem(key);
+    if (!stored) return [];
+
+    const conversations = JSON.parse(stored);
+    // Ensure conversations have required fields and sort by updatedAt
+    return conversations
+      .map((conv: any) => ({
+        ...conv,
+        updatedAt: conv.updatedAt || conv.createdAt,
+        createdAt: conv.createdAt || new Date().toISOString(),
+      }))
+      .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   } catch (error) {
     console.error('Failed to fetch conversations:', error);
     return [];
@@ -258,90 +163,48 @@ export async function getConversations(userId: string = 'guest') {
 
 /**
  * Create a new conversation
+ * Conversations are stored client-side in localStorage
  */
-export async function createConversation(title: string = 'Chat', userId: string = 'guest') {
+export async function createConversation(title: string) {
   try {
-    // Try backend first
-    const res = await fetch(`${API_BASE_URL}/api/conversations/${userId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title }),
-    });
-    if (res.ok) {
-      return await res.json();
-    }
-  } catch (error) {
-    console.warn('Failed to create conversation on backend:', error);
-  }
+    const userId = 'guest'; // For now, all users share the same local storage
+    const conversationId = `conv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  // Fallback: create locally
-  const conv = {
-    success: true,
-    id: `conv-${Date.now()}`,
-    title: title,
-    createdAt: new Date().toISOString(),
-    messages: [],
-  };
-  
-  // Save to localStorage as backup
-  try {
-    const key = `conversations_${userId || 'guest'}`;
-    const raw = localStorage.getItem(key);
-    const conversations = raw ? JSON.parse(raw) : [];
-    conversations.push(conv);
+    const conversation = {
+      id: conversationId,
+      title: title || 'New Chat',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      messages: [],
+    };
+
+    const key = `conversations_${userId}`;
+    const stored = localStorage.getItem(key);
+    const conversations = stored ? JSON.parse(stored) : [];
+
+    conversations.push(conversation);
     localStorage.setItem(key, JSON.stringify(conversations));
-  } catch (e) {
-    console.warn('Failed to save conversation to localStorage:', e);
-  }
-  
-  return conv;
-}
 
-/**
- * Update an existing conversation with new messages
- */
-export async function updateConversation(conversationId: string, userId: string = 'guest', messages: any[] = [], title?: string) {
-  try {
-    // Try backend first - send messages and/or title (API accepts optional title)
-    const payload: any = {};
-    if (messages !== undefined) payload.messages = messages;
-    if (title !== undefined) payload.title = title;
-
-    const res = await fetch(`${API_BASE_URL}/api/conversations/${userId}/${conversationId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (res.ok) {
-      return { success: true };
-    }
+    return {
+      success: true,
+      id: conversationId,
+      title: conversation.title,
+      createdAt: conversation.createdAt,
+    };
   } catch (error) {
-    console.warn('Failed to update conversation on backend:', error);
-  }
-
-  // Fallback: save to localStorage
-  try {
-    const key = `conversations_${userId || 'guest'}`;
-    const raw = localStorage.getItem(key);
-    const conversations = raw ? JSON.parse(raw) : [];
-
-    const index = conversations.findIndex((c: any) => c.id === conversationId);
-    if (index >= 0) {
-      if (messages !== undefined) conversations[index].messages = messages;
-      if (title !== undefined) conversations[index].title = title;
-      conversations[index].updatedAt = new Date().toISOString();
-    }
-    
-    localStorage.setItem(key, JSON.stringify(conversations));
-    return { success: true };
-  } catch (error) {
-    console.error('Failed to update conversation:', error);
-    return { success: false };
+    console.error('Failed to create conversation:', error);
+    return {
+      success: false,
+      id: '',
+      title: '',
+      createdAt: '',
+    };
   }
 }
 
 /**
  * Submit feedback for a solution
+ * Note: This is a stub - feedback is stored client-side for now
  */
 export async function submitFeedback(feedback: Feedback): Promise<SubmitFeedbackResponse> {
   try {
@@ -361,6 +224,7 @@ export async function submitFeedback(feedback: Feedback): Promise<SubmitFeedback
 
 /**
  * Track analytics event
+ * Note: This is a stub - analytics are logged client-side for now
  */
 export async function trackAnalyticsEvent(event: AnalyticsEvent): Promise<AnalyticsResponse> {
   try {
@@ -374,59 +238,288 @@ export async function trackAnalyticsEvent(event: AnalyticsEvent): Promise<Analyt
 
 /**
  * Delete a conversation
+ * Conversations are stored client-side in localStorage
  */
-export async function deleteConversation(conversationId: string, userId: string = 'guest') {
+export async function deleteConversation(conversationId: string) {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/conversations/${userId}/${conversationId}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed to delete');
+    const userId = 'guest'; // For now, all users share the same local storage
+    const key = `conversations_${userId}`;
+    const stored = localStorage.getItem(key);
+    if (!stored) return { success: true };
+
+    const conversations = JSON.parse(stored);
+    const filtered = conversations.filter((c: any) => c.id !== conversationId);
+
+    localStorage.setItem(key, JSON.stringify(filtered));
     return { success: true };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to delete conversation';
-    return { success: false, message };
+    console.error('Failed to delete conversation:', error);
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
 /**
- * Credits endpoints (backend)
+ * Get user credits from the backend
  */
-export async function getCredits(userId: string = 'guest', sessionToken?: string) {
+export async function getCredits(userId: string, token?: string) {
   try {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
-    const res = await fetch(`${API_BASE_URL}/api/credits/${userId}`, { headers });
-    if (!res.ok) return { remaining: null };
-    return await res.json();
-  } catch (error) {
-    console.error('Failed to get credits', error);
-    // Return null to indicate the backend couldn't be reached or verified
-    return { remaining: null };
-  }
-} 
-
-export async function spendCredits(userId: string = 'guest', sessionToken?: string) {
-  try {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
-    const res = await fetch(`${API_BASE_URL}/api/credits/${userId}/spend`, { method: 'POST', headers });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'Failed to spend credit');
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
-    return await res.json();
+
+    const response = await fetch(`${API_BASE_URL}/credits/${userId}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get credits: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error('Failed to spend credit', error);
+    console.error('Failed to get credits:', error);
+    // Return default credits on error
+    return { user_id: userId, remaining: 100, lastReset: new Date().toISOString().split('T')[0] };
+  }
+}
+
+/**
+ * Spend user credits on the backend
+ */
+export async function spendCredits(userId: string, token?: string) {
+  try {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/credits/${userId}/spend`, {
+      method: 'POST',
+      headers,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || `Failed to spend credits: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to spend credits:', error);
     throw error;
   }
 }
 
 /**
- * Check if the backend server is running and healthy
+ * Update a conversation with new messages
+ * Conversations are stored client-side in localStorage
  */
-export async function checkBackendHealth(): Promise<boolean> {
+export async function updateConversation(conversationId: string, userId: string, messages: any[], title?: string) {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`);
-    return response.ok;
+    const key = `conversations_${userId || 'guest'}`;
+    const stored = localStorage.getItem(key);
+    const conversations = stored ? JSON.parse(stored) : [];
+
+    // Find existing conversation or create new one
+    let conversation = conversations.find((c: any) => c.id === conversationId);
+    if (!conversation) {
+      conversation = {
+        id: conversationId,
+        title: title || 'New Chat',
+        createdAt: new Date().toISOString(),
+        messages: [],
+      };
+      conversations.push(conversation);
+    }
+
+    // Update conversation data
+    conversation.messages = messages;
+    conversation.updatedAt = new Date().toISOString();
+    if (title) {
+      conversation.title = title;
+    }
+
+    // Save back to localStorage
+    localStorage.setItem(key, JSON.stringify(conversations));
+
+    return { success: true };
   } catch (error) {
-    return false;
+    console.error('Failed to update conversation:', error);
+    return { success: false };
+  }
+}
+
+/**
+ * Stream a math problem solution from the backend
+ * Returns an async generator that yields solution chunks
+ */
+export async function* solveProblemStream(problem: Problem, signal?: AbortSignal, token?: string, userId?: string) {
+  try {
+    let response: Response;
+    
+    if (problem.image) {
+      // Send as FormData for image uploads
+      const formData = new FormData();
+      formData.append('text', problem.content);
+      formData.append('image', problem.image);
+      formData.append('user_id', userId || 'guest');
+
+      console.log('📤 Sending image upload request:', {
+        text: problem.content,
+        imageName: problem.image.name,
+        imageSize: problem.image.size,
+        imageType: problem.image.type,
+        userId: userId || 'guest'
+      });
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      response = await fetch(`${API_BASE_URL}/ask-stream`, {
+        method: 'POST',
+        headers,
+        body: formData,
+        signal,
+      });
+    } else {
+      // Send as JSON for text-only problems
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const requestBody = {
+        text: problem.content,
+        user_id: userId || 'guest',
+        context: '',
+        session_id: '',
+      };
+
+      console.log('📤 Sending text-only request:', requestBody);
+
+      response = await fetch(`${API_BASE_URL}/ask-stream`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestBody),
+        signal,
+      });
+    }
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || `Streaming request failed: ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No response body reader available');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let accumulatedContent = '';
+    let finalAnswer = '';
+    let status = 'streaming';
+    let sources: any[] = [];
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+
+        // Keep the last incomplete line in buffer
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith(':')) continue;
+
+          if (trimmed.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(trimmed.slice(6));
+
+              // Handle credit charging event
+              if (data.charged !== undefined) {
+                yield { chargedRemaining: data.remaining };
+                continue;
+              }
+
+              // Handle error events
+              if (data.error) {
+                throw new Error(data.error);
+              }
+
+              // Handle completion
+              if (data.done) {
+                status = 'ok';
+                yield {
+                  content: accumulatedContent,
+                  finalAnswer: finalAnswer || accumulatedContent,
+                  status,
+                  sources,
+                };
+                continue;
+              }
+
+              // Handle conclusion
+              if (data.conclusion !== undefined) {
+                finalAnswer = data.conclusion;
+                accumulatedContent += finalAnswer;
+                yield {
+                  content: accumulatedContent,
+                  finalAnswer,
+                  status: 'streaming',
+                  sources,
+                };
+                continue;
+              }
+
+              // Handle metadata (start event)
+              if (data.metadata) {
+                // Extract sources from metadata
+                if (data.metadata.sources) {
+                  sources = data.metadata.sources;
+                }
+                continue;
+              }
+
+              // Handle text tokens
+              if (data.token) {
+                accumulatedContent += data.token;
+                yield {
+                  content: accumulatedContent,
+                  finalAnswer: '',
+                  status: 'streaming',
+                  sources,
+                };
+              }
+            } catch (parseError) {
+              console.warn('Failed to parse SSE data:', trimmed, parseError);
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.log('Stream aborted');
+      return;
+    }
+    console.error('Streaming error:', error);
+    throw error;
   }
 }
