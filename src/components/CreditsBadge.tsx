@@ -49,7 +49,7 @@ const CreditsBadge: React.FC<{ userId?: string }> = ({ userId }) => {
       </div>
 
       <div className="hidden md:block h-6 w-px bg-gradient-to-b from-blue-300 to-indigo-300" />
-      <div className="hidden md:block text-xs text-gray-500 font-medium">Réinitialise à minuit ( Heure du Bénin )</div>
+      <div className="hidden md:block text-xs text-gray-500 font-medium">Resets at midnight (France time)</div>
     </div>
   );
 };
