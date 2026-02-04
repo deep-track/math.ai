@@ -289,20 +289,33 @@ const ChatMessage = () => {
 
             // Update the assistant message with streaming content and persist on final
             setMessages((prev) => {
-              const next = prev.map((msg) =>
-                msg.id === assistantMessageId
-                  ? {
-                      ...msg,
-                      solution: {
-                        ...msg.solution!,
-                        content: solution.content,
-                        finalAnswer: solution.finalAnswer,
-                        status: solution.status,
-                        sources: solution.sources,
-                      } as any,
-                    }
-                  : msg
-              );
+              const next = prev.map((msg) => {
+                if (msg.id === assistantMessageId) {
+                  // IMPORTANT: solution.content already has cumulative text from the stream generator
+                  const newContent = solution.content || '';
+                  
+                  // Log for debugging streaming issues
+                  if (newContent) {
+                    console.log('[ChatMessage] Content state update:', {
+                      length: newContent.length,
+                      status: solution.status,
+                      snippet: newContent.substring(0, 50),
+                    });
+                  }
+                  
+                  return {
+                    ...msg,
+                    solution: {
+                      ...msg.solution!,
+                      content: newContent,        // Cumulative content from stream
+                      finalAnswer: solution.finalAnswer,
+                      status: solution.status,
+                      sources: solution.sources,
+                    } as any,
+                  };
+                }
+                return msg;
+              });
 
               // Mark completed so we spend credit after stream
               if ((solution.status as any) === 'ok' || (solution.status as any) === 'end') {

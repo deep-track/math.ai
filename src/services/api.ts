@@ -51,7 +51,7 @@ export async function* solveProblemStream(problem: Problem & any, signal?: Abort
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
-        console.log('✅ Stream completed - received chunks');
+        console.log('✅ Stream completed - received chunks, fullContent length:', fullContent.length, 'final:', fullContent.substring(0, 100));
         break;
       }
 
@@ -86,6 +86,7 @@ export async function* solveProblemStream(problem: Problem & any, signal?: Abort
             if (data.token) {
               // Text chunk - accumulate and yield
               fullContent += data.token;
+              console.log('[Stream] Chunk received, token length:', data.token.length, 'total:', fullContent.length, 'snippet:', data.token.substring(0, 30));
               
               // Yield solution with accumulated content
               const solution: Solution = {

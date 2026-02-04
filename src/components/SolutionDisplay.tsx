@@ -31,18 +31,27 @@ const SolutionDisplay: React.FC<SolutionDisplayProps> = ({
   // Get the content from either solution or response
   const content = useMemo(() => {
     if (solution?.content) {
-      console.log('[SolutionDisplay] Using solution.content, length:', solution.content.length);
-      return solution.content;
+      const len = solution.content.length;
+      if (len > 0) {
+        console.log('[SolutionDisplay] Using solution.content, length:', len, 'snippet:', solution.content.substring(0, 50));
+        return solution.content;
+      }
     }
     if (solution?.finalAnswer) {
-      console.log('[SolutionDisplay] Using solution.finalAnswer, length:', solution.finalAnswer.length);
-      return solution.finalAnswer;
+      const len = solution.finalAnswer.length;
+      if (len > 0) {
+        console.log('[SolutionDisplay] Using solution.finalAnswer, length:', len);
+        return solution.finalAnswer;
+      }
     }
     if (response?.answer) {
-      console.log('[SolutionDisplay] Using response.answer, length:', response.answer.length);
-      return response.answer;
+      const len = response.answer.length;
+      if (len > 0) {
+        console.log('[SolutionDisplay] Using response.answer, length:', len);
+        return response.answer;
+      }
     }
-    console.log('[SolutionDisplay] No content found!');
+    console.log('[SolutionDisplay] No content - solution:', JSON.stringify({content: solution?.content?.substring(0, 20), finalAnswer: solution?.finalAnswer?.substring(0, 20), status: solution?.status}), 'response:', response?.answer?.substring(0, 20));
     return '';
   }, [solution, response]);
 
