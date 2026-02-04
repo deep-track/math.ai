@@ -79,7 +79,7 @@ collection = chroma_client.get_or_create_collection(
 # Prompt 1: For Claude 
 CLAUDE_REASONING_PROMPT = """
 Vous êtes un validateur de curriculum strict et un moteur de logique mathématique pour le système éducatif du Bénin.
-Soyez concis mais minutieux. Concentrez-vous sur l'exactitude et la valeur pédagogique.
+Soyez concis mais minutieux. Concentrez-vous sur l'exactitude et la valeur pédagogique.Si l'utilisateur vous demande de résoudre en fonction d'une pièce jointe d'image, résolvez
 
 Question de l'utilisateur: 
 {question}
@@ -249,16 +249,45 @@ def search_curriculum(query):
     return context_text, sources
 
 #  MAIN ORCHESTRATOR LOOP 
-
-def ask_math_ai(question: str, history: str = ""):
+def ask_math_ai(question: str, history: str = "", attachment=None):
     logger.log_step("Thought", f"Processing new user question: {question}")
     execution_steps = []
+    if attachment:
+        response = claude_client.messages.create(
+            model="claude-sonnet-4-5",
+            max_tokens=1024,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": attachment.get('type'),
+                                "data": attachment.get('image'),
+                            },
+                        },
+                        {
+                            "type": "text",
+                            "text": "Extract all information on the image. DO NOT ATTEMPT IF ITS A QUESTION. ONLY RETURN THE EXTRACTED CONTENT> NOTHING ELSE."
+                        }
+                    ],
+                }
+            ],
+        )
+
+        img_ctx = response.content[0].text
+        question = question + img_ctx  
+        print(question)
+
+
     
     # STEP 1: RETRIEVAL (Cohere + Chroma)
     thought_1 = "Retrieving official curriculum data..."
     logger.log_step("Thought", thought_1)
     execution_steps.append({"type": "thought", "content": thought_1})
-    
+   
     # NEW: Unpack both context and sources
     context_observation, sources = search_curriculum(question)
     
@@ -373,14 +402,21 @@ console = Console()
 
 if __name__ == "__main__":
     # Test Question
-    user_query = "Qu'est-ce qu'un espace vectoriel ?"
+    user_query = "Solve the question and provide an answer"
     
     # Get structured response
     result = ask_math_ai(user_query)
     
     print("\n")
+    
+    # Extract the main text explanation for display
+    if result.get("steps") and len(result["steps"]) > 0:
+        main_text = result["steps"][0]["explanation"]
+    else:
+        main_text = "Pas de réponse générée."
+        
     # Access the 'answer' key for Markdown display
-    formatted_response = Markdown(result["answer"])
+    formatted_response = Markdown(main_text)
     
     console.print(Panel(
         formatted_response,
