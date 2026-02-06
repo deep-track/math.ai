@@ -22,7 +22,7 @@ const MainLayout = () => {
   }, []);
 
   const _handleLogout = async () => {
-    await signOut();
+    await signOut({ redirectUrl: '/' });
   };
 
   // Reference so TypeScript doesn't fail on unused local in builds

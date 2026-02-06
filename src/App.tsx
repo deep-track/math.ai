@@ -55,7 +55,7 @@ function App() {
           <h1 className="text-2xl font-bold text-red-600 mb-4">Accès refusé</h1>
           <p className="text-gray-700 mb-6">{reason}</p>
           <button
-            onClick={() => signOut({ redirectUrl: '/login' })}
+            onClick={() => signOut({ redirectUrl: '/' })}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
           >
            Revenir à la connexion

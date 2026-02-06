@@ -140,7 +140,7 @@ const ProdApp = () => {
   }
 
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl='/login'>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl='/'>
       <App />
     </ClerkProvider>
   )

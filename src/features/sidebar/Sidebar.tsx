@@ -26,7 +26,7 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
   const [conversations, setConversations] = useState<any[]>([]);
 
   const handleLogout = async () => {
-    await signOut();
+    await signOut({ redirectUrl: '/' });
   };
 
   // Fetch conversations when component mounts or user changes
