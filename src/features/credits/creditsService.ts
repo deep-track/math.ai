@@ -5,9 +5,39 @@ type CreditsRecord = {
 
 const DEFAULT_CREDITS = 100;
 
+const BENIN_TZ = 'Africa/Porto-Novo';
+
+function getBeninParts(d: Date) {
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: BENIN_TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+  const parts = fmt.formatToParts(d);
+  const map: Record<string, string> = {};
+  for (const p of parts) {
+    if (p.type !== 'literal') map[p.type] = p.value;
+  }
+  return {
+    year: Number(map.year),
+    month: Number(map.month),
+    day: Number(map.day),
+    hour: Number(map.hour),
+    minute: Number(map.minute),
+    second: Number(map.second),
+  };
+}
+
 function todayStr() {
-  const d = new Date();
-  return d.toISOString().slice(0, 10);
+  const p = getBeninParts(new Date());
+  const mm = String(p.month).padStart(2, '0');
+  const dd = String(p.day).padStart(2, '0');
+  return `${p.year}-${mm}-${dd}`;
 }
 
 function keyForUser(userId: string | undefined) {
@@ -59,8 +89,12 @@ export function scheduleMidnightReset(userId?: string) {
   if (scheduled[key]) return; // already scheduled
 
   const now = new Date();
-  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  const msToMidnight = tomorrow.getTime() - now.getTime();
+  const p = getBeninParts(now);
+  const beninAsUtc = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+  const offsetMs = beninAsUtc - now.getTime();
+  const nextMidnightBeninAsUtc = Date.UTC(p.year, p.month - 1, p.day + 1, 0, 0, 0);
+  const nextMidnightUtc = nextMidnightBeninAsUtc - offsetMs;
+  const msToMidnight = Math.max(0, nextMidnightUtc - now.getTime());
 
   const id = window.setTimeout(() => {
     resetCreditsNow(userId);

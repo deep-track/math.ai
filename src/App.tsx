@@ -10,11 +10,12 @@ import ForgotPasswordPage from "./features/auth/forgot-password.tsx"
 import SSOCallback from "./features/auth/sso-callback.tsx"
 import LoadingState from "./components/LoadingState"
 import { useWhitelistCheck } from "./hooks/useWhitelistCheck"
+import LandingPage from "./features/landing/LandingPage"
 
 function App() {
   const { isSignedIn, isLoaded } = useUser()
   const { signOut } = useAuth()
-  const { whitelistStatus, isChecking } = useWhitelistCheck()
+  const { whitelistStatus, isChecking, timedOut } = useWhitelistCheck()
   const [authState, setAuthState] = React.useState<{ 
     isSignedIn: boolean | null; 
     isLoaded: boolean;
@@ -65,7 +66,7 @@ function App() {
   }
 
   // Still checking whitelist status
-  if (authState.isSignedIn && (authState.isWhitelisted === null || isChecking)) {
+  if (authState.isSignedIn && (authState.isWhitelisted === null || isChecking) && !timedOut) {
     return <LoadingState variant="login" message="Verifying access..." />
   }
 
@@ -75,7 +76,7 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={authState.isSignedIn ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />}/>
+      <Route path="/" element={authState.isSignedIn ? <Navigate to="/home" replace /> : <LandingPage />}/>
       <Route path="/login" element={!authState.isSignedIn ? <SignInPage/> : <Navigate to="/home" replace />}/>
       <Route path="/signup" element={!authState.isSignedIn ? <SignUpPage/> : <Navigate to="/home" replace />}/>
       <Route path="/forgot-password" element={!authState.isSignedIn ? <ForgotPasswordPage/> : <Navigate to="/home" replace />}/>

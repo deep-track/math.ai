@@ -4,6 +4,8 @@ import arrowIcon from '../../data/icons/fluent-mdl2_up.png';
 import downArrow from '../../data/icons/mingcute_down-line.png';
 import TextareaAutosize from 'react-textarea-autosize';
 import { useTheme } from '../../theme/useTheme';
+import { getTranslation } from '../../utils/translations';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const MAX_CHAR_LIMIT = 5000;
 
@@ -23,6 +25,7 @@ const ChatInput = ({
   onStop
 }: ChatInputProps) => {
   const { theme } = useTheme();
+  const language = useLanguage();
   const [message, setMessage] = useState('');
   const [charCount, setCharCount] = useState(0);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -56,14 +59,14 @@ const ChatInput = ({
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        alert('Please select an image file.');
+        alert(getTranslation('imageTypeError', language));
         return;
       }
       
       // Validate file size (max 10MB)
       const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
-        alert('Image file is too large. Please select an image under 10MB.');
+        alert(getTranslation('imageSizeError', language));
         return;
       }
       
@@ -79,7 +82,7 @@ const ChatInput = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && e.ctrlKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       handleSubmit();
       e.preventDefault();
     }
@@ -103,7 +106,7 @@ const ChatInput = ({
         value={message}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        placeholder={placeholder || "Posez une question sur une image ou un problème de mathématiques..."}
+        placeholder={placeholder || getTranslation('chatInputPlaceholder', language)}
         disabled={disabled}
         className={`w-full resize-none bg-transparent text-sm outline-none transition-colors ${
           theme === 'dark'
@@ -132,13 +135,13 @@ const ChatInput = ({
           <div className="flex-1 min-w-0">
             <span className="text-sm text-gray-700 truncate block">{selectedImage.name}</span>
             <span className="text-xs text-gray-500">
-              {(selectedImage.size / 1024 / 1024).toFixed(2)}MB • Will be analyzed with your question
+              {(selectedImage.size / 1024 / 1024).toFixed(2)}MB • {getTranslation('imageAnalyzedNote', language)}
             </span>
           </div>
           <button
             onClick={removeImage}
             className="text-red-500 hover:text-red-700 text-sm ml-2"
-            title="Remove image"
+            title={getTranslation('removeImageTitle', language)}
           >
             ✕
           </button>
@@ -155,7 +158,7 @@ const ChatInput = ({
                 ? 'hover:bg-gray-900'
                 : 'hover:bg-gray-100'
             } ${isEmpty ? 'opacity-50 cursor-not-allowed' : ''}`}
-            title="Clear message"
+            title={getTranslation('clearMessageTitle', language)}
             disabled={isEmpty || disabled}
           >
             <span className="text-lg font-light text-[#008751]">⌫</span>
@@ -169,11 +172,11 @@ const ChatInput = ({
                 ? 'hover:bg-gray-900 text-gray-400 hover:text-gray-200'
                 : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
             } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-            title="Upload image"
+            title={getTranslation('uploadImageTitle', language)}
             disabled={disabled}
           >
             <span className="text-lg">📷</span>
-            <span className="text-xs hidden sm:inline">Image</span>
+            <span className="text-xs hidden sm:inline">{getTranslation('uploadImageLabel', language)}</span>
           </button>
           
           <button 
@@ -182,7 +185,7 @@ const ChatInput = ({
                 ? 'hover:bg-gray-900'
                 : 'hover:bg-gray-100'
             }`}
-            title="View history"
+            title={getTranslation('viewHistoryTitle', language)}
             disabled={disabled}
           >
             <img
@@ -207,9 +210,9 @@ const ChatInput = ({
                 : 'text-gray-600 hover:bg-gray-100'
             } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={disabled}
-            title="Model selector"
+            title={getTranslation('modelSelectorTitle', language)}
           >
-            <span>Model</span>
+            <span>{getTranslation('modelLabel', language)}</span>
             <img src={downArrow} className="h-3 w-3" />
           </button>
 
@@ -225,7 +228,7 @@ const ChatInput = ({
                   : 'bg-gray-300 cursor-not-allowed opacity-50'
                 : 'bg-gradient-to-r from-[#008751] to-[#00b876] hover:shadow-lg'
             }`}
-            title={isStreaming ? "Stop generation" : "Send message (Ctrl+Enter)"}
+            title={isStreaming ? getTranslation('stopGenerationTitle', language) : getTranslation('sendMessageTitle', language)}
           >
             {isStreaming ? (
               <span className="text-white text-lg">⏹️</span>

@@ -18,11 +18,13 @@ import {
   spendCredits,
 } from '../../services/api';
 import { getTranslation } from '../../utils/translations';
+import { useLanguage } from '../../hooks/useLanguage';
 import type { ChatMessage as ChatMessageType, Problem } from '../../types';
 
 const ChatMessage = () => {
   const { theme } = useTheme();
   const { user } = useUser();
+  const language = useLanguage();
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +39,7 @@ const ChatMessage = () => {
   const [followWhileStreaming, setFollowWhileStreaming] = useState(true);
   const scrollContainerRef = useRef<HTMLElement | null>(null);
 
-  const userName = user?.firstName || guestName || 'Learner';
+  const userName = user?.firstName || guestName || getTranslation('learnerLabel', language);
   const clerk = useClerk();
 
   // Listen for reset chat event
@@ -55,7 +57,16 @@ const ChatMessage = () => {
       const ev = e as CustomEvent;
       const id = ev.detail?.id as string;
       if (!id) return;
-      const hist = await getConversationHistory(id);
+      let token: string | undefined;
+      if (user?.id) {
+        try {
+          token = await (clerk as any).getToken?.();
+        } catch (err) {
+          token = undefined;
+        }
+      }
+
+      const hist = await getConversationHistory(id, user?.id || 'guest', token);
       setConversationId(id);
       setMessages(hist.messages || []);
       setFollowWhileStreaming(false); // user is viewing an older convo - don't auto-follow until they submit
@@ -63,25 +74,24 @@ const ChatMessage = () => {
 
     window.addEventListener('loadConversation', handleLoadConversation);
 
+    const handleCreditsSpendFailed = (e: Event) => {
+      const ev = e as CustomEvent;
+      const err = ev.detail?.error || 'Failed to deduct credits. Please retry.';
+      setError(String(err));
+    };
+
+    window.addEventListener('creditsSpendFailed', handleCreditsSpendFailed);
+
     return () => {
       window.removeEventListener('resetChat', handleResetChat);
       window.removeEventListener('loadConversation', handleLoadConversation);
+      window.removeEventListener('creditsSpendFailed', handleCreditsSpendFailed);
     };
   }, [user]);
 
-  // Initialize a conversation on mount and fetch credits
+  // Initialize credits on mount
   useEffect(() => {
     const init = async () => {
-      try {
-        const conv = await createConversation('Chat');
-        setConversationId(conv.id);
-        // Load any existing history if available
-        const hist = await getConversationHistory(conv.id);
-        setMessages(hist.messages || []);
-      } catch (err) {
-        // ignore
-      }
-
       try {
         if (user?.id) {
           // try to get a Clerk session token to pass to the backend for verification
@@ -142,11 +152,9 @@ const ChatMessage = () => {
 
   // Utility: derive a friendly title from the first question
   const generateTitleFromQuestion = (text: string) => {
-    if (!text || typeof text !== 'string') return 'Chat';
-    // Use first sentence or up to 60 chars
-    const sentenceEnd = text.search(/[.!?]\s|$/);
-    const candidate = sentenceEnd > 0 ? text.slice(0, sentenceEnd + 1).trim() : text;
-    return candidate.length > 60 ? candidate.slice(0, 57).trim() + '...' : candidate;
+    if (!text || typeof text !== 'string') return getTranslation('defaultChatTitle', language);
+    // Use the full question text, truncated to 100 characters for display
+    return text.length > 100 ? text.slice(0, 97).trim() + '...' : text;
   };
 
   const handleSubmitProblem = useCallback(
@@ -155,12 +163,24 @@ const ChatMessage = () => {
       setFollowWhileStreaming(true); 
       if (!problemText.trim()) return;
 
+      cancelledRef.current = false;
+
+      const userId = user?.id || 'guest';
+
+      // Try to get a Clerk session token early so we can pass it to the streaming endpoint
+      let token: string | undefined;
+      try {
+        token = await (clerk as any).getToken?.();
+      } catch (e) {
+        token = undefined;
+      }
+
       // Fetch latest credits before submitting
       try {
-        const current = await getCredits(user?.id || 'guest');
+        const current = await getCredits(userId, token);
         // If the backend returned a concrete number and it's <= 0, block.
         if (typeof current.remaining === 'number' && current.remaining <= 0) {
-          setError('You have 0 credits remaining. Please wait until midnight for renewal.');
+          setError(getTranslation('noCreditsInline', language));
           return;
         }
         // update local state if a concrete number was returned
@@ -177,18 +197,10 @@ const ChatMessage = () => {
       let activeConversationId = conversationId;
       let assistantMessageId = ''; // Define here so it's available in catch block
 
-      // Try to get a Clerk session token early so we can pass it to the streaming endpoint
-      let token: string | undefined;
-      try {
-        token = await (clerk as any).getToken?.();
-      } catch (e) {
-        token = undefined;
-      }
-
       try {
         // Ensure a conversation exists and capture its id locally
         if (!activeConversationId) {
-          const conv = await createConversation('Chat');
+          const conv = await createConversation(getTranslation('defaultChatTitle', language), userId, token);
           activeConversationId = conv.id;
           setConversationId(conv.id);
         }
@@ -198,7 +210,7 @@ const ChatMessage = () => {
           id: Date.now().toString(),
           content: problemText,
           submittedAt: Date.now(),
-          userId: user?.id || 'guest',
+          userId: userId,
           sessionId: token,
           image: image,
         };
@@ -239,7 +251,7 @@ const ChatMessage = () => {
             // If this is the first message (prev.length === 0) and title is default, set title to the question
             const shouldSetTitle = prev.length === 0;
             const title = shouldSetTitle ? generateTitleFromQuestion(problemText) : undefined;
-            updateConversation(activeConversationId, user?.id || 'guest', next, title);
+            updateConversation(activeConversationId, userId, next, title, token);
             window.dispatchEvent(new CustomEvent('conversationUpdated'));
           }
 
@@ -266,8 +278,9 @@ const ChatMessage = () => {
         (entryRef as any).current.serverCharged = false;
         (entryRef as any).current.serverRemaining = undefined; 
 
+        let streamEnded = false;
         try {
-          for await (const solution of solveProblemStream(problem, controller.signal, token, user?.id || 'guest')) {
+          for await (const solution of solveProblemStream(problem, controller.signal, token, userId)) {
             lastResponseTime = Date.now();
 
             // If server reported it charged the user during the stream, update state and mark it
@@ -275,7 +288,7 @@ const ChatMessage = () => {
               (entryRef as any).current.serverCharged = true;
               (entryRef as any).current.serverRemaining = (solution as any).chargedRemaining;
               try {
-                window.dispatchEvent(new CustomEvent('creditsUpdated', { detail: { userId: user?.id || 'guest', remaining: (solution as any).chargedRemaining } }));
+                window.dispatchEvent(new CustomEvent('creditsUpdated', { detail: { userId, remaining: (solution as any).chargedRemaining } }));
                 // Update credits asynchronously to avoid setState during render
                 setTimeout(() => setCreditsRemaining((solution as any).chargedRemaining), 0);
               } catch (e) {
@@ -326,7 +339,7 @@ const ChatMessage = () => {
               if ((solution.status as any) === 'ok' || (solution.status as any) === 'end') {
                 (entryRef as any).current.completed = true;
                 if (activeConversationId) {
-                  updateConversation(activeConversationId, user?.id || 'guest', next);
+                  updateConversation(activeConversationId, userId, next, undefined, token);
                   window.dispatchEvent(new CustomEvent('conversationUpdated'));
                 }
               }
@@ -342,11 +355,12 @@ const ChatMessage = () => {
               }
             }
           }
+          streamEnded = true;
         } catch (err: any) {
           if (err?.name === 'AbortError') {
             // Generation was stopped by the user
             cancelledRef.current = true;
-            setError('Generation stopped');
+            setError(getTranslation('generationStopped', language));
 
             // Mark assistant message as cancelled
             setMessages((prev) => {
@@ -363,7 +377,7 @@ const ChatMessage = () => {
               );
 
               if (activeConversationId) {
-                updateConversation(activeConversationId, user?.id || 'guest', next);
+                updateConversation(activeConversationId, userId, next, undefined, token);
                 window.dispatchEvent(new CustomEvent('conversationUpdated'));
               }
 
@@ -380,7 +394,10 @@ const ChatMessage = () => {
         const responseTime = lastResponseTime - startTime;
         
         // If stream was successful and completed, spend a credit (skip if cancelled)
-        if ((entryRef as any).current.completed && !cancelledRef.current) {
+        if (((entryRef as any).current.completed || streamEnded) && !cancelledRef.current) {
+          if (streamEnded && !(entryRef as any).current.completed) {
+            (entryRef as any).current.completed = true;
+          }
           // If server charged during stream (SSE 'charged' event), skip client-side spend
           if ((entryRef as any).current.serverCharged) {
             // Credits already deducted on server; update UI is handled when charged event was received
@@ -393,9 +410,17 @@ const ChatMessage = () => {
 
             while (attempt < maxAttempts && !spent) {
               try {
-                const res = await spendCredits(user?.id || 'guest', token);
+                if (user?.id) {
+                  try {
+                    token = await (clerk as any).getToken?.();
+                  } catch (e) {
+                    token = undefined;
+                  }
+                }
+
+                const res = await spendCredits(userId, token);
                 // Update badge/UI
-                window.dispatchEvent(new CustomEvent('creditsUpdated', { detail: { userId: user?.id || 'guest', remaining: res.remaining } }));
+                window.dispatchEvent(new CustomEvent('creditsUpdated', { detail: { userId, remaining: res.remaining } }));
                 setCreditsRemaining(res.remaining);
                 spent = true;
               } catch (err) {
@@ -440,7 +465,7 @@ const ChatMessage = () => {
         });
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : 'Failed to solve problem. Please try again.';
+          err instanceof Error ? err.message : getTranslation('unableToSolveTitle', language);
         setError(errorMessage);
 
         // Mark assistant message as errored
@@ -459,7 +484,7 @@ const ChatMessage = () => {
 
           // Persist
           if (activeConversationId) {
-            updateConversation(activeConversationId, user?.id || 'guest', next);
+            updateConversation(activeConversationId, userId, next, undefined, token);
             window.dispatchEvent(new CustomEvent('conversationUpdated'));
           }
 
@@ -469,7 +494,7 @@ const ChatMessage = () => {
         setLoading(false);
       }
     },
-    [conversationId, user, clerk, followWhileStreaming]
+    [conversationId, user, clerk, followWhileStreaming, language]
   );
 
   const handleRetry = () => {
@@ -495,9 +520,22 @@ const ChatMessage = () => {
     // Avoid persisting on every streaming chunk — we persist at stream completion explicitly
     if (isStreaming) return;
 
-    updateConversation(conversationId, user?.id || 'guest', messages);
-    window.dispatchEvent(new CustomEvent('conversationUpdated'));
-  }, [messages, conversationId, user, isStreaming]);
+    const persist = async () => {
+      let token: string | undefined;
+      if (user?.id) {
+        try {
+          token = await (clerk as any).getToken?.();
+        } catch (e) {
+          token = undefined;
+        }
+      }
+
+      await updateConversation(conversationId, user?.id || 'guest', messages, undefined, token);
+      window.dispatchEvent(new CustomEvent('conversationUpdated'));
+    };
+
+    persist();
+  }, [messages, conversationId, user, isStreaming, clerk]);
 
   // Landing page when no messages
   if (messages.length === 0) {
@@ -519,14 +557,14 @@ const ChatMessage = () => {
                   theme === 'dark' ? 'text-white' : 'text-gray-800'
                 }`}
               >
-                {getTranslation('welcome')}, {userName}! 👋
+                {getTranslation('welcome', language)}, {userName}! 👋
               </h1>
               <p
                 className={`text-lg mt-4 ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                 }`}
               >
-                {getTranslation('description')}
+                {getTranslation('description', language)}
               </p>
 
               {!user && (
@@ -547,7 +585,7 @@ const ChatMessage = () => {
               >
                 <div className="text-2xl mb-2">📝</div>
                 <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                  {getTranslation('typeAnyProblem')}
+                  {getTranslation('typeAnyProblem', language)}
                 </p>
               </div>
               <div
@@ -559,7 +597,7 @@ const ChatMessage = () => {
               >
                 <div className="text-2xl mb-2">⚡</div>
                 <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                  {getTranslation('getInstantExplanations')}
+                  {getTranslation('getInstantExplanations', language)}
                 </p>
               </div>
               <div
@@ -571,7 +609,7 @@ const ChatMessage = () => {
               >
                 <div className="text-2xl mb-2">🎓</div>
                 <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                  {getTranslation('learnStepByStep')}
+                  {getTranslation('learnStepByStep', language)}
                 </p>
               </div>
             </div>
@@ -581,19 +619,19 @@ const ChatMessage = () => {
               <p className={`text-sm font-semibold mb-3 ${
                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
               }`}>
-                {getTranslation('tryAskingAbout')}
+                {getTranslation('tryAskingAbout', language)}
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {[
-                  { key: 'derivatives', label: getTranslation('derivatives') },
-                  { key: 'equations', label: getTranslation('equations') },
-                  { key: 'geometry', label: getTranslation('geometry') },
-                  { key: 'calculus', label: getTranslation('calculus') },
-                  { key: 'algebra', label: getTranslation('algebra') },
+                  { key: 'derivatives', label: getTranslation('derivatives', language) },
+                  { key: 'equations', label: getTranslation('equations', language) },
+                  { key: 'geometry', label: getTranslation('geometry', language) },
+                  { key: 'calculus', label: getTranslation('calculus', language) },
+                  { key: 'algebra', label: getTranslation('algebra', language) },
                 ].map((topic) => (
                   <button
                     key={topic.key}
-                    onClick={() => handleSubmitProblem(`Explain ${topic.label}`)}
+                    onClick={() => handleSubmitProblem(getTranslation('explainPrompt', language).replace('{topic}', topic.label))}
                     className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 ${
                       theme === 'dark'
                         ? 'bg-green-900 text-green-100 hover:bg-green-800'
@@ -612,8 +650,8 @@ const ChatMessage = () => {
           <div className="px-6 pb-4">
             <ErrorDisplay
               type="warning"
-              title="No credits remaining"
-              message="You have 0 credits remaining. They renew at midnight UTC."
+              title={getTranslation('noCreditsTitle', language)}
+              message={getTranslation('noCreditsMessage', language)}
             />
           </div>
         )}
@@ -710,7 +748,7 @@ const ChatMessage = () => {
                     : 'bg-white border border-gray-200'
                 }`}
               >
-                <LoadingState variant="solving" message="Solving your problem..." />
+                <LoadingState variant="solving" message={getTranslation('solvingProblem', language)} />
               </div>
             </div>
           </div>
@@ -721,7 +759,7 @@ const ChatMessage = () => {
           <div className="w-full px-4 animate-in fade-in duration-300">
             <ErrorDisplay
               type="error"
-              title="Unable to Solve"
+              title={getTranslation('unableToSolveTitle', language)}
               message={error}
               onRetry={handleRetry}
             />

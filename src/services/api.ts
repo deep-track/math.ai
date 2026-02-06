@@ -6,8 +6,113 @@ let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 // Remove trailing slash to avoid double slashes in URLs
 API_BASE_URL = API_BASE_URL.replace(/\/$/, '');
 
-// Add /api prefix for backend endpoints
-API_BASE_URL = `${API_BASE_URL}/api`;
+// Add /api prefix for backend endpoints only if not already present
+if (!API_BASE_URL.endsWith('/api')) {
+  API_BASE_URL = `${API_BASE_URL}/api`;
+}
+
+type LocalConversation = {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt?: string;
+  messages: any[];
+};
+
+function localConversationsKey(userId?: string) {
+  return `conversations_${userId || 'guest'}`;
+}
+
+function localReadConversations(userId?: string): LocalConversation[] {
+  const key = localConversationsKey(userId);
+  const stored = localStorage.getItem(key);
+  if (!stored) return [];
+  try {
+    return JSON.parse(stored) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function localWriteConversations(userId: string | undefined, conversations: LocalConversation[]) {
+  const key = localConversationsKey(userId);
+  localStorage.setItem(key, JSON.stringify(conversations));
+}
+
+function localGetConversationHistory(conversationId: string, userId?: string) {
+  const conversations = localReadConversations(userId);
+  const conversation = conversations.find((c) => c.id === conversationId);
+  if (!conversation) return { messages: [], id: conversationId };
+  return {
+    messages: conversation.messages || [],
+    id: conversationId,
+    title: conversation.title,
+  };
+}
+
+function localGetConversations(userId?: string) {
+  const conversations = localReadConversations(userId);
+  return conversations
+    .map((conv) => ({
+      ...conv,
+      updatedAt: conv.updatedAt || conv.createdAt,
+      createdAt: conv.createdAt || new Date().toISOString(),
+    }))
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+}
+
+function localCreateConversation(title: string, userId?: string) {
+  const conversationId = `conv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const conversation: LocalConversation = {
+    id: conversationId,
+    title: title || 'New Chat',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    messages: [],
+  };
+
+  const conversations = localReadConversations(userId);
+  conversations.push(conversation);
+  localWriteConversations(userId, conversations);
+
+  return {
+    success: true,
+    id: conversationId,
+    title: conversation.title,
+    createdAt: conversation.createdAt,
+  };
+}
+
+function localUpdateConversation(conversationId: string, userId: string | undefined, messages: any[], title?: string) {
+  const conversations = localReadConversations(userId);
+
+  let conversation = conversations.find((c) => c.id === conversationId);
+  if (!conversation) {
+    conversation = {
+      id: conversationId,
+      title: title || 'New Chat',
+      createdAt: new Date().toISOString(),
+      messages: [],
+    };
+    conversations.push(conversation);
+  }
+
+  conversation.messages = messages;
+  conversation.updatedAt = new Date().toISOString();
+  if (title) {
+    conversation.title = title;
+  }
+
+  localWriteConversations(userId, conversations);
+  return { success: true };
+}
+
+function localDeleteConversation(conversationId: string, userId?: string) {
+  const conversations = localReadConversations(userId);
+  const filtered = conversations.filter((c) => c.id !== conversationId);
+  localWriteConversations(userId, filtered);
+  return { success: true };
+}
 
 /**
  * Check backend health status
@@ -112,26 +217,37 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
  * Get conversation history for the current user
  * Conversations are stored client-side in localStorage
  */
-export async function getConversationHistory(conversationId: string) {
+export async function getConversationHistory(conversationId: string, userId?: string, token?: string) {
   try {
-    const userId = 'guest'; // For now, all users share the same local storage
-    const key = `conversations_${userId}`;
-    const stored = localStorage.getItem(key);
-    if (!stored) return { messages: [], id: conversationId };
+    const resolvedUserId = userId || 'guest';
+    if (resolvedUserId !== 'guest') {
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Session-Id'] = token;
+      }
 
-    const conversations = JSON.parse(stored);
-    const conversation = conversations.find((c: any) => c.id === conversationId);
+      const response = await fetch(`${API_BASE_URL}/conversations/${resolvedUserId}/${conversationId}`, {
+        method: 'GET',
+        headers,
+      });
 
-    if (!conversation) return { messages: [], id: conversationId };
+      if (!response.ok) {
+        throw new Error(`Failed to fetch conversation: ${response.status}`);
+      }
 
-    return {
-      messages: conversation.messages || [],
-      id: conversationId,
-      title: conversation.title,
-    };
+      const data = await response.json();
+      return {
+        messages: data.messages || [],
+        id: conversationId,
+        title: data.title,
+      };
+    }
+
+    return localGetConversationHistory(conversationId, resolvedUserId);
   } catch (error) {
     console.error('Failed to fetch conversation:', error);
-    return { messages: [], id: conversationId };
+    return localGetConversationHistory(conversationId, userId || 'guest');
   }
 }
 
@@ -139,25 +255,39 @@ export async function getConversationHistory(conversationId: string) {
  * Get all conversations for the current user
  * Conversations are stored client-side in localStorage
  */
-export async function getConversations() {
+export async function getConversations(userId?: string, token?: string) {
   try {
-    const userId = 'guest'; // For now, all users share the same local storage
-    const key = `conversations_${userId}`;
-    const stored = localStorage.getItem(key);
-    if (!stored) return [];
+    const resolvedUserId = userId || 'guest';
+    if (resolvedUserId !== 'guest') {
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Session-Id'] = token;
+      }
 
-    const conversations = JSON.parse(stored);
-    // Ensure conversations have required fields and sort by updatedAt
-    return conversations
-      .map((conv: any) => ({
-        ...conv,
-        updatedAt: conv.updatedAt || conv.createdAt,
-        createdAt: conv.createdAt || new Date().toISOString(),
-      }))
-      .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      const response = await fetch(`${API_BASE_URL}/conversations/${resolvedUserId}`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch conversations: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return (data || [])
+        .map((conv: any) => ({
+          ...conv,
+          updatedAt: conv.updatedAt || conv.createdAt,
+          createdAt: conv.createdAt || new Date().toISOString(),
+        }))
+        .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    }
+
+    return localGetConversations(resolvedUserId);
   } catch (error) {
     console.error('Failed to fetch conversations:', error);
-    return [];
+    return localGetConversations(userId || 'guest');
   }
 }
 
@@ -165,40 +295,39 @@ export async function getConversations() {
  * Create a new conversation
  * Conversations are stored client-side in localStorage
  */
-export async function createConversation(title: string) {
+export async function createConversation(title: string, userId?: string, token?: string) {
   try {
-    const userId = 'guest'; // For now, all users share the same local storage
-    const conversationId = `conv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const resolvedUserId = userId || 'guest';
+    if (resolvedUserId !== 'guest') {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Session-Id'] = token;
+      }
 
-    const conversation = {
-      id: conversationId,
-      title: title || 'New Chat',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      messages: [],
-    };
+      const response = await fetch(`${API_BASE_URL}/conversations/${resolvedUserId}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ title: title || 'Chat' }),
+      });
 
-    const key = `conversations_${userId}`;
-    const stored = localStorage.getItem(key);
-    const conversations = stored ? JSON.parse(stored) : [];
+      if (!response.ok) {
+        throw new Error(`Failed to create conversation: ${response.status}`);
+      }
 
-    conversations.push(conversation);
-    localStorage.setItem(key, JSON.stringify(conversations));
+      const data = await response.json();
+      return {
+        success: true,
+        id: data.id,
+        title: data.title,
+        createdAt: data.createdAt,
+      };
+    }
 
-    return {
-      success: true,
-      id: conversationId,
-      title: conversation.title,
-      createdAt: conversation.createdAt,
-    };
+    return localCreateConversation(title, resolvedUserId);
   } catch (error) {
     console.error('Failed to create conversation:', error);
-    return {
-      success: false,
-      id: '',
-      title: '',
-      createdAt: '',
-    };
+    return localCreateConversation(title, userId || 'guest');
   }
 }
 
@@ -240,21 +369,32 @@ export async function trackAnalyticsEvent(event: AnalyticsEvent): Promise<Analyt
  * Delete a conversation
  * Conversations are stored client-side in localStorage
  */
-export async function deleteConversation(conversationId: string) {
+export async function deleteConversation(conversationId: string, userId?: string, token?: string) {
   try {
-    const userId = 'guest'; // For now, all users share the same local storage
-    const key = `conversations_${userId}`;
-    const stored = localStorage.getItem(key);
-    if (!stored) return { success: true };
+    const resolvedUserId = userId || 'guest';
+    if (resolvedUserId !== 'guest') {
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Session-Id'] = token;
+      }
 
-    const conversations = JSON.parse(stored);
-    const filtered = conversations.filter((c: any) => c.id !== conversationId);
+      const response = await fetch(`${API_BASE_URL}/conversations/${resolvedUserId}/${conversationId}`, {
+        method: 'DELETE',
+        headers,
+      });
 
-    localStorage.setItem(key, JSON.stringify(filtered));
-    return { success: true };
+      if (!response.ok) {
+        throw new Error(`Failed to delete conversation: ${response.status}`);
+      }
+
+      return { success: true };
+    }
+
+    return localDeleteConversation(conversationId, resolvedUserId);
   } catch (error) {
     console.error('Failed to delete conversation:', error);
-    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+    return localDeleteConversation(conversationId, userId || 'guest');
   }
 }
 
@@ -266,6 +406,7 @@ export async function getCredits(userId: string, token?: string) {
     const headers: Record<string, string> = {};
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+      headers['X-Session-Id'] = token;
     }
 
     const response = await fetch(`${API_BASE_URL}/credits/${userId}`, {
@@ -294,6 +435,7 @@ export async function spendCredits(userId: string, token?: string) {
     const headers: Record<string, string> = {};
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+      headers['X-Session-Id'] = token;
     }
 
     const response = await fetch(`${API_BASE_URL}/credits/${userId}/spend`, {
@@ -318,38 +460,34 @@ export async function spendCredits(userId: string, token?: string) {
  * Update a conversation with new messages
  * Conversations are stored client-side in localStorage
  */
-export async function updateConversation(conversationId: string, userId: string, messages: any[], title?: string) {
+export async function updateConversation(conversationId: string, userId: string, messages: any[], title?: string, token?: string) {
   try {
-    const key = `conversations_${userId || 'guest'}`;
-    const stored = localStorage.getItem(key);
-    const conversations = stored ? JSON.parse(stored) : [];
+    const resolvedUserId = userId || 'guest';
+    if (resolvedUserId !== 'guest') {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Session-Id'] = token;
+      }
 
-    // Find existing conversation or create new one
-    let conversation = conversations.find((c: any) => c.id === conversationId);
-    if (!conversation) {
-      conversation = {
-        id: conversationId,
-        title: title || 'New Chat',
-        createdAt: new Date().toISOString(),
-        messages: [],
-      };
-      conversations.push(conversation);
+      const response = await fetch(`${API_BASE_URL}/conversations/${resolvedUserId}/${conversationId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ messages, title }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update conversation: ${response.status}`);
+      }
+
+      await response.json();
+      return { success: true };
     }
 
-    // Update conversation data
-    conversation.messages = messages;
-    conversation.updatedAt = new Date().toISOString();
-    if (title) {
-      conversation.title = title;
-    }
-
-    // Save back to localStorage
-    localStorage.setItem(key, JSON.stringify(conversations));
-
-    return { success: true };
+    return localUpdateConversation(conversationId, resolvedUserId, messages, title);
   } catch (error) {
     console.error('Failed to update conversation:', error);
-    return { success: false };
+    return localUpdateConversation(conversationId, userId || 'guest', messages, title);
   }
 }
 
@@ -379,6 +517,7 @@ export async function* solveProblemStream(problem: Problem, signal?: AbortSignal
       const headers: Record<string, string> = {};
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Session-Id'] = token;
       }
 
       response = await fetch(`${API_BASE_URL}/ask-stream`, {
@@ -395,6 +534,7 @@ export async function* solveProblemStream(problem: Problem, signal?: AbortSignal
 
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Session-Id'] = token;
       }
 
       const requestBody = {

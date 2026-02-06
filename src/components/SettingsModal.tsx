@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { getTranslation } from '../utils/translations';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -8,6 +10,7 @@ interface SettingsModalProps {
 }
 
 const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
+  const appLanguage = useLanguage();
   const [language, setLanguage] = useState('en');
   const [fontSize, setFontSize] = useState('medium');
 
@@ -22,6 +25,12 @@ const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
     // Apply font size immediately
     applyFontSize(savedFontSize);
   }, []);
+
+  useEffect(() => {
+    if (appLanguage && appLanguage !== language) {
+      setLanguage(appLanguage);
+    }
+  }, [appLanguage, language]);
 
   const applyFontSize = (size: string) => {
     const fontSizes = {
@@ -68,7 +77,7 @@ const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">Paramètres</h2>
+            <h2 className="text-xl font-semibold">{getTranslation('settingsTitle', appLanguage)}</h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-200 transition-colors text-2xl"
@@ -81,7 +90,7 @@ const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
           <div className="space-y-6">
             {/* Theme Setting - Display Only */}
             <div className="space-y-3">
-              <label className="block text-sm font-medium">Thème</label>
+              <label className="block text-sm font-medium">{getTranslation('themeLabel', appLanguage)}</label>
               <div
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-lg ${
                   theme === 'dark'
@@ -90,17 +99,17 @@ const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
                 }`}
               >
                 <span className="text-sm">
-                  {theme === 'dark' ? '🌙 Mode Sombre' : '☀️ Mode Clair'}
+                  {theme === 'dark' ? getTranslation('modeDark', appLanguage) : getTranslation('modeLight', appLanguage)}
                 </span>
                 <span className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-[#008751] to-[#00b876] text-white">
-                  Actif
+                  {getTranslation('activeLabel', appLanguage)}
                 </span>
               </div>
             </div>
 
             {/* Language Setting */}
             <div className="space-y-3">
-              <label className="block text-sm font-medium">Langue</label>
+              <label className="block text-sm font-medium">{getTranslation('languageLabel', appLanguage)}</label>
               <select
                 value={language}
                 onChange={(e) => handleLanguageChange(e.target.value)}
@@ -114,13 +123,13 @@ const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
                 <option value="en">English</option>
               </select>
               <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                Sélectionné: {language.toUpperCase()}
+                {getTranslation('selectedLabel', appLanguage)}: {language.toUpperCase()}
               </p>
             </div>
 
             {/* Font Size Setting */}
             <div className="space-y-3">
-              <label className="block text-sm font-medium">Taille de Police</label>
+              <label className="block text-sm font-medium">{getTranslation('fontSizeLabel', appLanguage)}</label>
               <div className="flex gap-2">
                 {['small', 'medium', 'large'].map((size) => (
                   <button
@@ -136,13 +145,17 @@ const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
                   >
                     {size === 'small' ? 'A' : size === 'medium' ? 'A' : 'A'}
                     <span className="ml-1 text-xs">
-                      {size === 'small' ? '12px' : size === 'medium' ? '14px' : '16px'}
+                      {size === 'small'
+                        ? getTranslation('fontSizeSmall', appLanguage)
+                        : size === 'medium'
+                        ? getTranslation('fontSizeMedium', appLanguage)
+                        : getTranslation('fontSizeLarge', appLanguage)}
                     </span>
                   </button>
                 ))}
               </div>
               <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                Sélectionné: {fontSize.charAt(0).toUpperCase() + fontSize.slice(1)}
+                {getTranslation('selectedLabel', appLanguage)}: {fontSize.charAt(0).toUpperCase() + fontSize.slice(1)}
               </p>
             </div>
 
@@ -150,12 +163,12 @@ const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
             <div className={`p-4 rounded-lg ${
               theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
             }`}>
-              <h3 className="font-semibold mb-2 text-sm">À propos</h3>
+              <h3 className="font-semibold mb-2 text-sm">{getTranslation('aboutTitle', appLanguage)}</h3>
               <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                MathAI v1.0.0
+                {getTranslation('versionLabel', appLanguage)}
               </p>
               <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Tuteur d'IA pour les mathématiques
+                {getTranslation('appTagline', appLanguage)}
               </p>
             </div>
           </div>
@@ -170,7 +183,7 @@ const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
               }`}
             >
-              Fermer
+              {getTranslation('closeLabel', appLanguage)}
             </button>
           </div>
         </div>

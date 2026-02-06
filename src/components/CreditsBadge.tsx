@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { getCredits } from '../services/api';
 import { useUser, useClerk } from '@clerk/clerk-react';
+import { getTranslation } from '../utils/translations';
+import { useLanguage } from '../hooks/useLanguage';
 
 const CreditsBadge: React.FC<{ userId?: string }> = ({ userId }) => {
   const { user } = useUser();
   const clerk = useClerk();
   const uid = userId || user?.id || 'guest';
   const [remaining, setRemaining] = useState<number | null>(null);
+  const language = useLanguage();
 
   useEffect(() => {
     let mounted = true;
@@ -44,12 +47,12 @@ const CreditsBadge: React.FC<{ userId?: string }> = ({ userId }) => {
 
       {/* Desktop / larger screens */}
       <div className="hidden md:flex items-baseline gap-2">
-        <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">crédits</span>
+        <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">{getTranslation('creditsLabel', language)}</span>
         <span className={`text-2xl font-bold ${remaining === null ? 'text-gray-500' : remaining > 0 ? 'text-blue-600' : 'text-red-500'}`}>{remaining === null ? '—' : remaining}</span>
       </div>
 
       <div className="hidden md:block h-6 w-px bg-gradient-to-b from-blue-300 to-indigo-300" />
-      <div className="hidden md:block text-xs text-gray-500 font-medium">Réinitialise à minuit ( Heure du Bénin )</div>
+      <div className="hidden md:block text-xs text-gray-500 font-medium">{getTranslation('creditsResetNote', language)}</div>
     </div>
   );
 };

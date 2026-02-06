@@ -148,7 +148,10 @@ app.add_middleware(
         "https://deep-track-mathai.vercel.app",
         "https://www.mathai.fr",
         "https://mathai.fr",
+        "https://mathai-deeptracks-projects-32338107.vercel.app",
+        "https://math-ai-1-b5es.onrender.com",
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
     allow_headers=["*"],
@@ -339,9 +342,11 @@ async def ask_stream_endpoint(http_req: Request):
     if not question_text:
         raise HTTPException(status_code=400, detail="Question text is required")
 
-    print(f"\n[STREAM] Question: {question_text}")
+    request_id = f"stream-{uuid.uuid4().hex[:8]}"
+
+    print(f"\n[STREAM] {request_id} Question: {question_text}")
     if attachment:
-        print(f"[STREAM] With attachment: {attachment['type']}")
+        print(f"[STREAM] {request_id} With attachment: {attachment['type']}")
 
     def generate():  # NOT async - your orchestrator is sync!
         try:
@@ -401,7 +406,7 @@ async def ask_stream_endpoint(http_req: Request):
                             user_id_verified = request.user_id if request else 'guest'
 
                     if user_id_verified:
-                        print(f"[CREDITS] Attempting server-side charge for user: {user_id_verified}")
+                        print(f"[CREDITS] {request_id} Attempting server-side charge for user: {user_id_verified}")
                         rec = None
                         if USE_MONGO:
                             # Run async decrement in a dedicated loop for this sync generator
@@ -419,17 +424,17 @@ async def ask_stream_endpoint(http_req: Request):
                         if rec is None:
                             # Inform client that there were no credits
                             yield f"data: {json.dumps({'error': 'No credits remaining'})}\n\n"
-                            print(f"[CREDITS] No credits remaining for user: {user_id_verified}")
+                            print(f"[CREDITS] {request_id} No credits remaining for user: {user_id_verified}")
                         else:
                             # Inform client of remaining credits so UI can be updated
                             yield f"data: {json.dumps({'charged': True, 'remaining': rec['remaining']})}\n\n"
-                            print(f"[CREDITS] Charged user {user_id_verified}, remaining={rec['remaining']}")
+                            print(f"[CREDITS] {request_id} Charged user {user_id_verified}, remaining={rec['remaining']}")
             except Exception as e:
-                print(f"[CREDITS] Server-side charge failed: {e}")
+                print(f"[CREDITS] {request_id} Server-side charge failed: {e}")
 
             # Send done
             yield f"data: {json.dumps({'done': True})}\n\n"
-            print(f"✅ Complete - {chunk_count} chunks")
+            print(f"✅ {request_id} Complete - {chunk_count} chunks")
             
         except Exception as e:
             print(f"❌ Error: {e}")
@@ -521,9 +526,17 @@ def _save_json(path, data):
 
 
 # --- File-backed sync helpers (used by async wrappers) ---
+def _benin_today_iso():
+    try:
+        if ZoneInfo:
+            return datetime.now(ZoneInfo("Africa/Porto-Novo")).date().isoformat()
+    except Exception:
+        pass
+    return datetime.utcnow().date().isoformat()
+
 def get_credits_record(user_id: str):
     records = _load_json(CREDITS_FILE, {})
-    today = datetime.utcnow().date().isoformat()
+    today = _benin_today_iso()
     rec = records.get(user_id)
     if not rec or rec.get('lastReset') < today:
         rec = {'remaining': DEFAULT_CREDITS, 'lastReset': today}
@@ -534,7 +547,7 @@ def get_credits_record(user_id: str):
 
 def spend_credit_record(user_id: str):
     records = _load_json(CREDITS_FILE, {})
-    rec = records.get(user_id) or {'remaining': DEFAULT_CREDITS, 'lastReset': datetime.utcnow().date().isoformat()}
+    rec = records.get(user_id) or {'remaining': DEFAULT_CREDITS, 'lastReset': _benin_today_iso()}
     if rec.get('remaining', 0) <= 0:
         return None
     rec['remaining'] = rec.get('remaining', 0) - 1
@@ -544,7 +557,7 @@ def spend_credit_record(user_id: str):
 
 
 def reset_all_credits():
-    today = datetime.utcnow().date().isoformat()
+    today = _benin_today_iso()
     records = _load_json(CREDITS_FILE, {})
     for uid in list(records.keys()):
         records[uid] = {'remaining': DEFAULT_CREDITS, 'lastReset': today}
@@ -567,6 +580,11 @@ def _save_conversations_for_user(user_id: str, conversations: list):
 
 # Clerk session verification helper (dev-friendly)
 import requests
+try:
+    from zoneinfo import ZoneInfo
+except Exception:
+    ZoneInfo = None
+import uuid
 CLERK_API_KEY = os.environ.get('CLERK_API_KEY')
 CLERK_API_BASE = os.environ.get('CLERK_API_BASE', 'https://api.clerk.com/v1')
 # Development escape hatch: when set to 'true' this skips Clerk verification so you can test locally
@@ -603,7 +621,7 @@ def _verify_clerk_session(session_id: str) -> Optional[str]:
 import asyncio
 
 async def _get_credits_record_async(user_id: str):
-    today = datetime.utcnow().date().isoformat()
+    today = _benin_today_iso()
 
     if USE_MONGO:
         # Upsert default if missing or stale
@@ -634,7 +652,7 @@ async def _spend_credit_record_async(user_id: str):
 
 
 async def _reset_all_credits_async():
-    today = datetime.utcnow().date().isoformat()
+    today = _benin_today_iso()
     if USE_MONGO:
         await credits_coll.update_many({}, {'$set': {'remaining': DEFAULT_CREDITS, 'lastReset': today}})
         return
@@ -775,12 +793,13 @@ async def api_get_credits(user_id: str, request: Request):
     except Exception as e:
         print(f"[CREDITS] Error fetching credits for {user_id}: {e}")
         # Fallback: return default credits
-        return {"user_id": user_id, "remaining": DEFAULT_CREDITS, "lastReset": datetime.utcnow().date().isoformat()}
+        return {"user_id": user_id, "remaining": DEFAULT_CREDITS, "lastReset": _benin_today_iso()}
 
 
 @api_router.post("/credits/{user_id}/spend")
 async def api_spend_credit(user_id: str, request: Request):
-    print(f"[CREDITS] /spend called for user_id={user_id}")
+    request_id = f"spend-{uuid.uuid4().hex[:8]}"
+    print(f"[CREDITS] {request_id} /spend called for user_id={user_id}")
     # Require X-Session-Id header and validate
     session_header = request.headers.get('x-session-id') or request.headers.get('authorization')
     if not session_header:
@@ -812,7 +831,9 @@ async def api_spend_credit(user_id: str, request: Request):
 
     rec = await _spend_credit_record_async(user_id_verified)
     if rec is None:
+        print(f"[CREDITS] {request_id} No credits remaining for user: {user_id_verified}")
         raise HTTPException(status_code=402, detail="No credits remaining")
+    print(f"[CREDITS] {request_id} Charged user {user_id_verified}, remaining={rec['remaining']}")
     return {"user_id": user_id_verified, "remaining": rec["remaining"]} 
 
 
@@ -824,7 +845,7 @@ async def api_reset_credits(user_id: str):
         raise HTTPException(status_code=403, detail='Reset not allowed')
 
     # Perform reset in the underlying storage
-    today = datetime.utcnow().date().isoformat()
+    today = _benin_today_iso()
     if USE_MONGO:
         await credits_coll.update_one({'user_id': user_id}, {'$set': {'remaining': DEFAULT_CREDITS, 'lastReset': today}}, upsert=True)
     else:

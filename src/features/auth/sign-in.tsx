@@ -204,6 +204,11 @@ const SignInPage = () => {
             <p className="text-sm text-gray-400">
               Pas encore inscrit? <button onClick={() => navigate('/signup')} className="text-[#00b876] hover:text-[#00d488] font-bold transition-colors cursor-pointer bg-none border-none">Créer un compte</button>
             </p>
+            <div className="mt-3">
+              <Link to="/" className="text-xs text-gray-400 hover:text-white transition-colors">
+                Retour à l'accueil
+              </Link>
+            </div>
           </div>
         </div>
 
