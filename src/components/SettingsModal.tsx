@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getLanguage, getTranslation } from '../utils/translations';
-import { useLanguage } from '../hooks/useLanguage';
+import { useLanguage, type AppLanguage } from '../hooks/useLanguage';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -11,12 +11,12 @@ interface SettingsModalProps {
 
 const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
   const appLanguage = useLanguage();
-  const [language, setLanguage] = useState(getLanguage());
+  const [language, setLanguage] = useState<AppLanguage>(getLanguage());
   const [fontSize, setFontSize] = useState('medium');
 
   // Load settings from localStorage on mount
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('app-language') || 'fr';
+    const savedLanguage = (localStorage.getItem('app-language') as AppLanguage) || 'fr';
     const savedFontSize = localStorage.getItem('app-font-size') || 'medium';
     
     setLanguage(savedLanguage);
@@ -43,7 +43,7 @@ const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
     document.documentElement.style.fontSize = rootFontSize;
   };
 
-  const handleLanguageChange = (newLanguage: string) => {
+  const handleLanguageChange = (newLanguage: AppLanguage) => {
     setLanguage(newLanguage);
     localStorage.setItem('app-language', newLanguage);
     // Trigger language change event
