@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useClerk } from '@clerk/clerk-react';
 import { useTheme } from '../../theme/useTheme';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import ChatInput from './ChatInput';
 import SolutionDisplay from '../../components/SolutionDisplay';
 import LoadingState from '../../components/LoadingState';
@@ -40,7 +39,23 @@ const ChatMessage = () => {
   const scrollContainerRef = useRef<HTMLElement | null>(null);
 
   const userName = user?.firstName || guestName || getTranslation('learnerLabel', language);
-  const clerk = useClerk();
+  const { getToken, isLoaded: isAuthLoaded } = useAuth();
+
+  const getSessionToken = useCallback(async () => {
+    if (!user?.id || !isAuthLoaded) return undefined;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const token = await getToken();
+        if (token) return token;
+      } catch (e) {
+        // ignore and retry
+      }
+      if (attempt < 2) {
+        await new Promise((resolve) => setTimeout(resolve, 200 * (attempt + 1)));
+      }
+    }
+    return undefined;
+  }, [user?.id, isAuthLoaded, getToken]);
 
   // Listen for reset chat event
   useEffect(() => {
@@ -57,15 +72,7 @@ const ChatMessage = () => {
       const ev = e as CustomEvent;
       const id = ev.detail?.id as string;
       if (!id) return;
-      let token: string | undefined;
-      if (user?.id) {
-        try {
-          token = await (clerk as any).getToken?.();
-        } catch (err) {
-          token = undefined;
-        }
-      }
-
+      const token = await getSessionToken();
       const hist = await getConversationHistory(id, user?.id || 'guest', token);
       setConversationId(id);
       setMessages(hist.messages || []);
@@ -87,21 +94,14 @@ const ChatMessage = () => {
       window.removeEventListener('loadConversation', handleLoadConversation);
       window.removeEventListener('creditsSpendFailed', handleCreditsSpendFailed);
     };
-  }, [user]);
+  }, [user, getSessionToken]);
 
   // Initialize credits on mount
   useEffect(() => {
     const init = async () => {
       try {
         if (user?.id) {
-          // try to get a Clerk session token to pass to the backend for verification
-          let token: string | undefined;
-          try {
-            token = await (clerk as any).getToken?.();
-          } catch (e) {
-            token = undefined;
-          }
-
+          const token = await getSessionToken();
           const credits = await getCredits(user.id, token);
           // If backend returned null (unreachable or unauthenticated), treat as unknown
           setCreditsRemaining(credits.remaining ?? null);
@@ -121,7 +121,7 @@ const ChatMessage = () => {
     };
 
     init();
-  }, [user]);
+  }, [user, getSessionToken]);
 
   // Attach scroll listeners to the chat messages container when messages exist
   useEffect(() => {
@@ -168,11 +168,10 @@ const ChatMessage = () => {
       const userId = user?.id || 'guest';
 
       // Try to get a Clerk session token early so we can pass it to the streaming endpoint
-      let token: string | undefined;
-      try {
-        token = await (clerk as any).getToken?.();
-      } catch (e) {
-        token = undefined;
+      let token: string | undefined = await getSessionToken();
+      if (user?.id && !token) {
+        setError(getTranslation('authTokenMissing', language));
+        return;
       }
 
       // Fetch latest credits before submitting
@@ -410,12 +409,9 @@ const ChatMessage = () => {
 
             while (attempt < maxAttempts && !spent) {
               try {
-                if (user?.id) {
-                  try {
-                    token = await (clerk as any).getToken?.();
-                  } catch (e) {
-                    token = undefined;
-                  }
+                token = await getSessionToken();
+                if (user?.id && !token) {
+                  throw new Error(getTranslation('authTokenMissing', language));
                 }
 
                 const res = await spendCredits(userId, token);
@@ -494,7 +490,7 @@ const ChatMessage = () => {
         setLoading(false);
       }
     },
-    [conversationId, user, clerk, followWhileStreaming, language]
+    [conversationId, user, getSessionToken, followWhileStreaming, language]
   );
 
   const handleRetry = () => {
@@ -521,21 +517,13 @@ const ChatMessage = () => {
     if (isStreaming) return;
 
     const persist = async () => {
-      let token: string | undefined;
-      if (user?.id) {
-        try {
-          token = await (clerk as any).getToken?.();
-        } catch (e) {
-          token = undefined;
-        }
-      }
-
+      const token = await getSessionToken();
       await updateConversation(conversationId, user?.id || 'guest', messages, undefined, token);
       window.dispatchEvent(new CustomEvent('conversationUpdated'));
     };
 
     persist();
-  }, [messages, conversationId, user, isStreaming, clerk]);
+  }, [messages, conversationId, user, isStreaming, getSessionToken]);
 
   // Landing page when no messages
   if (messages.length === 0) {

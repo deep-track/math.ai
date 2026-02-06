@@ -7,6 +7,12 @@ export function useLanguage(): AppLanguage {
   const [language, setLanguage] = useState<AppLanguage>(getLanguage())
 
   useEffect(() => {
+    if (!localStorage.getItem('app-language')) {
+      localStorage.setItem('app-language', language)
+    }
+  }, [language])
+
+  useEffect(() => {
     const handleLanguageChanged = (e: Event) => {
       const ev = e as CustomEvent
       const next = (ev.detail as AppLanguage) || getLanguage()

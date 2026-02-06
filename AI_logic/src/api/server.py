@@ -757,7 +757,7 @@ async def verify_whitelist(req: EmailVerifyRequest):
     else:
         return {
             "allowed": False,
-            "reason": "Your email is not authorized to access this application. Please contact the administrator."
+            "reason": "Votre adresse e-mail n’est pas autorisée à accéder à cette application. Veuillez contacter l’administrateur.."
         }
 
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getTranslation } from '../utils/translations';
+import { getLanguage, getTranslation } from '../utils/translations';
 import { useLanguage } from '../hooks/useLanguage';
 
 interface SettingsModalProps {
@@ -11,7 +11,7 @@ interface SettingsModalProps {
 
 const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
   const appLanguage = useLanguage();
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState(getLanguage());
   const [fontSize, setFontSize] = useState('medium');
 
   // Load settings from localStorage on mount
