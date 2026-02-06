@@ -112,7 +112,7 @@ const SettingsModal = ({ isOpen, onClose, theme }: SettingsModalProps) => {
               <label className="block text-sm font-medium">{getTranslation('languageLabel', appLanguage)}</label>
               <select
                 value={language}
-                onChange={(e) => handleLanguageChange(e.target.value)}
+                onChange={(e) => handleLanguageChange(e.target.value as AppLanguage)}
                 className={`w-full px-4 py-3 rounded-lg border transition-colors ${
                   theme === 'dark'
                     ? 'bg-gray-800 border-gray-700 text-white'
