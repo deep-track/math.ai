@@ -509,6 +509,15 @@ if whitelist_env:
 else:
     print('[WHITELIST] No whitelist configured; all signed-up users will have access')
 
+# Load admin email allowlist from environment
+ADMIN_EMAILS = set()
+admin_emails_env = os.environ.get('ADMIN_EMAILS', '')
+if admin_emails_env:
+    ADMIN_EMAILS = set(email.strip().lower() for email in admin_emails_env.split(',') if email.strip())
+    print(f'[ADMIN] Loaded {len(ADMIN_EMAILS)} admin emails')
+else:
+    print('[ADMIN] No ADMIN_EMAILS configured; admin dashboard access is disabled by default')
+
 def _load_json(path, default):
     try:
         if not os.path.exists(path):
@@ -759,6 +768,29 @@ async def verify_whitelist(req: EmailVerifyRequest):
             "allowed": False,
             "reason": "Votre adresse e-mail n’est pas autorisée à accéder à cette application. Veuillez contacter l’administrateur.."
         }
+
+
+@api_router.post("/verify-admin")
+async def verify_admin(req: EmailVerifyRequest):
+    """
+    Verify if an email is authorized to access admin routes.
+    Returns {allowed: True} only when email is in ADMIN_EMAILS.
+    Secure default: deny when ADMIN_EMAILS is not configured.
+    """
+    if not ADMIN_EMAILS:
+        return {
+            "allowed": False,
+            "reason": "Admin access is not configured. Please contact the administrator."
+        }
+
+    email_lower = req.email.strip().lower()
+    if email_lower in ADMIN_EMAILS:
+        return {"allowed": True}
+
+    return {
+        "allowed": False,
+        "reason": "You do not have permission to access the admin dashboard."
+    }
 
 
 # API: Credits endpoints (now using async wrappers with error handling)

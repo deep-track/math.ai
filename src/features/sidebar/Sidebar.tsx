@@ -7,6 +7,8 @@ import { getConversations, deleteConversation } from '../../services/api';
 import { getTranslation } from '../../utils/translations';
 import { useLanguage } from '../../hooks/useLanguage';
 import SettingsModal from '../../components/SettingsModal';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAdminCheck } from '../../hooks/useAdminCheck';
 
 interface SidebarProps {
   onNewChat?: () => void;
@@ -20,6 +22,9 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
   const { signOut } = clerk;
   const { theme } = useTheme();
   const language = useLanguage();
+  const { adminStatus } = useAdminCheck();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -133,6 +138,24 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
         </span>
         {!isCollapsed && <span>{getTranslation('newConversation', language)}</span>}
       </button>
+
+      {adminStatus?.allowed && (
+        <button
+          onClick={() => navigate(location.pathname === '/admin' ? '/home' : '/admin')}
+          className="mb-4 flex items-center gap-3 rounded-md px-2 py-2 text-sm text-white hover:bg-slate-700/50 transition-all duration-200 group w-full"
+        >
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-700 text-white text-xs font-semibold group-hover:scale-110 transition-transform">
+            {location.pathname === '/admin' ? '↩' : '📊'}
+          </span>
+          {!isCollapsed && (
+            <span>
+              {location.pathname === '/admin'
+                ? getTranslation('backToChat', language)
+                : getTranslation('adminDashboard', language)}
+            </span>
+          )}
+        </button>
+      )}
 
       {/* discussion panel */}
       {!isCollapsed && (
