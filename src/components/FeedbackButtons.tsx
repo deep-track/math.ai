@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { submitFeedback, trackAnalyticsEvent } from '../services/api';
 import type { FeedbackType } from '../types';
+import { useUser } from '@clerk/clerk-react';
 
 interface FeedbackButtonsProps {
   solutionId: string;
@@ -12,6 +13,7 @@ const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({
   solutionId, 
   onFeedbackSubmitted
 }) => {
+  const { user } = useUser();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +30,7 @@ const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({
         solutionId,
         type,
         timestamp: Date.now(),
+        userId: user?.id || 'guest',
       });
 
       // Track analytics event
@@ -35,6 +38,7 @@ const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({
         eventType: 'feedback_submitted',
         solutionId,
         timestamp: Date.now(),
+        userId: user?.id || 'guest',
       });
 
       setSubmitted(true);

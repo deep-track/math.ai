@@ -61,6 +61,8 @@ export interface Feedback {
   type: FeedbackType;
   timestamp: number;
   additionalComments?: string;
+  userId?: string;
+  topic?: string;
 }
 
 export interface ApiError {
@@ -74,6 +76,8 @@ export interface AnalyticsEvent {
   solutionId?: string;
   responseTime?: number;
   timestamp: number;
+  userId?: string;
+  topic?: string;
 }
 
 export interface SubmitFeedbackResponse {

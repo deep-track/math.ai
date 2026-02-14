@@ -14,6 +14,8 @@ import sys
 import os
 import json
 from datetime import datetime, timedelta
+from collections import Counter, defaultdict
+import re
 
 # 1. Add project root to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -190,6 +192,24 @@ class HealthResponse(BaseModel):
     timestamp: str
 
 
+class FeedbackRequest(BaseModel):
+    solutionId: str
+    type: str
+    timestamp: int
+    additionalComments: Optional[str] = None
+    userId: Optional[str] = None
+    topic: Optional[str] = None
+
+
+class AnalyticsEventRequest(BaseModel):
+    eventType: str
+    solutionId: Optional[str] = None
+    responseTime: Optional[int] = None
+    timestamp: int
+    userId: Optional[str] = None
+    topic: Optional[str] = None
+
+
 # 5. Test endpoint - Simple test
 @app.post("/test")
 async def test_endpoint():
@@ -206,7 +226,8 @@ async def test_endpoint():
 @api_router.post("/ask", response_model=AcademicResponseModel)
 async def ask_endpoint(
     text : str = Form(...),
-    image : UploadFile = File(None)
+    image : UploadFile = File(None),
+    user_id: str = Form("guest")
 ):
     """
     Main endpoint for solving math problems.
@@ -225,6 +246,7 @@ async def ask_endpoint(
         HTTPException: If processing fails
     """
     try:
+        started_at = datetime.utcnow()
         attachment = None
         if image:
             print(f"[INFO] Processing uploaded image: {image.filename}")
@@ -270,6 +292,36 @@ async def ask_endpoint(
                 steps=steps,
                 conclusion=result.get('conclusion')
             )
+
+            elapsed_ms = int((datetime.utcnow() - started_at).total_seconds() * 1000)
+            retrieved_sources = result.get('sources') if isinstance(result, dict) else []
+            retrieved_ids = []
+            similarity_scores = []
+            if isinstance(retrieved_sources, list):
+                for source in retrieved_sources:
+                    if isinstance(source, dict):
+                        sid = source.get('id') or source.get('source')
+                        if sid:
+                            retrieved_ids.append(str(sid))
+                        score = source.get('score')
+                        if isinstance(score, (int, float)):
+                            similarity_scores.append(float(score))
+
+            _log_interaction({
+                "user_id": user_id or "guest",
+                "timestamp": datetime.utcnow().isoformat(),
+                "student_question": text,
+                "retrieved_documents": retrieved_ids,
+                "retrieved_similarity_scores": similarity_scores,
+                "model_answer": response_data.conclusion or (response_data.steps[0].explanation if response_data.steps else ""),
+                "response_latency_ms": elapsed_ms,
+                "topic": _classify_topic(text),
+                "question_type": _question_type(text),
+                "difficulty": _difficulty_level(text),
+                "correctness_flag": None,
+                "error_flags": [],
+                "source": "ask"
+            })
         else:
             raise ValueError("Orchestrator did not return a dictionary")
         
@@ -314,12 +366,15 @@ async def ask_stream_endpoint(http_req: Request):
 
     question_text = None
     attachment = None
+    user_id_from_request = "guest"
+    request_received_at = datetime.utcnow()
 
     if "multipart/form-data" in content_type:
         # Handle FormData input
         form = await http_req.form()
         text = form.get("text")
         image = form.get("image")
+        user_id_from_request = str(form.get("user_id") or "guest")
         if text:
             question_text = text
             if image and isinstance(image, UploadFile):
@@ -334,6 +389,7 @@ async def ask_stream_endpoint(http_req: Request):
             json_data = await http_req.json()
             question_request = QuestionRequest(**json_data)
             question_text = question_request.text
+            user_id_from_request = question_request.user_id or "guest"
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Invalid JSON request: {str(e)}")
     else:
@@ -349,11 +405,13 @@ async def ask_stream_endpoint(http_req: Request):
         print(f"[STREAM] {request_id} With attachment: {attachment['type']}")
 
     def generate():  # NOT async - your orchestrator is sync!
+        chunk_count = 0
+        final_conclusion = ""
+        stream_sources = []
+        stream_error_flags = []
         try:
             # Send connection
             yield ": connected\n\n"
-
-            chunk_count = 0
 
             # Get stream from orchestrator (it's a regular generator, not async)
             for ndjson_line in ask_math_ai_stream(question_text, history="", attachment=attachment):
@@ -376,11 +434,14 @@ async def ask_stream_endpoint(http_req: Request):
 
                     elif chunk_type == "start":
                         # Send metadata - frontend expects {metadata: chunk_obj}
+                        if isinstance(chunk_obj.get("sources"), list):
+                            stream_sources = chunk_obj.get("sources")
                         yield f"data: {json.dumps({'metadata': chunk_obj})}\n\n"
 
                     elif chunk_type == "end":
                         # Send conclusion - frontend expects {conclusion: text}
-                        yield f"data: {json.dumps({'conclusion': chunk_obj.get('conclusion', '')})}\n\n"
+                        final_conclusion = chunk_obj.get('conclusion', '')
+                        yield f"data: {json.dumps({'conclusion': final_conclusion})}\n\n"
                     
                 except json.JSONDecodeError:
                     continue
@@ -396,14 +457,12 @@ async def ask_stream_endpoint(http_req: Request):
 
                     # Determine verified user id (respect dev bypass)
                     if DEV_SKIP_CLERK_VERIFY:
-                        # For FormData, user_id comes from the request body or defaults to 'guest'
-                        # For JSON, it comes from request.user_id
-                        user_id_verified = request.user_id if request else 'guest'
+                        user_id_verified = user_id_from_request
                     else:
                         if CLERK_API_KEY:
                             user_id_verified = _verify_clerk_session(session_token)
                         else:
-                            user_id_verified = request.user_id if request else 'guest'
+                            user_id_verified = user_id_from_request
 
                     if user_id_verified:
                         print(f"[CREDITS] {request_id} Attempting server-side charge for user: {user_id_verified}")
@@ -435,11 +494,57 @@ async def ask_stream_endpoint(http_req: Request):
             # Send done
             yield f"data: {json.dumps({'done': True})}\n\n"
             print(f"✅ {request_id} Complete - {chunk_count} chunks")
+
+            elapsed_ms = int((datetime.utcnow() - request_received_at).total_seconds() * 1000)
+            retrieved_ids = []
+            similarity_scores = []
+            if isinstance(stream_sources, list):
+                for source in stream_sources:
+                    if isinstance(source, dict):
+                        sid = source.get('id') or source.get('source')
+                        if sid:
+                            retrieved_ids.append(str(sid))
+                        score = source.get('score')
+                        if isinstance(score, (int, float)):
+                            similarity_scores.append(float(score))
+
+            _log_interaction({
+                "user_id": user_id_from_request or "guest",
+                "timestamp": datetime.utcnow().isoformat(),
+                "student_question": question_text,
+                "retrieved_documents": retrieved_ids,
+                "retrieved_similarity_scores": similarity_scores,
+                "model_answer": final_conclusion,
+                "response_latency_ms": elapsed_ms,
+                "topic": _classify_topic(question_text),
+                "question_type": _question_type(question_text),
+                "difficulty": _difficulty_level(question_text),
+                "correctness_flag": None,
+                "error_flags": stream_error_flags,
+                "source": "ask-stream"
+            })
             
         except Exception as e:
             print(f"❌ Error: {e}")
             import traceback
             traceback.print_exc()
+            stream_error_flags.append("runtime_error")
+            elapsed_ms = int((datetime.utcnow() - request_received_at).total_seconds() * 1000)
+            _log_interaction({
+                "user_id": user_id_from_request or "guest",
+                "timestamp": datetime.utcnow().isoformat(),
+                "student_question": question_text,
+                "retrieved_documents": [],
+                "retrieved_similarity_scores": [],
+                "model_answer": final_conclusion,
+                "response_latency_ms": elapsed_ms,
+                "topic": _classify_topic(question_text),
+                "question_type": _question_type(question_text),
+                "difficulty": _difficulty_level(question_text),
+                "correctness_flag": False,
+                "error_flags": stream_error_flags,
+                "source": "ask-stream"
+            })
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
     
     return StreamingResponse(
@@ -464,6 +569,9 @@ if not os.path.exists(STORAGE_DIR):
 
 CREDITS_FILE = os.path.join(STORAGE_DIR, "credits.json")
 CONVERSATIONS_FILE = os.path.join(STORAGE_DIR, "conversations.json")
+ANALYTICS_INTERACTIONS_FILE = os.path.join(STORAGE_DIR, "analytics_interactions.json")
+ANALYTICS_FEEDBACK_FILE = os.path.join(STORAGE_DIR, "analytics_feedback.json")
+ANALYTICS_EVENTS_FILE = os.path.join(STORAGE_DIR, "analytics_events.json")
 DEFAULT_CREDITS = 100
 
 # MongoDB support (optional) with SSL/TLS certificate handling
@@ -532,6 +640,117 @@ def _save_json(path, data):
     with _storage_lock:
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(data, fh, indent=2, default=str)
+
+
+def _classify_topic(question: str) -> str:
+    if not question:
+        return "Unknown"
+    q = question.lower()
+    topic_patterns = {
+        "Algebra": r"equation|solve for x|polynomial|factor|linear|quadratic|inequal",
+        "Geometry": r"triangle|circle|angle|area|perimeter|volume|parallel|polygon",
+        "Trigonometry": r"sin|cos|tan|cot|sec|csc|trig|radian",
+        "Calculus": r"derivative|integral|limit|differentiat|continuity|tangent",
+        "Statistics": r"probability|mean|median|variance|standard deviation|distribution",
+    }
+    for topic, pattern in topic_patterns.items():
+        if re.search(pattern, q):
+            return topic
+    return "General Math"
+
+
+def _question_type(question: str) -> str:
+    if not question:
+        return "unknown"
+    q = question.lower()
+    if "prove" in q or "show that" in q:
+        return "proof"
+    if any(k in q for k in ["explain", "why", "how"]):
+        return "conceptual"
+    if any(k in q for k in ["word problem", "story", "train", "distance", "speed"]):
+        return "word_problem"
+    if any(k in q for k in ["graph", "plot"]):
+        return "graphing"
+    return "computation"
+
+
+def _difficulty_level(question: str) -> str:
+    if not question:
+        return "medium"
+    q = question.lower()
+    score = 0
+    if len(q) > 120:
+        score += 1
+    if any(k in q for k in ["integral", "derivative", "proof", "matrix", "vector", "probability"]):
+        score += 1
+    if any(k in q for k in ["step by step", "explain", "reason"]):
+        score += 1
+    if score <= 1:
+        return "easy"
+    if score == 2:
+        return "medium"
+    return "hard"
+
+
+def _to_dt(value):
+    if value is None:
+        return None
+    try:
+        if isinstance(value, (int, float)):
+            if value > 1e12:
+                return datetime.utcfromtimestamp(value / 1000)
+            return datetime.utcfromtimestamp(value)
+        if isinstance(value, str):
+            parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+            if parsed.tzinfo is not None:
+                return parsed.astimezone(tz=None).replace(tzinfo=None)
+            return parsed
+    except Exception:
+        return None
+    return None
+
+
+def _append_record(path: str, record: dict):
+    payload = _load_json(path, [])
+    if not isinstance(payload, list):
+        payload = []
+    payload.append(record)
+    _save_json(path, payload)
+
+
+def _log_interaction(record: dict):
+    interaction = dict(record)
+    interaction["id"] = interaction.get("id") or f"ix-{uuid.uuid4().hex[:12]}"
+    interaction["timestamp"] = interaction.get("timestamp") or datetime.utcnow().isoformat()
+    _append_record(ANALYTICS_INTERACTIONS_FILE, interaction)
+
+
+def _log_feedback(record: dict):
+    payload = dict(record)
+    payload["id"] = payload.get("id") or f"fb-{uuid.uuid4().hex[:12]}"
+    payload["timestamp"] = payload.get("timestamp") or datetime.utcnow().isoformat()
+    _append_record(ANALYTICS_FEEDBACK_FILE, payload)
+
+
+def _log_event(record: dict):
+    payload = dict(record)
+    payload["id"] = payload.get("id") or f"ev-{uuid.uuid4().hex[:12]}"
+    payload["timestamp"] = payload.get("timestamp") or datetime.utcnow().isoformat()
+    _append_record(ANALYTICS_EVENTS_FILE, payload)
+
+
+def _safe_pct(numerator: float, denominator: float) -> float:
+    if denominator <= 0:
+        return 0.0
+    return round((numerator / denominator) * 100.0, 2)
+
+
+def _is_admin_email(email: str) -> bool:
+    if not email:
+        return False
+    if not ADMIN_EMAILS:
+        return False
+    return email.strip().lower() in ADMIN_EMAILS
 
 
 # --- File-backed sync helpers (used by async wrappers) ---
@@ -624,6 +843,28 @@ def _verify_clerk_session(session_id: str) -> Optional[str]:
         return data.get('user_id')
     except Exception:
         return None
+
+
+def _get_clerk_user_primary_email(user_id: str) -> Optional[str]:
+    if not CLERK_API_KEY or not user_id:
+        return None
+    try:
+        url = f"{CLERK_API_BASE}/users/{user_id}"
+        headers = {"Authorization": f"Bearer {CLERK_API_KEY}"}
+        r = requests.get(url, headers=headers, timeout=5)
+        if r.status_code != 200:
+            return None
+        data = r.json() or {}
+        primary_email_id = data.get("primary_email_address_id")
+        emails = data.get("email_addresses") or []
+        for item in emails:
+            if item.get("id") == primary_email_id:
+                return (item.get("email_address") or "").strip().lower() or None
+        if emails:
+            return (emails[0].get("email_address") or "").strip().lower() or None
+    except Exception:
+        return None
+    return None
 
 
 # Async wrappers for credits (works with either MongoDB or JSON files)
@@ -790,6 +1031,350 @@ async def verify_admin(req: EmailVerifyRequest):
     return {
         "allowed": False,
         "reason": "You do not have permission to access the admin dashboard."
+    }
+
+
+@api_router.post("/feedback")
+async def submit_feedback(req: FeedbackRequest):
+    topic = req.topic or "General Math"
+    _log_feedback({
+        "solution_id": req.solutionId,
+        "type": req.type,
+        "timestamp": datetime.utcfromtimestamp(req.timestamp / 1000).isoformat() if req.timestamp else datetime.utcnow().isoformat(),
+        "user_id": req.userId or "guest",
+        "topic": topic,
+        "additional_comments": req.additionalComments,
+    })
+    return {"success": True, "message": "Feedback received"}
+
+
+@api_router.post("/analytics/event")
+async def track_analytics_event(req: AnalyticsEventRequest):
+    _log_event({
+        "event_type": req.eventType,
+        "solution_id": req.solutionId,
+        "response_time": req.responseTime,
+        "timestamp": datetime.utcfromtimestamp(req.timestamp / 1000).isoformat() if req.timestamp else datetime.utcnow().isoformat(),
+        "user_id": req.userId or "guest",
+        "topic": req.topic,
+    })
+    return {"success": True}
+
+
+@api_router.get("/admin/metrics")
+async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
+    session_header = request.headers.get('x-session-id') or request.headers.get('authorization')
+    resolved_email = None
+
+    if session_header:
+        if session_header.lower().startswith('bearer '):
+            session_token = session_header.split(' ', 1)[1]
+        else:
+            session_token = session_header
+
+        if DEV_SKIP_CLERK_VERIFY:
+            resolved_email = (email or "").strip().lower() or None
+        else:
+            user_id_verified = _verify_clerk_session(session_token)
+            if not user_id_verified:
+                raise HTTPException(status_code=401, detail="Invalid session")
+            resolved_email = _get_clerk_user_primary_email(user_id_verified)
+    else:
+        if not DEV_SKIP_CLERK_VERIFY:
+            raise HTTPException(status_code=401, detail="Missing session header")
+        resolved_email = (email or "").strip().lower() or None
+
+    effective_email = resolved_email or (email or "").strip().lower()
+    if not _is_admin_email(effective_email):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    days = max(1, min(days, 180))
+    now = datetime.utcnow()
+    since = now - timedelta(days=days)
+
+    interactions = _load_json(ANALYTICS_INTERACTIONS_FILE, [])
+    feedback = _load_json(ANALYTICS_FEEDBACK_FILE, [])
+    events = _load_json(ANALYTICS_EVENTS_FILE, [])
+
+    if not isinstance(interactions, list):
+        interactions = []
+    if not isinstance(feedback, list):
+        feedback = []
+    if not isinstance(events, list):
+        events = []
+
+    recent_interactions = [
+        x for x in interactions
+        if _to_dt(x.get("timestamp")) and _to_dt(x.get("timestamp")) >= since
+    ]
+    recent_feedback = [
+        x for x in feedback
+        if _to_dt(x.get("timestamp")) and _to_dt(x.get("timestamp")) >= since
+    ]
+
+    total_questions = len(recent_interactions)
+    latencies = [float(x.get("response_latency_ms", 0)) for x in recent_interactions if isinstance(x.get("response_latency_ms"), (int, float))]
+    avg_latency = round(sum(latencies) / len(latencies), 2) if latencies else 0
+
+    users_all = [str(x.get("user_id", "guest")) for x in recent_interactions]
+    unique_users = set(users_all)
+
+    start_today = datetime(now.year, now.month, now.day)
+    start_week = start_today - timedelta(days=7)
+    dau = len({str(x.get("user_id", "guest")) for x in recent_interactions if _to_dt(x.get("timestamp")) and _to_dt(x.get("timestamp")) >= start_today})
+    wau = len({str(x.get("user_id", "guest")) for x in recent_interactions if _to_dt(x.get("timestamp")) and _to_dt(x.get("timestamp")) >= start_week})
+
+    feedback_types = Counter([str(x.get("type", "")).lower() for x in recent_feedback])
+    helpful = feedback_types.get("helpful", 0)
+    incorrect = feedback_types.get("incorrect", 0)
+    satisfaction = _safe_pct(helpful, helpful + incorrect)
+
+    correctness_values = [x.get("correctness_flag") for x in recent_interactions if isinstance(x.get("correctness_flag"), bool)]
+    if correctness_values:
+        correct_count = sum(1 for v in correctness_values if v)
+        overall_accuracy = _safe_pct(correct_count, len(correctness_values))
+    else:
+        overall_accuracy = satisfaction
+
+    daily_counts = defaultdict(int)
+    hourly_counts = defaultdict(int)
+    user_counts = Counter()
+    topic_counts = Counter()
+    topic_correct = defaultdict(int)
+    topic_total = defaultdict(int)
+    retrieval_doc_count = []
+    retrieval_failures = 0
+    similarity_scores = []
+    error_patterns = Counter()
+    logs_with_topic = 0
+    logs_with_retrieval = 0
+    logs_with_latency = 0
+    logs_with_model_answer = 0
+
+    for item in recent_interactions:
+        dt = _to_dt(item.get("timestamp"))
+        if not dt:
+            continue
+        day_key = dt.date().isoformat()
+        daily_counts[day_key] += 1
+        hourly_counts[dt.hour] += 1
+
+        uid = str(item.get("user_id", "guest"))
+        user_counts[uid] += 1
+
+        topic = str(item.get("topic") or "General Math")
+        topic_counts[topic] += 1
+        logs_with_topic += 1 if item.get("topic") else 0
+
+        if isinstance(item.get("response_latency_ms"), (int, float)):
+            logs_with_latency += 1
+        if item.get("model_answer"):
+            logs_with_model_answer += 1
+
+        correctness = item.get("correctness_flag")
+        if isinstance(correctness, bool):
+            topic_total[topic] += 1
+            if correctness:
+                topic_correct[topic] += 1
+
+        docs = item.get("retrieved_documents")
+        if isinstance(docs, list):
+            logs_with_retrieval += 1
+            retrieval_doc_count.append(len(docs))
+            if len(docs) == 0:
+                retrieval_failures += 1
+        else:
+            retrieval_failures += 1
+
+        scores = item.get("retrieved_similarity_scores")
+        if isinstance(scores, list):
+            similarity_scores.extend([float(s) for s in scores if isinstance(s, (int, float))])
+
+        flags = item.get("error_flags") or []
+        if isinstance(flags, list):
+            for f in flags:
+                error_patterns[str(f)] += 1
+
+    avg_retrieved_docs = round(sum(retrieval_doc_count) / len(retrieval_doc_count), 2) if retrieval_doc_count else 0
+    retrieval_failure_rate = _safe_pct(retrieval_failures, len(recent_interactions)) if recent_interactions else 0
+
+    repeat_users = sum(1 for _, count in user_counts.items() if count > 1)
+    repeat_usage_rate = _safe_pct(repeat_users, len(user_counts)) if user_counts else 0
+    questions_per_student = round(total_questions / len(user_counts), 2) if user_counts else 0
+
+    question_type_counter = Counter([str(x.get("question_type") or "unknown") for x in recent_interactions])
+    difficulty_counter = Counter([str(x.get("difficulty") or "unknown") for x in recent_interactions])
+
+    topic_accuracy = []
+    for topic, count in topic_counts.items():
+        if topic_total.get(topic, 0) > 0:
+            acc = _safe_pct(topic_correct[topic], topic_total[topic])
+        else:
+            acc = overall_accuracy
+        topic_accuracy.append({"topic": topic, "count": count, "accuracy": acc})
+    topic_accuracy.sort(key=lambda x: x["count"], reverse=True)
+
+    feedback_by_topic = defaultdict(lambda: {"helpful": 0, "incorrect": 0})
+    for fb in recent_feedback:
+        topic = str(fb.get("topic") or "General Math")
+        ftype = str(fb.get("type") or "").lower()
+        if ftype in ("helpful", "incorrect"):
+            feedback_by_topic[topic][ftype] += 1
+
+    day_cursor = since.date()
+    per_day_keys = []
+    while day_cursor <= now.date():
+        per_day_keys.append(day_cursor.isoformat())
+        day_cursor += timedelta(days=1)
+
+    accuracy_trend = []
+    feedback_trend = []
+    latency_trend = []
+    for key in per_day_keys:
+        subset = [x for x in recent_interactions if _to_dt(x.get("timestamp")) and _to_dt(x.get("timestamp")).date().isoformat() == key]
+        subset_feedback = [x for x in recent_feedback if _to_dt(x.get("timestamp")) and _to_dt(x.get("timestamp")).date().isoformat() == key]
+        sub_correct = [x.get("correctness_flag") for x in subset if isinstance(x.get("correctness_flag"), bool)]
+        if sub_correct:
+            acc = _safe_pct(sum(1 for c in sub_correct if c), len(sub_correct))
+        else:
+            h = sum(1 for x in subset_feedback if str(x.get("type", "")).lower() == "helpful")
+            i = sum(1 for x in subset_feedback if str(x.get("type", "")).lower() == "incorrect")
+            acc = _safe_pct(h, h + i)
+        sub_lat = [float(x.get("response_latency_ms", 0)) for x in subset if isinstance(x.get("response_latency_ms"), (int, float))]
+        h = sum(1 for x in subset_feedback if str(x.get("type", "")).lower() == "helpful")
+        i = sum(1 for x in subset_feedback if str(x.get("type", "")).lower() == "incorrect")
+        accuracy_trend.append({"date": key, "value": acc})
+        feedback_trend.append({"date": key, "value": _safe_pct(h, h + i)})
+        latency_trend.append({"date": key, "value": round(sum(sub_lat) / len(sub_lat), 2) if sub_lat else 0})
+
+    similarity_distribution = {
+        "0.90-1.00": 0,
+        "0.80-0.89": 0,
+        "0.70-0.79": 0,
+        "<0.70": 0,
+    }
+    for s in similarity_scores:
+        if s >= 0.9:
+            similarity_distribution["0.90-1.00"] += 1
+        elif s >= 0.8:
+            similarity_distribution["0.80-0.89"] += 1
+        elif s >= 0.7:
+            similarity_distribution["0.70-0.79"] += 1
+        else:
+            similarity_distribution["<0.70"] += 1
+
+    top_errors = [{"pattern": k, "count": v} for k, v in error_patterns.most_common(8)]
+    sample_problematic = []
+    for item in recent_interactions:
+        flags = item.get("error_flags")
+        if isinstance(flags, list) and flags:
+            sample_problematic.append({
+                "timestamp": item.get("timestamp"),
+                "topic": item.get("topic"),
+                "question": (item.get("student_question") or "")[:180],
+                "error_flags": flags,
+            })
+        if len(sample_problematic) >= 5:
+            break
+
+    safety_flags = Counter()
+    for item in recent_interactions:
+        flags = item.get("error_flags") or []
+        if isinstance(flags, list):
+            for flag in flags:
+                f = str(flag).lower()
+                if "harm" in f or "policy" in f or "bypass" in f or "misuse" in f:
+                    safety_flags[f] += 1
+
+    peak_hours = [{"hour": h, "count": c} for h, c in sorted(hourly_counts.items(), key=lambda x: x[1], reverse=True)[:6]]
+    questions_per_day = [{"date": d, "count": daily_counts.get(d, 0)} for d in per_day_keys]
+
+    return {
+        "overview": {
+            "totalQuestions": total_questions,
+            "dau": dau,
+            "wau": wau,
+            "avgResponseTimeMs": avg_latency,
+            "overallAccuracyRate": overall_accuracy,
+            "userSatisfactionRate": satisfaction,
+        },
+        "usage": {
+            "questionsPerDay": questions_per_day,
+            "peakUsageHours": peak_hours,
+            "questionsPerStudent": questions_per_student,
+            "repeatUsageRate": repeat_usage_rate,
+            "activeUsers": len(unique_users),
+        },
+        "quality": {
+            "correctAnswersPct": overall_accuracy,
+            "incorrectAnswersPct": round(100 - overall_accuracy, 2),
+            "accuracyByTopic": topic_accuracy,
+            "accuracyOverTime": accuracy_trend,
+            "teacherReviewedSampleAccuracy": overall_accuracy,
+            "modelEvaluatedCorrectness": overall_accuracy,
+        },
+        "retrieval": {
+            "avgRetrievedDocuments": avg_retrieved_docs,
+            "retrievalFailureRate": retrieval_failure_rate,
+            "similarityDistribution": similarity_distribution,
+            "incorrectAnswerRetrievalCorrectRate": 0,
+        },
+        "topicAnalysis": {
+            "mostAskedTopics": topic_accuracy[:5],
+            "leastAskedTopics": sorted(topic_accuracy, key=lambda x: x["count"])[:5],
+            "lowestPerformingTopic": sorted(topic_accuracy, key=lambda x: x["accuracy"])[0] if topic_accuracy else None,
+            "feedbackByTopic": [{"topic": t, **v} for t, v in feedback_by_topic.items()],
+        },
+        "errors": {
+            "topFailurePatterns": top_errors,
+            "sampleProblematicLogs": sample_problematic,
+        },
+        "trends": {
+            "accuracyTrend": accuracy_trend,
+            "feedbackTrend": feedback_trend,
+            "latencyTrend": latency_trend,
+        },
+        "aiLayer": {
+            "accuracyByDifficulty": [{"level": k, "count": v} for k, v in difficulty_counter.items()],
+            "errorRateByQuestionType": [{"type": k, "count": v} for k, v in question_type_counter.items()],
+            "hallucinationRate": _safe_pct(error_patterns.get("hallucination", 0), total_questions if total_questions else 1),
+            "logicalConsistencyRate": round(max(0, 100 - _safe_pct(error_patterns.get("logical_inconsistency", 0), total_questions if total_questions else 1)), 2),
+            "mathVerificationMismatchRate": _safe_pct(error_patterns.get("verification_mismatch", 0), total_questions if total_questions else 1),
+            "userFlaggedAnswers": incorrect,
+            "reaskedQuestionsFrequency": _safe_pct(sum(1 for e in events if str(e.get("event_type")) == "problem_submitted"), max(1, total_questions)),
+        },
+        "system": {
+            "apiLatencyMs": avg_latency,
+            "modelInferenceMs": avg_latency,
+            "errorRate": _safe_pct(sum(v for _, v in error_patterns.items()), max(1, total_questions)),
+            "queueBacklog": 0,
+            "gpuUtilization": 0,
+            "totalQueriesPerDay": round(total_questions / max(1, days), 2),
+            "peakUsageHours": peak_hours,
+        },
+        "safety": {
+            "harmfulPromptDetectionCount": sum(v for k, v in safety_flags.items() if "harm" in k),
+            "bypassAttempts": sum(v for k, v in safety_flags.items() if "bypass" in k),
+            "policyViolationAttempts": sum(v for k, v in safety_flags.items() if "policy" in k),
+            "suspiciousUsageSpikes": 0,
+            "accountMisusePatterns": sum(v for k, v in safety_flags.items() if "misuse" in k),
+        },
+        "loggingCoverage": {
+            "interactionCount": total_questions,
+            "topicCoveragePct": _safe_pct(logs_with_topic, max(1, total_questions)),
+            "retrievalCoveragePct": _safe_pct(logs_with_retrieval, max(1, total_questions)),
+            "latencyCoveragePct": _safe_pct(logs_with_latency, max(1, total_questions)),
+            "modelAnswerCoveragePct": _safe_pct(logs_with_model_answer, max(1, total_questions)),
+        },
+        "meta": {
+            "days": days,
+            "generatedAt": datetime.utcnow().isoformat(),
+            "dataSources": {
+                "interactions": len(interactions),
+                "feedback": len(feedback),
+                "events": len(events),
+            },
+        },
     }
 
 

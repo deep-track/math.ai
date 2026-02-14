@@ -14,7 +14,6 @@ import {
   updateConversation,
   getConversationHistory,
   getCredits,
-  spendCredits,
 } from '../../services/api';
 import { getTranslation } from '../../utils/translations';
 import { useLanguage } from '../../hooks/useLanguage';
@@ -164,6 +163,8 @@ const ChatMessage = () => {
       if (!problemText.trim()) return;
 
       cancelledRef.current = false;
+      setError(null);
+      setLoading(true);
 
       const userId = user?.id || 'guest';
 
@@ -174,22 +175,29 @@ const ChatMessage = () => {
         return;
       }
 
-      // Fetch latest credits before submitting
-      try {
-        const current = await getCredits(userId, token);
-        // If the backend returned a concrete number and it's <= 0, block.
-        if (typeof current.remaining === 'number' && current.remaining <= 0) {
-          setError(getTranslation('noCreditsInline', language));
-          return;
-        }
-        // update local state if a concrete number was returned
-        if (typeof current.remaining === 'number') setCreditsRemaining(current.remaining);
-      } catch (err) {
-        // proceed but be cautious (unknown credits)
+      // Fast path: if we already know credits are empty, block immediately.
+      if (creditsRemaining === 0) {
+        setError(getTranslation('noCreditsInline', language));
+        setLoading(false);
+        return;
       }
 
-      setError(null);
-      setLoading(true);
+      // Only hit credits API when current value is unknown.
+      if (creditsRemaining === null) {
+        try {
+          const current = await getCredits(userId, token);
+          if (typeof current.remaining === 'number') {
+            setCreditsRemaining(current.remaining);
+            if (current.remaining <= 0) {
+              setError(getTranslation('noCreditsInline', language));
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (err) {
+          // proceed but be cautious (unknown credits)
+        }
+      }
 
       const startTime = Date.now();
       // Keep a local active conversation id (available in catch/finally)
@@ -392,62 +400,33 @@ const ChatMessage = () => {
 
         const responseTime = lastResponseTime - startTime;
         
-        // If stream was successful and completed, spend a credit (skip if cancelled)
+        // If stream was successful and completed, handle credit accounting (skip if cancelled)
         if (((entryRef as any).current.completed || streamEnded) && !cancelledRef.current) {
           if (streamEnded && !(entryRef as any).current.completed) {
             (entryRef as any).current.completed = true;
           }
-          // If server charged during stream (SSE 'charged' event), skip client-side spend
-          if ((entryRef as any).current.serverCharged) {
-            // Credits already deducted on server; update UI is handled when charged event was received
-            // Nothing else to do here
-          } else {
-            const maxAttempts = 3;
-            let attempt = 0;
-            let spent = false;
-            let lastError: any = null;
-
-            while (attempt < maxAttempts && !spent) {
-              try {
-                token = await getSessionToken();
-                if (user?.id && !token) {
-                  throw new Error(getTranslation('authTokenMissing', language));
-                }
-
-                const res = await spendCredits(userId, token);
-                // Update badge/UI
-                window.dispatchEvent(new CustomEvent('creditsUpdated', { detail: { userId, remaining: res.remaining } }));
-                setCreditsRemaining(res.remaining);
-                spent = true;
-              } catch (err) {
-                attempt++;
-                lastError = err;
-                console.warn(`spendCredits attempt ${attempt} failed`, err);
-                if (attempt < maxAttempts) {
-                  await new Promise((r) => setTimeout(r, 200 * Math.pow(2, attempt)));
-                }
+          if (user?.id) {
+            // Authenticated users: source of truth is backend stream-side charging.
+            // Avoid client-side spend call to prevent accidental double deduction.
+            try {
+              const latestToken = await getSessionToken();
+              const latestCredits = await getCredits(userId, latestToken);
+              if (typeof latestCredits.remaining === 'number') {
+                setCreditsRemaining(latestCredits.remaining);
+                window.dispatchEvent(new CustomEvent('creditsUpdated', { detail: { userId, remaining: latestCredits.remaining } }));
               }
+            } catch (err) {
+              console.warn('Failed to refresh credits after stream completion', err);
             }
-
-            // If spending on backend failed after retries, fallback for guests to local spend
-            if (!spent) {
-              if (!user?.id) {
-                try {
-                  const local = localSpendCredit();
-                  if (local?.success) {
-                    setCreditsRemaining(local.remaining ?? null);
-                    console.warn('Used local guest credit fallback after spend failure', lastError);
-                  } else {
-                    console.warn('Local guest spend failed or no credits available', lastError);
-                  }
-                } catch (e) {
-                  console.error('Failed to spend local guest credit', e);
-                }
-              } else {
-                // For authenticated users we bubble a failure event for visibility/debugging
-                console.error('Failed to spend credit after retries for user', user?.id, lastError);
-                window.dispatchEvent(new CustomEvent('creditsSpendFailed', { detail: { userId: user?.id, error: String(lastError) } }));
+          } else if (!(entryRef as any).current.serverCharged) {
+            // Guest users: local fallback if server did not charge.
+            try {
+              const local = localSpendCredit();
+              if (local?.success) {
+                setCreditsRemaining(local.remaining ?? null);
               }
+            } catch (e) {
+              console.error('Failed to spend local guest credit', e);
             }
           }
         }
@@ -458,6 +437,7 @@ const ChatMessage = () => {
           solutionId: `solution-${Date.now()}`,
           responseTime,
           timestamp: Date.now(),
+          userId,
         });
       } catch (err) {
         const errorMessage =
@@ -490,7 +470,7 @@ const ChatMessage = () => {
         setLoading(false);
       }
     },
-    [conversationId, user, getSessionToken, followWhileStreaming, language]
+    [conversationId, user, getSessionToken, followWhileStreaming, language, creditsRemaining]
   );
 
   const handleRetry = () => {
@@ -633,6 +613,20 @@ const ChatMessage = () => {
             </div>
           </div>
         </div>
+
+        {loading && (
+          <div className="px-6 pb-4">
+            <div
+              className={`rounded-2xl p-6 ${
+                theme === 'dark'
+                  ? 'bg-[#1a1a1a] border border-gray-800'
+                  : 'bg-white border border-gray-200'
+              }`}
+            >
+              <LoadingState variant="solving" message={getTranslation('solvingProblem', language)} />
+            </div>
+          </div>
+        )}
 
         {creditsRemaining === 0 && (
           <div className="px-6 pb-4">

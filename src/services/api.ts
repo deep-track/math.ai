@@ -337,10 +337,23 @@ export async function createConversation(title: string, userId?: string, token?:
  */
 export async function submitFeedback(feedback: Feedback): Promise<SubmitFeedbackResponse> {
   try {
-    console.log('[FEEDBACK] Received:', feedback);
+    const response = await fetch(`${API_BASE_URL}/feedback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(feedback),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || `Failed to submit feedback: ${response.status}`);
+    }
+
+    const data = await response.json().catch(() => ({ success: true, message: 'Feedback received' }));
     return {
-      success: true,
-      message: 'Feedback received',
+      success: !!data.success,
+      message: data.message || 'Feedback received',
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to submit feedback';
@@ -357,12 +370,48 @@ export async function submitFeedback(feedback: Feedback): Promise<SubmitFeedback
  */
 export async function trackAnalyticsEvent(event: AnalyticsEvent): Promise<AnalyticsResponse> {
   try {
-    console.log('[ANALYTICS]', event);
+    const response = await fetch(`${API_BASE_URL}/analytics/event`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(event),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || `Failed to track analytics event: ${response.status}`);
+    }
+
     return { success: true };
   } catch (error) {
     console.warn('Failed to track analytics event:', error);
     return { success: false };
   }
+}
+
+/**
+ * Fetch aggregated admin analytics metrics
+ */
+export async function getAdminMetrics(email: string, days = 30, token?: string) {
+  const query = new URLSearchParams({ email, days: String(days) });
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+    headers['X-Session-Id'] = token;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/admin/metrics?${query.toString()}`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail || `Failed to fetch admin metrics: ${response.status}`);
+  }
+
+  return await response.json();
 }
 
 /**
