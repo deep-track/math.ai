@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+]import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTheme } from '../../theme/useTheme';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import ChatInput from './ChatInput';
@@ -225,8 +225,6 @@ const ChatMessage = () => {
           id: Date.now().toString(),
           content: problemText,
           submittedAt: Date.now(),
-          userId,
-          sessionId: token,
           image,
         };
 
