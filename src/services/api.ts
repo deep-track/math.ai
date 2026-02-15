@@ -462,24 +462,24 @@ export async function updateConversation(conversationId: string, userId: string,
  * Also handles SSE wrapper: lines starting with "data: "
  */
 export async function* solveProblemStream(
-  problem: Problem & { image?: File },
+  problem: Problem,
   signal?: AbortSignal,
   token?: string,
   userId?: string
 ) {
   let response: Response;
 
-  if (problem.image) {
+  if ((problem as any).image) {
     const formData = new FormData();
     formData.append('text', problem.content);
-    formData.append('image', problem.image);
+    formData.append('image', (problem as any).image);
     formData.append('user_id', userId || 'guest');
 
     console.log('📤 Sending image upload request:', {
       text: problem.content,
-      imageName: problem.image.name,
-      imageSize: problem.image.size,
-      imageType: problem.image.type,
+      imageName: (problem as any).image.name,
+      imageSize: (problem as any).image.size,
+      imageType: (problem as any).image.type,
       userId: userId || 'guest',
     });
 
@@ -624,38 +624,61 @@ export async function* solveProblemStream(
     }
   }
 
+  // Helper: process all complete lines in a text chunk
+  const processLines = function* (text: string): Generator<any> {
+    const lines = text.split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith(':')) continue;
+
+      const jsonStr = trimmed.startsWith('data: ')
+        ? trimmed.slice(6).trim()
+        : trimmed;
+
+      if (!jsonStr) continue;
+
+      try {
+        const data = JSON.parse(jsonStr);
+        console.log('[SSE] parsed chunk:', JSON.stringify(data).substring(0, 120));
+        yield* parseChunk(data);
+      } catch (parseError) {
+        console.warn('[SSE] Failed to parse line:', jsonStr, parseError);
+      }
+    }
+  };
+
   try {
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
+      if (value) {
+        const text = decoder.decode(value, { stream: !done });
+        console.log('[SSE] raw bytes len:', text.length, 'preview:', JSON.stringify(text.substring(0, 100)));
+        buffer += text;
+      }
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith(':')) continue;
-
-        // Strip SSE "data: " prefix if present
-        const jsonStr = trimmed.startsWith('data: ')
-          ? trimmed.slice(6).trim()
-          : trimmed;
-
-        if (!jsonStr) continue;
-
-        try {
-          const data = JSON.parse(jsonStr);
-          console.debug('[SSE] parsed chunk:', data);
-          yield* parseChunk(data);
-        } catch (parseError) {
-          console.warn('[SSE] Failed to parse line:', jsonStr, parseError);
+      if (done) {
+        // Flush whatever remains in the buffer
+        if (buffer.trim()) {
+          console.log('[SSE] flushing final buffer:', buffer.substring(0, 120));
+          yield* processLines(buffer);
+          buffer = '';
         }
+        break;
+      }
+
+      // Process all complete lines; keep last incomplete fragment in buffer
+      const lastNewline = buffer.lastIndexOf('\n');
+      if (lastNewline !== -1) {
+        const completeLines = buffer.substring(0, lastNewline + 1);
+        buffer = buffer.substring(lastNewline + 1);
+        yield* processLines(completeLines);
       }
     }
 
-    // Stream ended without explicit done event — mark complete
+    // Auto-complete if stream ended without an explicit done/end event
     if (accumulatedContent && status !== 'ok') {
+      console.log('[SSE] auto-completing stream');
       yield { content: accumulatedContent, finalAnswer: accumulatedContent, status: 'ok', sources };
     }
   } finally {
