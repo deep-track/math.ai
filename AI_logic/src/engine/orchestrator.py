@@ -40,7 +40,7 @@ else:
 
 logger = AgentLogger(verbose=VERBOSE_MODE)
 
-# ── Clients ──────────────────────────────────────────────────────────────────
+# ── Clients ───────────────────────────────────────────────────────────────────
 
 anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 claude_client = None
@@ -61,7 +61,7 @@ elif not cohere_api_key:
 else:
     co_client = cohere.Client(api_key=cohere_api_key)
 
-# ── ChromaDB ─────────────────────────────────────────────────────────────────
+# ── ChromaDB ──────────────────────────────────────────────────────────────────
 
 if CHROMADB_AVAILABLE:
     class CohereEmbeddingFunction(EmbeddingFunction):
@@ -113,37 +113,219 @@ Include ALL of the following if present:
 
 Output ONLY the raw transcribed content. No commentary, no "I see...", no preamble."""
 
-# ── SYSTEM PROMPT ─────────────────────────────────────────────────────────────
-# Key design decisions:
-#   1. ROLE CLARITY: The AI knows exactly who it is and what it can/cannot do.
-#   2. MANDATORY IMAGE RECAP: Always restate image content so student can verify OCR.
-#   3. STRUCTURED OUTPUT: Consistent format trains students to expect clarity.
-#   4. SOCRATIC NUDGE: Ends with a check question to verify understanding.
-#   5. ANTI-HALLUCINATION: Explicit rule to only use curriculum context.
-#   6. LATEX ALWAYS: Forces proper math rendering in the frontend.
-# ─────────────────────────────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════════════════════
+# SYSTEM PROMPT
+# Strictly bound to the 5 official curriculum documents indexed in ChromaDB.
+# The AI must DECLINE any question whose content is not found in the DB.
+# ═════════════════════════════════════════════════════════════════════════════
 
-SYSTEM_PROMPT = """Tu es **Professeur Bio**, tuteur IA expert et bienveillant pour les étudiants du Bénin.
+SYSTEM_PROMPT = """Tu es **Professeur Bio**, tuteur IA expert pour les étudiants de l'Université du Bénin (niveau L1/L2).
 
-## TON IDENTITÉ
-- Tu parles TOUJOURS en français, avec un ton chaleureux et encourageant.
-- Tu t'adresses directement à l'élève (« tu » ou « vous »).
-- Tu adaptes ta complexité au niveau apparent de la question.
-- Tu n'inventes JAMAIS de formules : tu n'utilises que ce qui est dans le contexte du programme ou ta base de connaissances vérifiée.
+══════════════════════════════════════════════════════════════════
+⚠️  RÈGLE ABSOLUE — LIS CECI AVANT TOUT
+══════════════════════════════════════════════════════════════════
 
-## TES MODULES
-Tu maîtrises exclusivement ces deux programmes officiels :
-1. **MTH1122 — Analyse (Fonction d'une variable réelle)**
-   Topologie de ℝ · Suites & Séries numériques · Limites · Continuité · Dérivabilité
-   Théorèmes (Rolle, TAF, Valeur intermédiaire) · Développements limités (Taylor/Mac-Laurin)
-   Fonctions usuelles et réciproques (exp, ln, sin, cos, arctan…)
+Tu es **strictement limité** aux cinq documents officiels indexés dans ta base de connaissances :
 
-2. **PHY — Optique Géométrique**
-   Propagation rectiligne de la lumière · Réflexion & Réfraction (lois de Snell-Descartes)
-   Prismes & Dispersion · Dioptres plans et sphériques · Miroirs plans et sphériques
-   Lentilles minces (convergentes/divergentes) · Instruments d'optique (Loupe, Microscope, Lunette)"""
+  1. Module 1_MTH1220 — Structures algébriques.pdf
+  2. Module 1_MTH1220 — Structures algébriques et arithmétiques.pdf
+  3. Module 1_MTH1122 — Fonction d'une variable réelle.pdf
+  4. Module 2_MI1_UE4_S2_PHY1223 — Optique générale.pdf
+  5. Module 2_Syllabus — Optique géométrique.pdf
 
-TUTOR_PROMPT = """## CONTEXTE DU PROGRAMME (extrait PDF officiel)
+**Si le contexte PDF fourni est vide ou insuffisant pour répondre → tu DÉCLINES poliment.**
+Tu ne compenses JAMAIS avec tes connaissances générales.
+Tu ne génères JAMAIS de formules ou théorèmes absents du contexte fourni.
+
+══════════════════════════════════════════════════════════════════
+📚  CURRICULUM OFFICIEL — SUJETS COUVERTS
+══════════════════════════════════════════════════════════════════
+
+## MODULE 1 — MTH1220 : Structures Algébriques & Arithmétiques
+### Lois de Composition
+- Loi de composition interne (LCI) et externe (LCE)
+- Propriétés : associativité, commutativité, distributivité
+- Élément neutre, élément absorbant, symétrique (inverse)
+- Tables de Cayley
+
+### Groupes
+- Axiomes d'un groupe (G, ·) ; groupe abélien
+- Sous-groupes : définition et critères (critère à une loi)
+- Morphismes : homomorphisme, isomorphisme, automorphisme
+- Noyau (ker) et image (Im) d'un morphisme
+- Théorème de Lagrange ; groupe quotient G/H
+- Groupes cycliques, générateurs, ordre d'un élément
+- Groupe symétrique Sₙ, permutations, transpositions, signature
+
+### Anneaux
+- Axiomes d'un anneau (A, +, ×) ; anneau commutatif, unitaire, intègre
+- Sous-anneaux, idéaux (bilatères, à gauche, à droite)
+- Anneau quotient A/I ; théorème d'isomorphisme
+- Morphismes d'anneaux
+- Anneau de polynômes A[X] : division euclidienne, PGCD dans K[X]
+- Idéaux principaux, anneau principal
+
+### Corps
+- Axiomes d'un corps (K, +, ×) ; sous-corps
+- Corps ℚ, ℝ, ℂ ; corps finis 𝔽ₚ = ℤ/pℤ (p premier)
+- Caractéristique d'un corps
+- Extensions de corps (bases)
+
+### Arithmétique dans ℤ
+- Divisibilité, division euclidienne dans ℤ
+- PGCD, PPCM ; algorithme d'Euclide
+- Identité de Bézout ; théorème de Gauss
+- Nombres premiers ; décomposition en facteurs premiers (th. fondamental)
+- Congruences modulo n ; anneau ℤ/nℤ
+- Théorème chinois des restes (CRT)
+- Indicatrice d'Euler φ(n)
+- Petit théorème de Fermat ; théorème d'Euler
+- Notions de cryptographie (RSA — niveau sensibilisation)
+
+---
+
+## MODULE 2 — MTH1122 : Fonctions d'une Variable Réelle (Analyse)
+### Topologie de ℝ
+- Valeur absolue et distance sur ℝ
+- Intervalles ; voisinages ; points intérieurs, adhérents, frontière
+- Ensembles ouverts et fermés ; compacts dans ℝ
+- Borne supérieure (sup) et inférieure (inf) ; propriété de la borne sup (axiome de complétude)
+
+### Suites Numériques
+- Suites réelles : définition, monotonie, bornitude
+- Limite d'une suite (définition ε-N) ; convergence / divergence
+- Opérations algébriques sur les limites
+- Suites de Cauchy ; critère de Cauchy dans ℝ
+- Théorème de Bolzano-Weierstrass ; suites extraites
+- Suites récurrentes uₙ₊₁ = f(uₙ) : points fixes, convergence
+- Suites arithmétiques et géométriques ; suites équivalentes
+
+### Séries Numériques
+- Définition Σuₙ : sommes partielles, convergence / divergence
+- Critères : comparaison, d'Alembert (ratio), Cauchy (racine), Abel-Dirichlet
+- Séries alternées — critère de Leibniz
+- Convergence absolue vs conditionnelle
+- Séries de Riemann Σ 1/nᵅ
+- Produit de Cauchy de deux séries
+
+### Limites de Fonctions
+- Limite en un point, à gauche/droite, à l'infini (définition ε-δ)
+- Limites remarquables : sin(x)/x → 1, (1+1/n)ⁿ → e, (eˣ−1)/x → 1
+- Théorème des gendarmes (sandwich)
+- Formes indéterminées et levée d'indétermination
+
+### Continuité
+- Continuité en un point et sur un intervalle (définition ε-δ)
+- Continuité à gauche / à droite ; prolongement par continuité
+- Théorème des valeurs intermédiaires (TVI)
+- Théorème de Weierstrass (extrema sur [a,b])
+- Fonctions uniformément continues ; théorème de Heine
+
+### Dérivabilité
+- Taux d'accroissement ; dérivée en un point (définition)
+- Dérivées usuelles : xⁿ, eˣ, ln x, sin x, cos x, tan x, arcsin, arccos, arctan
+- Règles : somme, produit, quotient, composition (chain rule)
+- Théorème de Rolle ; Théorème des accroissements finis (TAF)
+- Règle de L'Hôpital (formes 0/0 et ∞/∞)
+- Dérivées d'ordre n ; formule de Leibniz
+- Extrema locaux : condition nécessaire (f'=0), conditions suffisantes (f'')
+- Convexité, concavité, points d'inflexion
+- Étude complète d'une fonction : domaine, symétries, limites, variations, courbe
+
+### Développements Limités (DL)
+- Formule de Taylor-Young et Taylor-Lagrange (avec reste)
+- Formule de Mac-Laurin ; DL classiques :
+  eˣ, sin x, cos x, ln(1+x), (1+x)ᵅ, arctan x, sh x, ch x
+- DL de fonctions composées, produits, quotients
+- Application : calcul de limites, étude locale, primitivation approchée
+
+### Intégration (si couvert dans MTH1122)
+- Intégrale de Riemann sur [a,b] ; propriétés
+- Théorème fondamental du calcul (primitives)
+- Techniques : IPP (intégration par parties), substitution, fractions rationnelles
+- Intégrales impropres (convergence)
+
+---
+
+## MODULE 3 — PHY1223 & Syllabus : Optique Géométrique & Générale
+### Fondements de l'Optique Géométrique
+- Propagation rectiligne de la lumière ; principe de Fermat
+- Notion de rayon lumineux ; faisceau lumineux
+- Principe de retour inverse de la lumière
+- Notion d'indice de réfraction n = c/v
+
+### Réflexion
+- Lois de Descartes pour la réflexion
+- Miroirs plans : construction d'image, grandissement
+- Miroirs sphériques (concave / convexe) :
+  - Centre C, foyer F, distance focale f
+  - Relation de conjugaison (convention algébrique)
+  - Grandissement transversal γ = OA'/OA
+  - Construction géométrique des images (rayons remarquables)
+
+### Réfraction
+- Lois de Descartes pour la réfraction : n₁ sin θ₁ = n₂ sin θ₂
+- Réflexion totale interne ; angle limite
+- Dioptre plan : profondeur apparente
+- Dioptre sphérique :
+  - Relation de conjugaison (convention de Descartes)
+  - Grandissement
+
+### Lentilles Minces
+- Lentilles convergentes et divergentes ; axes, foyers, distances focales
+- Vergence C = 1/f' (en dioptries)
+- Relation de conjugaison : 1/OA' − 1/OA = 1/f'
+- Grandissement transversal
+- Construction géométrique des images (3 rayons remarquables)
+- Association de lentilles : vergences, distance entre lentilles
+
+### Prismes
+- Définition géométrique ; angle au sommet A
+- Déviation D(i) ; déviation minimale Dₘ
+- Relation fondamentale : n = sin((A+Dₘ)/2) / sin(A/2)
+- Dispersion de la lumière blanche ; indices pour différentes couleurs
+
+### Instruments d'Optique
+- Œil : accommodation, punctum proximum / remotum, vision nette
+- Loupe : grossissement commercial G = D/f' (D = 25 cm)
+- Microscope : objectif + oculaire, grossissement total
+- Lunette astronomique (afocale) : grossissement G = −f'obj/f'oc
+- Notion de limite de résolution (critère de Rayleigh — si couvert)
+
+### Optique Ondulatoire (si couvert dans PHY1223)
+- Nature ondulatoire de la lumière ; longueur d'onde λ, fréquence ν
+- Relation λ = v/ν ; λ dans un milieu d'indice n
+- Cohérence ; différence de marche δ
+- Interférences : Young (fentes), condition de maxima/minima
+- Diffraction : fente simple, réseau de diffraction
+
+══════════════════════════════════════════════════════════════════
+🎯  COMPORTEMENT ATTENDU
+══════════════════════════════════════════════════════════════════
+
+## Quand le contexte ChromaDB EST fourni et pertinent
+→ Résous complètement, en t'appuyant EXPLICITEMENT sur ce contexte.
+→ Cite la source : « D'après le cours MTH1122, section… »
+
+## Quand le contexte ChromaDB EST VIDE ou NON PERTINENT
+→ Réponds TOUJOURS ainsi, et rien d'autre :
+
+> 🙏 **Je ne peux pas répondre à cette question.**
+> Le contenu de ta question (*[sujet détecté]*) ne figure pas dans les documents
+> officiels de ton programme (MTH1220, MTH1122, PHY1223/Optique géométrique).
+> Vérifie que ta question porte bien sur l'un de ces modules,
+> ou reformule-la pour que je puisse t'aider. 💪
+
+## Style pédagogique (quand tu peux répondre)
+- Toujours en français, ton chaleureux et encourageant
+- LaTeX OBLIGATOIRE pour toute formule : inline $...$ ou display $$...$$
+- Structure claire avec titres, étapes numérotées
+- Exemples avec contexte béninois si naturel (marchés, noms locaux...)
+- Termine par une ❓ question de vérification pour l'élève"""
+
+# ── Tutor prompt template ────────────────────────────────────────────────────
+
+TUTOR_PROMPT = """## CONTEXTE DU PROGRAMME (extrait ChromaDB — documents officiels)
 {context_str}
 
 ---
@@ -152,43 +334,45 @@ TUTOR_PROMPT = """## CONTEXTE DU PROGRAMME (extrait PDF officiel)
 {question}
 
 ---
-## PROTOCOLE DE RÉPONSE — SUIS CES ÉTAPES DANS L'ORDRE
+## PROTOCOLE DE RÉPONSE
 
-### ÉTAPE 0 — RÉCAPITULATIF DE L'IMAGE (si image fournie)
+### ÉTAPE 0 — VÉRIFICATION DU CONTEXTE (CRITIQUE)
+Analyse le [CONTEXTE DU PROGRAMME] ci-dessus :
+- Est-il **vide** (`N/A` ou aucun texte utile) ?
+- Est-il **hors sujet** par rapport à la question ?
+
+**Si OUI → applique le message de refus poli défini dans tes instructions. STOP.**
+**Si NON → continue.**
+
 {image_recap_instruction}
 
-### ÉTAPE 1 — VÉRIFICATION DU PÉRIMÈTRE
-- La question concerne-t-elle MTH1122 ou l'Optique Géométrique ?
-- Le contexte PDF contient-il les éléments nécessaires ?
-- ⚠️ Si hors programme ET contexte vide → réponds UNIQUEMENT : `⛔ HORS PROGRAMME : [sujet détecté]`
-- Sinon, continue.
+### ÉTAPE 1 — ANALYSE
+- Reformule ce que l'élève doit trouver
+- Identifie le **concept clé** (ex : "Théorème de Rolle", "Loi de Snell-Descartes")
+- Liste les **données** et **inconnues**
+- Annonce la **stratégie de résolution**
+- Cite explicitement la section du cours concernée
 
-### ÉTAPE 2 — ANALYSE DU PROBLÈME
-Reformule brièvement ce que l'élève doit trouver. Identifie :
-- Le **concept clé** testé (ex : "Théorème de Rolle", "Loi de Snell-Descartes")
-- Les **données** et **inconnues**
-- La **stratégie de résolution**
+### ÉTAPE 2 — RÉSOLUTION DÉTAILLÉE
+Résous étape par étape. Pour chaque étape :
+- **Titre court** en gras
+- Raisonnement complet, aucune étape sautée
+- Toutes formules en LaTeX ($...$ ou $$...$$)
+- Justification explicite (« par le théorème de... », « d'après la définition de... »)
 
-### ÉTAPE 3 — RÉSOLUTION DÉTAILLÉE
-Résous **étape par étape**, sans sauter d'étape. Pour chaque étape :
-- Donne un **titre court** en gras
-- Montre le **raisonnement complet**
-- Écris toutes les formules en LaTeX : inline $...$ ou display $$...$$
-- Justifie chaque transition (« car », « d'après le théorème de... », « en appliquant... »)
+### ÉTAPE 3 — CONCLUSION
+> **Résultat :** $[réponse]$ [unité]
 
-### ÉTAPE 4 — CONCLUSION
-Encadre le résultat final clairement :
-> **Résultat :** $[réponse]$ [unité si applicable]
-
-### ÉTAPE 5 — CONSOLIDATION PÉDAGOGIQUE
-- **Prérequis :** 2-3 notions qu'il faut maîtriser pour ce type de problème
+### ÉTAPE 4 — CONSOLIDATION
+- **Prérequis :** 2-3 notions à maîtriser au préalable
 - **Erreur classique 1 :** [piège fréquent]
 - **Erreur classique 2 :** [piège fréquent]
-- **Question de vérification :** Pose une question simple à l'élève pour tester sa compréhension
+- **Source :** [document officiel + section]
+- **❓ Question de vérification :** [question simple pour tester la compréhension]
 
 ### FORMAT OBLIGATOIRE
 ```
-## [Nom du module] — [Concept clé]
+## [Module] — [Concept clé]
 
 ### 📋 Analyse
 ...
@@ -200,55 +384,12 @@ Encadre le résultat final clairement :
 ### ✅ Conclusion
 > **Résultat :** ...
 
-### 📚 Pour aller plus loin
+### 📚 Consolidation
 ...
 
 ### ❓ Vérifie ta compréhension
 ...
 ```
-"""
-
-FALLBACK_PROMPT = """Tu es **Professeur Bio**, tuteur expert en mathématiques et physique pour les étudiants du Bénin.
-{image_section}
-
-## QUESTION DE L'ÉLÈVE
-{question}
-
-⚠️ Aucun document de programme spécifique trouvé. Utilise tes connaissances générales rigoureuses.
-
-## PROTOCOLE DE RÉPONSE
-
-{image_recap_instruction}
-
-Résous ce problème en suivant ce format :
-
-```
-## [Domaine] — [Concept clé]
-
-### 📋 Analyse du problème
-[Ce qui est demandé, les données, la stratégie]
-
-### 🔢 Résolution étape par étape
-**Étape 1 — [titre]**
-[raisonnement + LaTeX]
-
-**Étape 2 — [titre]**
-...
-
-### ✅ Conclusion
-> **Résultat :** $...$
-
-### 📚 Points clés
-- ...
-
-### ❓ Vérifie ta compréhension
-[question simple]
-```
-
-Règles :
-- Toujours en français, ton encourageant
-- LaTeX obligatoire pour toute formule ($...$ ou $$...$$)
-- Exemples béninois si pertinent
 """
 
 # ── Tools ─────────────────────────────────────────────────────────────────────
@@ -261,28 +402,41 @@ def search_curriculum(query: str) -> tuple[str, list]:
 
     logger.log_step("Action", f"Searching ChromaDB for: '{query[:80]}'")
     try:
-        results = collection.query(query_texts=[query], n_results=3)
+        results = collection.query(query_texts=[query], n_results=4)
         documents = results["documents"][0]
         metadatas = results["metadatas"][0]
+        distances = results.get("distances", [[]])[0]
     except Exception as e:
         print(f"[WARN] ChromaDB query failed: {e}")
         return "", []
 
     context_text = ""
     sources = []
+
     for i, doc in enumerate(documents):
         meta = metadatas[i]
         source = meta.get("source", "Unknown")
         page = meta.get("page", "?")
+        distance = distances[i] if distances else None
+
+        # Only include results that are semantically close enough
+        # ChromaDB L2 distance: lower = more similar; threshold ~1.5 is generous
+        if distance is not None and distance > 1.5:
+            print(f"[SEARCH] Skipping low-relevance result (distance={distance:.3f}): {source}")
+            continue
+
         context_text += f"\n--- {source} (p.{page}) ---\n{doc}\n"
         sources.append({"text": doc, "source": source, "page": page})
+
+    if not context_text.strip():
+        print("[SEARCH] No relevant curriculum content found for this query.")
 
     return context_text, sources
 
 
 def extract_image_content(attachment: dict) -> tuple[str, str, str]:
     """
-    Run OCR on the uploaded image via Claude vision.
+    OCR the uploaded image via Claude vision.
     Returns: (raw_text, image_section_for_prompt, image_recap_instruction)
     """
     if not attachment or not claude_client:
@@ -313,49 +467,38 @@ def extract_image_content(attachment: dict) -> tuple[str, str, str]:
         print(f"[WARN] OCR failed: {e}")
         return "", "", ""
 
-    logger.log_step("Observation", f"OCR complete ({len(extracted)} chars): {extracted[:120]}...")
+    logger.log_step("Observation", f"OCR: {len(extracted)} chars — {extracted[:100]}...")
 
-    # Section injected into the prompt so the model sees the image content
-    image_section = f"""## 📷 CONTENU DE L'IMAGE (extrait OCR)
+    image_section = f"""## 📷 CONTENU DE L'IMAGE (OCR automatique)
 ```
 {extracted}
 ```
 """
-    # Instruction telling the model to always recap the image first
     image_recap_instruction = (
-        "**OBLIGATOIRE** : Commence ta réponse par une section '### 📷 Contenu de l'image' "
-        "où tu reformules fidèlement le problème extrait de l'image, "
-        "afin que l'élève puisse vérifier que la lecture est correcte. "
-        "Si l'OCR semble incomplet, signale-le."
+        "### ÉTAPE 0b — RÉCAPITULATIF IMAGE (OBLIGATOIRE si image fournie)\n"
+        "Commence ta réponse par une section `### 📷 Contenu de l'image` où tu reformules "
+        "fidèlement le problème extrait de l'image, afin que l'élève puisse vérifier "
+        "que la lecture OCR est correcte. Si l'OCR semble incomplet ou ambigu, signale-le."
     )
 
     return extracted, image_section, image_recap_instruction
 
 
-def _build_prompts(
+def _build_prompt(
     question: str,
-    history: str,
     context_observation: str,
-    use_fallback: bool,
     image_section: str,
     image_recap_instruction: str,
 ) -> str:
-    """Build the final prompt string."""
+    """Assemble the user-turn prompt."""
     if not image_recap_instruction:
-        image_recap_instruction = "*(Pas d'image fournie — ignore cette étape)*"
+        image_recap_instruction = "*(Pas d'image fournie — ignore l'étape 0b)*"
 
-    if use_fallback:
-        return FALLBACK_PROMPT.format(
-            question=question,
-            image_section=image_section,
-            image_recap_instruction=image_recap_instruction,
-        )
     return TUTOR_PROMPT.format(
-        context_str=context_observation or "N/A",
+        context_str=context_observation if context_observation.strip() else "N/A — aucun contenu pertinent trouvé.",
         question=question,
         image_section=image_section,
         image_recap_instruction=image_recap_instruction,
-        module_name="Mathématiques / Physique",
     )
 
 
@@ -367,28 +510,30 @@ def ask_math_ai(question: str, history: str = "", attachment=None) -> dict:
 
     image_section = ""
     image_recap_instruction = ""
+    search_query = question
+
     if attachment:
         img_text, image_section, image_recap_instruction = extract_image_content(attachment)
         if img_text:
-            question = (question + "\n" + img_text).strip() if question.strip() else img_text
+            search_query = (question + "\n" + img_text).strip() if question.strip() else img_text
 
-    context_observation, sources = search_curriculum(question)
+    context_observation, sources = search_curriculum(search_query)
 
     if claude_client is None:
         return {
             "partie": "Erreur", "problemStatement": question,
-            "steps": [{"title": "Unavailable", "explanation": "ANTHROPIC_API_KEY not configured.", "equations": None}],
+            "steps": [{"title": "Unavailable",
+                        "explanation": "ANTHROPIC_API_KEY non configuré.", "equations": None}],
             "conclusion": None, "sources": []
         }
 
-    use_fallback = not context_observation.strip()
-    if use_fallback:
-        logger.log_step("Observation", "No curriculum context — using fallback")
-    else:
-        logger.log_step("Observation", f"Context retrieved ({len(context_observation)} chars)")
+    if context_observation.strip():
+        logger.log_step("Observation", f"Context found ({len(context_observation)} chars)")
         execution_steps.append({"type": "observation", "content": "Context retrieved"})
+    else:
+        logger.log_step("Observation", "No relevant context — model will decline politely")
 
-    prompt = _build_prompts(question, history, context_observation, use_fallback, image_section, image_recap_instruction)
+    prompt = _build_prompt(question, context_observation, image_section, image_recap_instruction)
 
     try:
         resp = claude_client.messages.create(
@@ -406,9 +551,12 @@ def ask_math_ai(question: str, history: str = "", attachment=None) -> dict:
         )
 
         return {
-            "partie": "Mathématiques", "problemStatement": question,
-            "steps": [{"title": "Explication Professeur Bio", "explanation": final_answer, "equations": None}],
-            "conclusion": "Voir explication ci-dessus", "sources": sources
+            "partie": "Mathématiques / Physique",
+            "problemStatement": question,
+            "steps": [{"title": "Explication Professeur Bio",
+                        "explanation": final_answer, "equations": None}],
+            "conclusion": "Voir explication ci-dessus",
+            "sources": sources
         }
     except Exception as e:
         error_msg = f"Erreur Claude: {e}"
@@ -421,38 +569,38 @@ def ask_math_ai(question: str, history: str = "", attachment=None) -> dict:
 
 
 def ask_math_ai_stream(question: str, history: str = "", attachment=None):
-    """Streaming version — yields NDJSON lines with keys: metadata / token / done / error."""
+    """Streaming version — yields NDJSON: metadata / token / done / error."""
     logger.log_step("Thought", f"Processing (stream): {question[:80]}")
     execution_steps = []
 
     image_section = ""
     image_recap_instruction = ""
+    search_query = question
+
     if attachment:
         img_text, image_section, image_recap_instruction = extract_image_content(attachment)
         if img_text:
-            question = (question + "\n" + img_text).strip() if question.strip() else img_text
-            logger.log_step("Observation", f"OCR appended, question now {len(question)} chars")
+            search_query = (question + "\n" + img_text).strip() if question.strip() else img_text
+            logger.log_step("Observation", f"OCR done, search query: {search_query[:100]}")
 
-    context_observation, sources = search_curriculum(question)
+    context_observation, sources = search_curriculum(search_query)
 
     if claude_client is None:
-        yield json.dumps({"error": "ANTHROPIC_API_KEY not configured."}) + "\n"
+        yield json.dumps({"error": "ANTHROPIC_API_KEY non configuré."}) + "\n"
         return
 
-    use_fallback = not context_observation.strip()
-    if use_fallback:
-        logger.log_step("Observation", "No curriculum context — using fallback")
-    else:
-        logger.log_step("Observation", f"Context retrieved ({len(context_observation)} chars)")
+    if context_observation.strip():
+        logger.log_step("Observation", f"Context found ({len(context_observation)} chars)")
         execution_steps.append({"type": "observation", "content": "Context retrieved"})
+    else:
+        logger.log_step("Observation", "No relevant context — model will decline politely")
 
-    prompt = _build_prompts(question, history, context_observation, use_fallback, image_section, image_recap_instruction)
+    prompt = _build_prompt(question, context_observation, image_section, image_recap_instruction)
 
     try:
-        # Emit metadata first so frontend can show sources immediately
         yield json.dumps({
             "metadata": {
-                "partie": "Mathématiques",
+                "partie": "Mathématiques / Physique",
                 "problemStatement": question,
                 "sources": sources
             }
@@ -495,7 +643,12 @@ if __name__ == "__main__":
     user_query = "Démontrer que la fonction f(x) = x² est dérivable en tout point de ℝ."
     result = ask_math_ai(user_query)
     main_text = result["steps"][0]["explanation"] if result.get("steps") else "Pas de réponse."
-    console.print(Panel(Markdown(main_text), title="PROFESSEUR BIO", subtitle="Claude Sonnet 4.5", border_style="green"))
+    console.print(Panel(
+        Markdown(main_text),
+        title="PROFESSEUR BIO",
+        subtitle="Claude Sonnet 4.5 — MTH1122/MTH1220/PHY1223",
+        border_style="green"
+    ))
     if result.get("sources"):
         for i, src in enumerate(result["sources"]):
             console.print(f"[cyan]{i+1}. {src['source']} (p.{src['page']})[/cyan]")
