@@ -65,7 +65,7 @@ const ChatInput = ({
   }, []);
 
   const setImage = useCallback((file: File) => {
-    const ALLOWED = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const ALLOWED = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/avif'];
     if (!ALLOWED.includes(file.type)) {
       alert('Only JPEG, PNG, GIF and WebP images are supported.');
       return;
@@ -243,7 +243,7 @@ const ChatInput = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/avif"
         onChange={handleImageSelect}
         className="hidden"
       />

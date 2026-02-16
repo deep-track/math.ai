@@ -14,7 +14,14 @@ from typing import Dict
 
 async def process_uploaded_image(file:UploadFile) -> Dict[str,str]:
 
-    ALLOWED_TYPES = ['image/jpeg','image/jpg', 'image/png']
+    ALLOWED_TYPES = [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/avif',
+    ]
     
     # mime type
     mime_type = file.content_type
@@ -23,7 +30,7 @@ async def process_uploaded_image(file:UploadFile) -> Dict[str,str]:
     if mime_type not in ALLOWED_TYPES:
         raise HTTPException(
             status_code=400, 
-            detail=f"Only JPEG, JPG, PNG images are allowed. Got: {mime_type}"
+            detail=f"Only JPEG, JPG, PNG, GIF, WebP, AVIF images are allowed. Got: {mime_type}"
         )
     
     # Read file bytes and encode to base64
