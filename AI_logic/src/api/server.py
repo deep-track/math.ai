@@ -387,6 +387,7 @@ async def ask_stream_endpoint(http_req: Request):
     if "multipart/form-data" in content_type:
         # Handle FormData input
         form = await http_req.form()
+        print(f"[STREAM] Incoming multipart form keys: {list(form.keys())}")
         text = form.get("text")
         image = form.get("image")
         user_id_from_request = str(form.get("user_id") or "guest")
@@ -404,6 +405,7 @@ async def ask_stream_endpoint(http_req: Request):
         # Handle JSON input
         try:
             json_data = await http_req.json()
+            print(f"[STREAM] Incoming JSON keys: {list(json_data.keys()) if isinstance(json_data, dict) else type(json_data)}")
             question_request = QuestionRequest(**json_data)
             question_text = question_request.text
             user_id_from_request = question_request.user_id or "guest"
