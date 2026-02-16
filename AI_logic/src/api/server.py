@@ -439,6 +439,30 @@ async def ask_stream_endpoint(http_req: Request):
                     chunk_obj = json.loads(line)
                     chunk_type = chunk_obj.get("type", "")
 
+                    # NEW orchestrator format (token/metadata/done)
+                    if "token" in chunk_obj:
+                        text = chunk_obj.get("token") or ""
+                        if text:
+                            chunk_count += 1
+                            yield f"data: {json.dumps({'token': text})}\n\n"
+                            print(f"→ Chunk {chunk_count}: {text[:30]}")
+                        continue
+
+                    if "metadata" in chunk_obj:
+                        metadata = chunk_obj.get("metadata") or {}
+                        if isinstance(metadata, dict) and isinstance(metadata.get("sources"), list):
+                            stream_sources = metadata.get("sources")
+                        yield f"data: {json.dumps({'metadata': metadata})}\n\n"
+                        continue
+
+                    if "done" in chunk_obj:
+                        final_conclusion = chunk_obj.get("conclusion", "") or final_conclusion
+                        if isinstance(chunk_obj.get("sources"), list):
+                            stream_sources = chunk_obj.get("sources")
+                        yield f"data: {json.dumps({'done': True, 'conclusion': final_conclusion, 'sources': stream_sources})}\n\n"
+                        continue
+
+                    # OLD orchestrator format (type-based)
                     if chunk_type == "chunk":
                         text = chunk_obj.get("text", "")
                         if text:
