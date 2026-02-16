@@ -146,7 +146,21 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
     formData.append('text', problem.content);
     formData.append('user_id', 'guest');
     if ((problem as any).image) {
-      formData.append('image', (problem as any).image);
+      const imageFile = (problem as any).image as unknown;
+      if (imageFile instanceof File) {
+        console.log('🖼️ Attaching image (solveProblem):', {
+          name: imageFile.name,
+          type: imageFile.type,
+          size: imageFile.size,
+        });
+        formData.append('image', imageFile, imageFile.name || 'upload.png');
+      } else if (imageFile instanceof Blob) {
+        console.log('🖼️ Attaching image blob (solveProblem):', {
+          type: imageFile.type,
+          size: imageFile.size,
+        });
+        formData.append('image', imageFile, 'upload.png');
+      }
     }
 
     const response = await fetch(`${API_BASE_URL}/ask`, {
@@ -467,8 +481,19 @@ export async function* solveProblemStream(
     const formData = new FormData();
     const imageFile = (problem as any).image as unknown;
     formData.append('text', problem.content);
-    if (imageFile instanceof File || imageFile instanceof Blob) {
-      formData.append('image', imageFile);
+    if (imageFile instanceof File) {
+      console.log('🖼️ Attaching image (solveProblemStream):', {
+        name: imageFile.name,
+        type: imageFile.type,
+        size: imageFile.size,
+      });
+      formData.append('image', imageFile, imageFile.name || 'upload.png');
+    } else if (imageFile instanceof Blob) {
+      console.log('🖼️ Attaching image blob (solveProblemStream):', {
+        type: imageFile.type,
+        size: imageFile.size,
+      });
+      formData.append('image', imageFile, 'upload.png');
     }
     formData.append('user_id', userId || 'guest');
 
