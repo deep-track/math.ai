@@ -7,6 +7,8 @@ import { getConversations, deleteConversation } from '../../services/api';
 import { getTranslation } from '../../utils/translations';
 import { useLanguage } from '../../hooks/useLanguage';
 import SettingsModal from '../../components/SettingsModal';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAdminCheck } from '../../hooks/useAdminCheck';
 
 interface SidebarProps {
   onNewChat?: () => void;
@@ -20,6 +22,10 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
   const { signOut } = clerk;
   const { theme } = useTheme();
   const language = useLanguage();
+  const { adminStatus } = useAdminCheck();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isAdminRoute = location.pathname === '/admin';
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -133,6 +139,42 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
         </span>
         {!isCollapsed && <span>{getTranslation('newConversation', language)}</span>}
       </button>
+
+      {adminStatus?.allowed && (
+        <button
+          onClick={() => navigate(isAdminRoute ? '/home' : '/admin')}
+          className={`mb-4 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 group w-full border ${
+            isAdminRoute
+              ? 'bg-emerald-600/20 border-emerald-500/40 text-emerald-100 shadow-sm shadow-emerald-900/20'
+              : 'bg-slate-800/60 border-slate-700 text-gray-100 hover:bg-slate-700/70 hover:border-slate-600'
+          }`}
+          title={isAdminRoute ? getTranslation('backToChat', language) : getTranslation('adminDashboard', language)}
+        >
+          <span className={`flex h-7 w-7 items-center justify-center rounded-md transition-transform group-hover:scale-105 ${
+            isAdminRoute ? 'bg-emerald-500/30 text-emerald-100' : 'bg-slate-700 text-slate-100'
+          }`}>
+            {isAdminRoute ? (
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 19.5h16" />
+                <rect x="5" y="10" width="3" height="7" rx="1" />
+                <rect x="10.5" y="6" width="3" height="11" rx="1" />
+                <rect x="16" y="3" width="3" height="14" rx="1" />
+              </svg>
+            )}
+          </span>
+          {!isCollapsed && (
+            <span className="tracking-wide">
+              {isAdminRoute
+                ? getTranslation('backToChat', language)
+                : getTranslation('adminDashboard', language)}
+            </span>
+          )}
+        </button>
+      )}
 
       {/* discussion panel */}
       {!isCollapsed && (

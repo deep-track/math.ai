@@ -10,12 +10,15 @@ import ForgotPasswordPage from "./features/auth/forgot-password.tsx"
 import SSOCallback from "./features/auth/sso-callback.tsx"
 import LoadingState from "./components/LoadingState"
 import { useWhitelistCheck } from "./hooks/useWhitelistCheck"
+import { useAdminCheck } from "./hooks/useAdminCheck"
 import LandingPage from "./features/landing/LandingPage"
+import AdminLayout from "./layouts/AdminLayout"
 
 function App() {
   const { isSignedIn, isLoaded } = useUser()
   const { signOut } = useAuth()
   const { whitelistStatus, isChecking, timedOut } = useWhitelistCheck()
+  const { adminStatus, isCheckingAdmin } = useAdminCheck()
   const [authState, setAuthState] = React.useState<{ 
     isSignedIn: boolean | null; 
     isLoaded: boolean;
@@ -82,6 +85,16 @@ function App() {
       <Route path="/forgot-password" element={!authState.isSignedIn ? <ForgotPasswordPage/> : <Navigate to="/home" replace />}/>
       <Route path="/sso-callback" element={<SSOCallback/>}/>
       <Route path='/home' element={authState.isSignedIn && authState.isWhitelisted !== false ? <MainLayout/> : <Navigate to="/login" replace />}/>
+      <Route
+        path='/admin'
+        element={
+          authState.isSignedIn && authState.isWhitelisted !== false
+            ? (isCheckingAdmin || adminStatus === null
+              ? <LoadingState variant="login" message="Verifying admin access..." />
+              : (adminStatus.allowed ? <AdminLayout/> : <Navigate to="/home" replace />))
+            : <Navigate to="/login" replace />
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />}/>
     </Routes>
   )

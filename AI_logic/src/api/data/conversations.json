@@ -816,6 +816,42 @@
           "timestamp": 1770155682870
         }
       ]
+    },
+    {
+      "id": "conv-1771060516722",
+      "title": "5-4",
+      "createdAt": "2026-02-14T12:15:16.722892",
+      "updatedAt": "2026-02-14T12:15:29.677932",
+      "messages": [
+        {
+          "id": "msg-1771071316741",
+          "type": "user",
+          "problem": {
+            "id": "1771071316741",
+            "content": "5-4",
+            "submittedAt": 1771071316741,
+            "userId": "user_38seH4e2bob7yMokOBv8o6PwqiN",
+            "sessionId": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18zOHNkaUI3UjRDdTRXaGQ4MmNJM1lVcm42enoiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjUxNzMiLCJleHAiOjE3NzEwNzEzNTMsImZ2YSI6WzE5NCwtMV0sImlhdCI6MTc3MTA3MTI5MywiaXNzIjoiaHR0cHM6Ly9oZXJvaWMtcmFtLTM1LmNsZXJrLmFjY291bnRzLmRldiIsIm5iZiI6MTc3MTA3MTI4Mywic2lkIjoic2Vzc18zOWViZ21mdzFtcFJEUTRqQUNjYmJDcjBOanEiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c2VyXzM4c2VINGUyYm9iN3lNb2tPQnY4bzZQd3FpTiIsInYiOjJ9.GJMGEBw0-f_jb3lylplveaQFf6RmrWprrkqUB9hEIcI_L57fAW3djKkOo39J06jd2UD6Bb66g4B7ELIPXAueAUX4v086ugNjqVFB4bg1D9iH5a_SXfyDCA0sweITCOl48oKqSS6_YQNIh7_kN5-BEubw1DQ3Vmmf2M2UkHH4_-02ShVD5eQJ2SSNfCStFEw50ZZBt2B7oFwlAr1j6nT9-9GBdrcWOClrDN33mV9bU8en0JfzChL_D60mFvN58Day-LoV0Yq9-C_MM3RuvoXCHsVXAPXttZIT2SZ1875hi_K0LMh28ynZcYvLK9DSUmgvotQR86oBGIdeana1C2fmRg"
+          },
+          "timestamp": 1771071316741
+        },
+        {
+          "id": "msg-1771071316741-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771071316741",
+            "steps": [],
+            "finalAnswer": "Voir explication ci-dessus",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1771071316741,
+            "content": "# Solution : 5 - 4\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'aider avec ce calcul de soustraction.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nTu dois calculer : **5 - 4**\n\nIl s'agit d'une **soustraction simple** o\u00f9 nous retirons 4 de 5.\n\n## \ud83d\udd22 \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre la soustraction\nLa soustraction signifie \"enlever\" ou \"retirer\" une quantit\u00e9 d'une autre.\n\n### \u00c9tape 2 : Visualisons avec un exemple concret\nImagine que tu as **5 oranges** \ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a au march\u00e9 de Dantokpa \u00e0 Cotonou.\n\nSi tu donnes **4 oranges** \u00e0 ton ami, combien t'en reste-t-il ?\n\n### \u00c9tape 3 : Calculons\n```\n5 - 4 = ?\n```\n\nEn retirant 4 de 5 :\n- Je commence avec 5\n- J'enl\u00e8ve 1 \u2192 il reste 4\n- J'enl\u00e8ve 1 \u2192 il reste 3\n- J'enl\u00e8ve 1 \u2192 il reste 2\n- J'enl\u00e8ve 1 \u2192 il reste 1\n\nOu plus simplement : **5 - 4 = 1**\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 5 - 4 = 1**\n\nIl te reste **1 orange** ! \ud83c\udf4a\n\n---\n\n### \ud83d\udca1 Conseil p\u00e9dagogique\nLa soustraction et l'addition sont inverses :\n- Si 5 - 4 = 1\n- Alors 1 + 4 = 5 \u2713\n\nContinue \u00e0 pratiquer, tu progresses tr\u00e8s bien ! \ud83c\udf1fVoir explication ci-dessus",
+            "sources": []
+          },
+          "timestamp": 1771071316742
+        }
+      ]
     }
   ]
 }

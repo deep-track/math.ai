@@ -1,6 +1,7 @@
 import os
 import json
 from dotenv import load_dotenv
+
 try:
     import chromadb
     from chromadb import Documents, EmbeddingFunction, Embeddings
@@ -10,510 +11,491 @@ except Exception as e:
     chromadb = None
     CHROMADB_AVAILABLE = False
 
-from anthropic import Anthropic 
+from anthropic import Anthropic
+
 try:
     import cohere
     COHERE_AVAILABLE = True
 except Exception as e:
-    print("[WARN] cohere not available or incompatible:", e)
+    print("[WARN] cohere not available:", e)
     cohere = None
     COHERE_AVAILABLE = False
+
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
-
-# IMPORT LOGGER 
 from src.utils.logger import AgentLogger
 
-# CONFIGURATION 
 load_dotenv()
 VERBOSE_MODE = os.getenv("VERBOSE", "True").lower() == "true"
 
-# 1. Setup Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Use Render persistent disk path if available, otherwise use local path
-RENDER_DISK_PATH = "/opt/render/project/chroma_db"
-if os.path.exists("/opt/render"):
-    CHROMA_DB_DIR = RENDER_DISK_PATH
+if os.path.exists("/opt/render/project"):
+    CHROMA_DB_DIR = "/opt/render/project/chroma_db"
     print(f"[CONFIG] Using Render persistent disk: {CHROMA_DB_DIR}")
 else:
     CHROMA_DB_DIR = os.path.join(BASE_DIR, "chroma_db")
     print(f"[CONFIG] Using local disk: {CHROMA_DB_DIR}")
 
-# INITIALIZE LOGGER 
 logger = AgentLogger(verbose=VERBOSE_MODE)
 
-# 2. Initialize Clients
+# ── Clients ──────────────────────────────────────────────────────────────────
 
-# A. Claude (The Unified Agent)
 anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
-if not anthropic_api_key:
-    print("WARNING: ANTHROPIC_API_KEY not found. Claude/Anthropic features will be disabled.")
-    claude_client = None
-else:
+claude_client = None
+if anthropic_api_key:
     try:
         claude_client = Anthropic(api_key=anthropic_api_key)
     except Exception as e:
         print("[WARN] Failed to initialize Anthropic client:", e)
-        claude_client = None
+else:
+    print("WARNING: ANTHROPIC_API_KEY not found.")
 
-# B. Cohere (Search) — optional for local dev
 cohere_api_key = os.getenv("COHERE_API_KEY")
+co_client = None
 if not COHERE_AVAILABLE:
-    co_client = None
-    print("WARNING: Cohere library unavailable; Cohere-dependent search will be disabled.")
+    print("WARNING: Cohere library unavailable.")
 elif not cohere_api_key:
-    print("WARNING: COHERE_API_KEY not found. Cohere-dependent search will be disabled.")
-    co_client = None
+    print("WARNING: COHERE_API_KEY not found.")
 else:
     co_client = cohere.Client(api_key=cohere_api_key)
 
-# COHERE EMBEDDING FUNCTION
+# ── ChromaDB ─────────────────────────────────────────────────────────────────
+
 if CHROMADB_AVAILABLE:
     class CohereEmbeddingFunction(EmbeddingFunction):
         def __init__(self, client):
             self.client = client
-
         def __call__(self, input: Documents) -> Embeddings:
             if not self.client:
-                # Return dummy zero embeddings if Cohere not available
                 return [[0.0] for _ in input]
             response = self.client.embed(
                 texts=input,
                 model="embed-multilingual-v3.0",
-                input_type="search_query" 
+                input_type="search_query"
             )
             return response.embeddings
 else:
-    # Minimal fallback for when chromadb is not installed
     class CohereEmbeddingFunction:
         def __init__(self, client):
             self.client = client
-
         def __call__(self, input):
             return [[0.0] for _ in input]
 
-# 3. Initialize Database
+collection = None
 print(f"Connecting to Database at: {CHROMA_DB_DIR}...")
 if CHROMADB_AVAILABLE and co_client is not None:
     try:
         chroma_client = chromadb.PersistentClient(path=CHROMA_DB_DIR)
-        # Connect to the collection using Cohere
         embedding_fn = CohereEmbeddingFunction(co_client)
         collection = chroma_client.get_or_create_collection(
-            name="math_curriculum_benin", 
+            name="math_curriculum_benin",
             embedding_function=embedding_fn
         )
     except Exception as e:
         print("[WARN] Failed to initialize ChromaDB:", e)
-        collection = None
 else:
     print("[WARN] ChromaDB or Cohere not available — search disabled.")
-    collection = None
 
-# UNIFIED PROMPT (LOGIC + PEDAGOGY IN ONE)
-CLAUDE_TUTOR_PROMPT = """
-Vous êtes "Professeur Bio", le validateur strict du curriculum pour le système éducatif du Bénin.
-Votre UNIQUE base de connaissances provient du contexte ci-dessous. Vous ne pouvez répondre QUE si la question concerne les sujets, théorèmes, formules, et concepts présents dans ce contexte.
+# ── Prompts ───────────────────────────────────────────────────────────────────
 
-Question de l'utilisateur: 
-{question}
+IMAGE_OCR_PROMPT = """Transcribe EVERYTHING visible in this image with complete accuracy.
 
-Contexte extrait de la base de données (Sources PDF):
+Include ALL of the following if present:
+- Every word of text, exactly as written
+- All mathematical expressions, equations, and formulas (use standard LaTeX notation)
+- Numbers, variables, symbols, operators, indices, exponents
+- Diagrams described precisely in words (e.g. "Triangle ABC with angle A = 30°, BC = 5cm")
+- Table contents row by row with headers
+- Any labels, captions, units, annotations
+- Instructions, question numbers, and sub-parts (a), b), c)...)
+
+Output ONLY the raw transcribed content. No commentary, no "I see...", no preamble."""
+
+# ── SYSTEM PROMPT ─────────────────────────────────────────────────────────────
+# Key design decisions:
+#   1. ROLE CLARITY: The AI knows exactly who it is and what it can/cannot do.
+#   2. MANDATORY IMAGE RECAP: Always restate image content so student can verify OCR.
+#   3. STRUCTURED OUTPUT: Consistent format trains students to expect clarity.
+#   4. SOCRATIC NUDGE: Ends with a check question to verify understanding.
+#   5. ANTI-HALLUCINATION: Explicit rule to only use curriculum context.
+#   6. LATEX ALWAYS: Forces proper math rendering in the frontend.
+# ─────────────────────────────────────────────────────────────────────────────
+
+SYSTEM_PROMPT = """Tu es **Professeur Bio**, tuteur IA expert et bienveillant pour les étudiants du Bénin.
+
+## TON IDENTITÉ
+- Tu parles TOUJOURS en français, avec un ton chaleureux et encourageant.
+- Tu t'adresses directement à l'élève (« tu » ou « vous »).
+- Tu adaptes ta complexité au niveau apparent de la question.
+- Tu n'inventes JAMAIS de formules : tu n'utilises que ce qui est dans le contexte du programme ou ta base de connaissances vérifiée.
+
+## TES MODULES
+Tu maîtrises exclusivement ces deux programmes officiels :
+1. **MTH1122 — Analyse (Fonction d'une variable réelle)**
+   Topologie de ℝ · Suites & Séries numériques · Limites · Continuité · Dérivabilité
+   Théorèmes (Rolle, TAF, Valeur intermédiaire) · Développements limités (Taylor/Mac-Laurin)
+   Fonctions usuelles et réciproques (exp, ln, sin, cos, arctan…)
+
+2. **PHY — Optique Géométrique**
+   Propagation rectiligne de la lumière · Réflexion & Réfraction (lois de Snell-Descartes)
+   Prismes & Dispersion · Dioptres plans et sphériques · Miroirs plans et sphériques
+   Lentilles minces (convergentes/divergentes) · Instruments d'optique (Loupe, Microscope, Lunette)"""
+
+TUTOR_PROMPT = """## CONTEXTE DU PROGRAMME (extrait PDF officiel)
 {context_str}
 
-### INSTRUCTIONS DE TRAITEMENT :
-
-ÉTAPE 0 : VÉRIFICATION DU PÉRIMÈTRE (CRITIQUE)
-- **Vérification du Module :** La question se rapporte-t-elle à l'un des sujets du programme extrait ?
-- **Vérification du Contexte :** Le [Contexte extrait] contient-il les définitions ou théorèmes nécessaires ?
-- **Règle Anti-Hallucination :** N'inventez pas de formules et n'utilisez pas de connaissances externes (même si elles sont vraies)
-- **ACTION :** Si la question dépasse les données du programme ou si le contexte est vide/insuffisant, répondez UNIQUEMENT par : "STATUT : HORS_DU_PROGRAMME". Ne générez rien d'autre.
-
-ÉTAPE 1 : ANALYSE ET RÉSOLUTION
-Si le statut est validé, résolvez le problème en suivant strictement la méthodologie du cours :
-- **Identification : Quel concept précis du programme extrait est testé ?
-- **Résolution :** Développez le raisonnement mathématique/physique étape par étape.
-- **Contextualisation (Bénin) :** Si applicable, utilisez des noms ou lieux béninois pour les exemples concrets, mais ne forcez pas le contexte s'il s'agit d'une démonstration théorique pure.
-
-ÉTAPE 2 : ANALYSE PÉDAGOGIQUE
-- **Prérequis :** Quels sont les savoirs antérieurs nécessaires (ex: "Savoir calculer un discriminant" ou "Lois de Descartes") ?
-- **Pièges :** Citez 2 erreurs fréquentes sur ce sujet précis.
-
-ÉTAPE 3 : FORMAT DE SORTIE
-Générez la réponse dans ce format exact :
-
-ÉTAPE 1 : [Titre de l'étape]
-[Explication détaillée en français]
-[Formules LaTeX si nécessaire : $...$]
-
-ÉTAPE 2 : [Titre de l'étape]
-...
-
-CONCLUSION : [Résultat final ou théorème démontré]
-
-SOURCE : [Citez explicitement quel chapitre ou section du contexte justifie cette réponse]
-"""
-
-CLAUDE_FALLBACK_PROMPT = """
-Vous êtes "Professeur Bio", un tuteur expert en mathématiques pour le système éducatif du Bénin.
-Aucun document de programme spécifique n'a été trouvé, vous devez donc utiliser vos connaissances mathématiques générales.
-
-Question de l'utilisateur: 
+---
+{image_section}
+## QUESTION DE L'ÉLÈVE
 {question}
 
-### INSTRUCTIONS:
-1. Résolvez le problème étape par étape avec une grande précision.
-2. Utilisez un ton pédagogique, encourageant et clair en français.
-3. Utilisez des exemples liés au contexte du Bénin si possible.
-4. Structurez votre réponse avec des titres clairs (Aperçu, Étapes, Conclusion).
+---
+## PROTOCOLE DE RÉPONSE — SUIS CES ÉTAPES DANS L'ORDRE
+
+### ÉTAPE 0 — RÉCAPITULATIF DE L'IMAGE (si image fournie)
+{image_recap_instruction}
+
+### ÉTAPE 1 — VÉRIFICATION DU PÉRIMÈTRE
+- La question concerne-t-elle MTH1122 ou l'Optique Géométrique ?
+- Le contexte PDF contient-il les éléments nécessaires ?
+- ⚠️ Si hors programme ET contexte vide → réponds UNIQUEMENT : `⛔ HORS PROGRAMME : [sujet détecté]`
+- Sinon, continue.
+
+### ÉTAPE 2 — ANALYSE DU PROBLÈME
+Reformule brièvement ce que l'élève doit trouver. Identifie :
+- Le **concept clé** testé (ex : "Théorème de Rolle", "Loi de Snell-Descartes")
+- Les **données** et **inconnues**
+- La **stratégie de résolution**
+
+### ÉTAPE 3 — RÉSOLUTION DÉTAILLÉE
+Résous **étape par étape**, sans sauter d'étape. Pour chaque étape :
+- Donne un **titre court** en gras
+- Montre le **raisonnement complet**
+- Écris toutes les formules en LaTeX : inline $...$ ou display $$...$$
+- Justifie chaque transition (« car », « d'après le théorème de... », « en appliquant... »)
+
+### ÉTAPE 4 — CONCLUSION
+Encadre le résultat final clairement :
+> **Résultat :** $[réponse]$ [unité si applicable]
+
+### ÉTAPE 5 — CONSOLIDATION PÉDAGOGIQUE
+- **Prérequis :** 2-3 notions qu'il faut maîtriser pour ce type de problème
+- **Erreur classique 1 :** [piège fréquent]
+- **Erreur classique 2 :** [piège fréquent]
+- **Question de vérification :** Pose une question simple à l'élève pour tester sa compréhension
+
+### FORMAT OBLIGATOIRE
+```
+## [Nom du module] — [Concept clé]
+
+### 📋 Analyse
+...
+
+### 🔢 Résolution
+**Étape 1 — [titre]**
+...
+
+### ✅ Conclusion
+> **Résultat :** ...
+
+### 📚 Pour aller plus loin
+...
+
+### ❓ Vérifie ta compréhension
+...
+```
 """
 
-# TOOLS 
+FALLBACK_PROMPT = """Tu es **Professeur Bio**, tuteur expert en mathématiques et physique pour les étudiants du Bénin.
+{image_section}
 
-def search_curriculum(query):
-    """
-    Action: Searches the vector database for relevant content.
-    Returns: Tuple (formatted_context_string, list_of_source_dicts)
-    """
-    logger.log_step("Action", f"Searching ChromaDB (via Cohere) for: '{query}'")
-    
-    results = collection.query(
-        query_texts=[query],
-        n_results=3 # Optimized: Reduced from 5 to 3 for speed
-    )
-    
-    documents = results['documents'][0]
-    metadatas = results['metadatas'][0]
-    
+## QUESTION DE L'ÉLÈVE
+{question}
+
+⚠️ Aucun document de programme spécifique trouvé. Utilise tes connaissances générales rigoureuses.
+
+## PROTOCOLE DE RÉPONSE
+
+{image_recap_instruction}
+
+Résous ce problème en suivant ce format :
+
+```
+## [Domaine] — [Concept clé]
+
+### 📋 Analyse du problème
+[Ce qui est demandé, les données, la stratégie]
+
+### 🔢 Résolution étape par étape
+**Étape 1 — [titre]**
+[raisonnement + LaTeX]
+
+**Étape 2 — [titre]**
+...
+
+### ✅ Conclusion
+> **Résultat :** $...$
+
+### 📚 Points clés
+- ...
+
+### ❓ Vérifie ta compréhension
+[question simple]
+```
+
+Règles :
+- Toujours en français, ton encourageant
+- LaTeX obligatoire pour toute formule ($...$ ou $$...$$)
+- Exemples béninois si pertinent
+"""
+
+# ── Tools ─────────────────────────────────────────────────────────────────────
+
+def search_curriculum(query: str) -> tuple[str, list]:
+    """Search ChromaDB for relevant curriculum content."""
+    if collection is None:
+        logger.log_step("Warning", "ChromaDB not available — skipping search")
+        return "", []
+
+    logger.log_step("Action", f"Searching ChromaDB for: '{query[:80]}'")
+    try:
+        results = collection.query(query_texts=[query], n_results=3)
+        documents = results["documents"][0]
+        metadatas = results["metadatas"][0]
+    except Exception as e:
+        print(f"[WARN] ChromaDB query failed: {e}")
+        return "", []
+
     context_text = ""
     sources = []
-    
-    if documents:
-        for i, doc in enumerate(documents):
-            meta = metadatas[i]
-            source = meta.get('source', 'Unknown')
-            page = meta.get('page', '?')
-            
-            # Build context string for the AI
-            context_text += f"\n--- Source: {source} (Page {page}) ---\n{doc}\n"
-            
-            # Build structured data for the User
-            sources.append({
-                "text": doc,
-                "source": source,
-                "page": page
-            })
-    
+    for i, doc in enumerate(documents):
+        meta = metadatas[i]
+        source = meta.get("source", "Unknown")
+        page = meta.get("page", "?")
+        context_text += f"\n--- {source} (p.{page}) ---\n{doc}\n"
+        sources.append({"text": doc, "source": source, "page": page})
+
     return context_text, sources
 
-#  MAIN ORCHESTRATOR LOOP 
 
-def ask_math_ai(question: str, history: str = "", attachment=None):
-    logger.log_step("Thought", f"Processing new user question: {question}")
-    execution_steps = []
-    if attachment:
+def extract_image_content(attachment: dict) -> tuple[str, str, str]:
+    """
+    Run OCR on the uploaded image via Claude vision.
+    Returns: (raw_text, image_section_for_prompt, image_recap_instruction)
+    """
+    if not attachment or not claude_client:
+        return "", "", ""
+
+    logger.log_step("Action", "Running OCR on uploaded image...")
+    try:
         response = claude_client.messages.create(
             model="claude-sonnet-4-5",
-            max_tokens=1024,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image",
-                            "source": {
-                                "type": "base64",
-                                "media_type": attachment.get('type'),
-                                "data": attachment.get('image'),
-                            },
+            max_tokens=1500,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": attachment.get("type"),
+                            "data": attachment.get("image"),
                         },
-                        {
-                            "type": "text",
-                            "text": "Extract all information on the image. DO NOT ATTEMPT IF ITS A QUESTION. ONLY RETURN THE EXTRACTED CONTENT> NOTHING ELSE."
-                        }
-                    ],
-                }
-            ],
+                    },
+                    {"type": "text", "text": IMAGE_OCR_PROMPT}
+                ],
+            }]
         )
+        extracted = response.content[0].text.strip()
+    except Exception as e:
+        print(f"[WARN] OCR failed: {e}")
+        return "", "", ""
 
-        img_ctx = response.content[0].text
-        question = question + img_ctx  
-        print(question)
-    
-    # STEP 1: RETRIEVAL (Cohere + Chroma)
-    thought_1 = "Retrieving official curriculum data..."
-    logger.log_step("Thought", thought_1)
-    execution_steps.append({"type": "thought", "content": thought_1})
-    
+    logger.log_step("Observation", f"OCR complete ({len(extracted)} chars): {extracted[:120]}...")
+
+    # Section injected into the prompt so the model sees the image content
+    image_section = f"""## 📷 CONTENU DE L'IMAGE (extrait OCR)
+```
+{extracted}
+```
+"""
+    # Instruction telling the model to always recap the image first
+    image_recap_instruction = (
+        "**OBLIGATOIRE** : Commence ta réponse par une section '### 📷 Contenu de l'image' "
+        "où tu reformules fidèlement le problème extrait de l'image, "
+        "afin que l'élève puisse vérifier que la lecture est correcte. "
+        "Si l'OCR semble incomplet, signale-le."
+    )
+
+    return extracted, image_section, image_recap_instruction
+
+
+def _build_prompts(
+    question: str,
+    history: str,
+    context_observation: str,
+    use_fallback: bool,
+    image_section: str,
+    image_recap_instruction: str,
+) -> str:
+    """Build the final prompt string."""
+    if not image_recap_instruction:
+        image_recap_instruction = "*(Pas d'image fournie — ignore cette étape)*"
+
+    if use_fallback:
+        return FALLBACK_PROMPT.format(
+            question=question,
+            image_section=image_section,
+            image_recap_instruction=image_recap_instruction,
+        )
+    return TUTOR_PROMPT.format(
+        context_str=context_observation or "N/A",
+        question=question,
+        image_section=image_section,
+        image_recap_instruction=image_recap_instruction,
+        module_name="Mathématiques / Physique",
+    )
+
+
+# ── Main orchestrator ─────────────────────────────────────────────────────────
+
+def ask_math_ai(question: str, history: str = "", attachment=None) -> dict:
+    logger.log_step("Thought", f"Processing: {question[:80]}")
+    execution_steps = []
+
+    image_section = ""
+    image_recap_instruction = ""
+    if attachment:
+        img_text, image_section, image_recap_instruction = extract_image_content(attachment)
+        if img_text:
+            question = (question + "\n" + img_text).strip() if question.strip() else img_text
+
     context_observation, sources = search_curriculum(question)
 
-    # If the Anthropic client is not configured, return a helpful error response
     if claude_client is None:
-        logger.log_step("Error", "Anthropic client not configured")
         return {
-            "partie": "Erreur",
-            "problemStatement": question,
-            "steps": [
-                {
-                    "title": "Model Unavailable",
-                    "explanation": "Anthropic/Claude client is not configured. Set ANTHROPIC_API_KEY to enable model responses.",
-                    "equations": None
-                }
-            ],
-            "conclusion": None,
-            "sources": []
+            "partie": "Erreur", "problemStatement": question,
+            "steps": [{"title": "Unavailable", "explanation": "ANTHROPIC_API_KEY not configured.", "equations": None}],
+            "conclusion": None, "sources": []
         }
 
-    # Check if context was found
-    use_fallback = False
-    if not context_observation.strip():
-        obs_text = "Database returned empty results. Switching to General Knowledge Mode."
-        logger.log_step("Observation", obs_text)
-        context_observation = "N/A"
-        use_fallback = True
+    use_fallback = not context_observation.strip()
+    if use_fallback:
+        logger.log_step("Observation", "No curriculum context — using fallback")
     else:
-        obs_text = f"Retrieved relevant context ({len(context_observation)} chars)."
-        logger.log_step("Observation", obs_text)
-        execution_steps.append({"type": "observation", "content": obs_text})
+        logger.log_step("Observation", f"Context retrieved ({len(context_observation)} chars)")
+        execution_steps.append({"type": "observation", "content": "Context retrieved"})
 
-    # STEP 2: GENERATION (Single Pass with Claude)
-    thought_2 = "Generating pedagogical response with Claude..."
-    logger.log_step("Thought", thought_2)
-    
+    prompt = _build_prompts(question, history, context_observation, use_fallback, image_section, image_recap_instruction)
+
     try:
-        # Select Prompt
-        if use_fallback:
-            final_system_prompt = CLAUDE_FALLBACK_PROMPT.format(question=question)
-        else:
-            final_system_prompt = CLAUDE_TUTOR_PROMPT.format(
-                context_str=context_observation, 
-                history=history,
-                question=question
-            )
-        
-        # Single API Call
-        claude_response = claude_client.messages.create(
+        resp = claude_client.messages.create(
             model="claude-sonnet-4-5",
-            max_tokens=2048,
-            messages=[
-                {"role": "user", "content": final_system_prompt}
-            ]
+            max_tokens=3000,
+            system=SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": prompt}]
         )
-        
-        final_answer = claude_response.content[0].text
-        
-        # SAVE LOG (JSONL)
-        logger.save_request(
-            prompt=question,
-            model="claude-sonnet-4.5-single-agent",
-            steps=execution_steps,
-            final_answer=final_answer,
-            verifier_result="Passed", 
-            confidence=1.0 
-        )
-        
-        # Return in Structured Format for API consistency
-        return {
-            "partie": "Mathématiques",
-            "problemStatement": question,
-            "steps": [
-                {
-                    "title": "Explication Professeur Bio",
-                    "explanation": final_answer,
-                    "equations": None
-                }
-            ],
-            "conclusion": "Voir explication ci-dessus",
-            "sources": sources
-        }
+        final_answer = resp.content[0].text
 
+        logger.save_request(
+            prompt=question, model="claude-sonnet-4.5",
+            steps=execution_steps, final_answer=final_answer,
+            verifier_result="Passed", confidence=1.0
+        )
+
+        return {
+            "partie": "Mathématiques", "problemStatement": question,
+            "steps": [{"title": "Explication Professeur Bio", "explanation": final_answer, "equations": None}],
+            "conclusion": "Voir explication ci-dessus", "sources": sources
+        }
     except Exception as e:
-        error_msg = f"Error contacting Claude: {e}"
+        error_msg = f"Erreur Claude: {e}"
         logger.log_step("Error", error_msg)
         return {
-            "partie": "Erreur",
-            "problemStatement": question,
-            "steps": [
-                {
-                    "title": "Erreur de Système",
-                    "explanation": error_msg,
-                    "equations": None
-                }
-            ],
-            "conclusion": None,
-            "sources": []
+            "partie": "Erreur", "problemStatement": question,
+            "steps": [{"title": "Erreur", "explanation": error_msg, "equations": None}],
+            "conclusion": None, "sources": []
         }
 
 
-# STREAMING VERSION FOR API
 def ask_math_ai_stream(question: str, history: str = "", attachment=None):
-    """
-    Streaming version of ask_math_ai that yields text chunks.
-    Used by FastAPI to stream responses to the frontend.
-    
-    Yields JSON lines with chunks of the response.
-    """
-    logger.log_step("Thought", f"Processing new user question (STREAM): {question}")
+    """Streaming version — yields NDJSON lines with keys: metadata / token / done / error."""
+    logger.log_step("Thought", f"Processing (stream): {question[:80]}")
     execution_steps = []
-    
-    # Handle image attachment if provided
-    if attachment:
-        response = claude_client.messages.create(
-            model="claude-sonnet-4-5",
-            max_tokens=1024,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image",
-                            "source": {
-                                "type": "base64",
-                                "media_type": attachment.get('type'),
-                                "data": attachment.get('image'),
-                            },
-                        },
-                        {
-                            "type": "text",
-                            "text": "Extract all information on the image. DO NOT ATTEMPT IF ITS A QUESTION. ONLY RETURN THE EXTRACTED CONTENT> NOTHING ELSE."
-                        }
-                    ],
-                }
-            ],
-        )
 
-        img_ctx = response.content[0].text
-        question = question + " " + img_ctx  
-        logger.log_step("Observation", f"Image processed, enhanced question: {question[:100]}...")
-    
-    # STEP 1: RETRIEVAL (Cohere + Chroma)
-    thought_1 = "Retrieving official curriculum data..."
-    logger.log_step("Thought", thought_1)
-    execution_steps.append({"type": "thought", "content": thought_1})
-    
+    image_section = ""
+    image_recap_instruction = ""
+    if attachment:
+        img_text, image_section, image_recap_instruction = extract_image_content(attachment)
+        if img_text:
+            question = (question + "\n" + img_text).strip() if question.strip() else img_text
+            logger.log_step("Observation", f"OCR appended, question now {len(question)} chars")
+
     context_observation, sources = search_curriculum(question)
 
-    # If Anthropic client not configured, yield an error chunk and finish
     if claude_client is None:
-        logger.log_step("Error", "Anthropic client not configured (streaming)")
-        yield json.dumps({"type": "error", "error": "Anthropic/Claude client not configured. Set ANTHROPIC_API_KEY to enable model responses."}) + "\n"
+        yield json.dumps({"error": "ANTHROPIC_API_KEY not configured."}) + "\n"
         return
 
-    # Check if context was found
-    use_fallback = False
-    if not context_observation.strip():
-        obs_text = "Database returned empty results. Switching to General Knowledge Mode."
-        logger.log_step("Observation", obs_text)
-        context_observation = "N/A"
-        use_fallback = True
+    use_fallback = not context_observation.strip()
+    if use_fallback:
+        logger.log_step("Observation", "No curriculum context — using fallback")
     else:
-        obs_text = f"Retrieved relevant context ({len(context_observation)} chars)."
-        logger.log_step("Observation", obs_text)
-        execution_steps.append({"type": "observation", "content": obs_text})
+        logger.log_step("Observation", f"Context retrieved ({len(context_observation)} chars)")
+        execution_steps.append({"type": "observation", "content": "Context retrieved"})
 
-    # STEP 2: STREAMING GENERATION (Stream chunks from Claude)
-    thought_2 = "Generating pedagogical response with Claude (streaming)..."
-    logger.log_step("Thought", thought_2)
-    
+    prompt = _build_prompts(question, history, context_observation, use_fallback, image_section, image_recap_instruction)
+
     try:
-        # Select Prompt
-        if use_fallback:
-            final_system_prompt = CLAUDE_FALLBACK_PROMPT.format(question=question)
-        else:
-            final_system_prompt = CLAUDE_TUTOR_PROMPT.format(
-                context_str=context_observation, 
-                history=history,
-                question=question
-            )
-        
-        # Streaming API Call with yield
-        full_response = ""
-        with claude_client.messages.stream(
-            model="claude-sonnet-4-5",
-            max_tokens=2048,
-            messages=[
-                {"role": "user", "content": final_system_prompt}
-            ]
-        ) as stream:
-            # Yield initial metadata
-            yield json.dumps({
-                "type": "start",
+        # Emit metadata first so frontend can show sources immediately
+        yield json.dumps({
+            "metadata": {
                 "partie": "Mathématiques",
                 "problemStatement": question,
                 "sources": sources
-            }) + "\n"
-            
-            # Stream text deltas
+            }
+        }) + "\n"
+
+        full_response = ""
+        with claude_client.messages.stream(
+            model="claude-sonnet-4-5",
+            max_tokens=3000,
+            system=SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": prompt}]
+        ) as stream:
             for text in stream.text_stream:
                 full_response += text
-                yield json.dumps({
-                    "type": "chunk",
-                    "text": text
-                }) + "\n"
-        
-        # Yield completion
+                yield json.dumps({"token": text}) + "\n"
+
         yield json.dumps({
-            "type": "end",
+            "done": True,
             "conclusion": "Voir explication ci-dessus",
             "sources": sources
         }) + "\n"
-        
-        # SAVE LOG (JSONL)
+
         logger.save_request(
-            prompt=question,
-            model="claude-sonnet-4.5-streaming",
-            steps=execution_steps,
-            final_answer=full_response,
-            verifier_result="Passed", 
-            confidence=1.0 
+            prompt=question, model="claude-sonnet-4.5-stream",
+            steps=execution_steps, final_answer=full_response,
+            verifier_result="Passed", confidence=1.0
         )
-        
+
     except Exception as e:
-        error_msg = f"Error contacting Claude: {e}"
+        error_msg = f"Erreur Claude: {e}"
         logger.log_step("Error", error_msg)
-        
-        yield json.dumps({
-            "type": "error",
-            "error": error_msg
-        }) + "\n"
+        yield json.dumps({"error": error_msg}) + "\n"
 
 
-# CLI DISPLAY 
+# ── CLI ───────────────────────────────────────────────────────────────────────
+
 console = Console()
 
 if __name__ == "__main__":
-    # Test Question
-    user_query = "Qu'est-ce qu'un espace vectoriel ?"
-    
-    # Get structured response
+    user_query = "Démontrer que la fonction f(x) = x² est dérivable en tout point de ℝ."
     result = ask_math_ai(user_query)
-    
-    print("\n")
-    
-    # Extract the main text explanation for display
-    if result.get("steps") and len(result["steps"]) > 0:
-        main_text = result["steps"][0]["explanation"]
-    else:
-        main_text = "Pas de réponse générée."
-
-    formatted_response = Markdown(main_text)
-    
-    console.print(Panel(
-        formatted_response,
-        title="RÉPONSE DU MENTOR (Math.AI)",
-        subtitle="Agent: Claude Sonnet 4.5",
-        border_style="green",
-        expand=False
-    ))
-
-    # Display Sources in CLI
-    if result["sources"]:
-        print("\n" + "-"*50)
-        console.print("[bold blue] SOURCES DU PROGRAMME OFFICIEL :[/bold blue]")
+    main_text = result["steps"][0]["explanation"] if result.get("steps") else "Pas de réponse."
+    console.print(Panel(Markdown(main_text), title="PROFESSEUR BIO", subtitle="Claude Sonnet 4.5", border_style="green"))
+    if result.get("sources"):
         for i, src in enumerate(result["sources"]):
-            console.print(f"[cyan]{i+1}. {src['source']}[/cyan] (Page {src['page']})")
-    
-    print("\n" + "="*50)
-
+            console.print(f"[cyan]{i+1}. {src['source']} (p.{src['page']})[/cyan]")

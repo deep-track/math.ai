@@ -143,13 +143,13 @@ const LoadingState: React.FC<LoadingStateProps> = ({ variant = 'general', messag
         {/* Sub-message for context */}
         {variant === 'solving' && (
           <p className="text-sm text-gray-500 text-center max-w-xs">
-            AI is analyzing your problem and preparing a step-by-step explanation...
+            L’IA analyse votre problème et prépare une explication étape par étape…
           </p>
         )}
 
         {variant === 'login' && (
           <p className="text-sm text-gray-500 text-center max-w-xs">
-            Setting up your learning environment...
+            Configuration de votre environnement d'apprentissage...
           </p>
         )}
       </div>

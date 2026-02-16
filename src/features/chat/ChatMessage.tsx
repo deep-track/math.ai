@@ -14,7 +14,6 @@ import {
   updateConversation,
   getConversationHistory,
   getCredits,
-  spendCredits,
 } from '../../services/api';
 import { getTranslation } from '../../utils/translations';
 import { useLanguage } from '../../hooks/useLanguage';
@@ -38,6 +37,9 @@ const ChatMessage = () => {
   const [followWhileStreaming, setFollowWhileStreaming] = useState(true);
   const scrollContainerRef = useRef<HTMLElement | null>(null);
 
+  // Store image preview URLs to revoke on cleanup
+  const imageUrlsRef = useRef<Map<string, string>>(new Map());
+
   const userName = user?.firstName || guestName || getTranslation('learnerLabel', language);
   const { getToken, isLoaded: isAuthLoaded } = useAuth();
 
@@ -56,6 +58,13 @@ const ChatMessage = () => {
     }
     return undefined;
   }, [user?.id, isAuthLoaded, getToken]);
+
+  // Cleanup image preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      imageUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   // Listen for reset chat event
   useEffect(() => {
@@ -76,7 +85,7 @@ const ChatMessage = () => {
       const hist = await getConversationHistory(id, user?.id || 'guest', token);
       setConversationId(id);
       setMessages(hist.messages || []);
-      setFollowWhileStreaming(false); // user is viewing an older convo - don't auto-follow until they submit
+      setFollowWhileStreaming(false);
     };
 
     window.addEventListener('loadConversation', handleLoadConversation);
@@ -103,10 +112,8 @@ const ChatMessage = () => {
         if (user?.id) {
           const token = await getSessionToken();
           const credits = await getCredits(user.id, token);
-          // If backend returned null (unreachable or unauthenticated), treat as unknown
           setCreditsRemaining(credits.remaining ?? null);
         } else {
-          // guest fallback: local client-side credits
           try {
             const local = localGetCredits();
             setCreditsRemaining(local.remaining ?? null);
@@ -115,7 +122,6 @@ const ChatMessage = () => {
           }
         }
       } catch (err) {
-        // couldn't determine credits (network/auth issue) — leave as unknown
         setCreditsRemaining(null);
       }
     };
@@ -123,7 +129,7 @@ const ChatMessage = () => {
     init();
   }, [user, getSessionToken]);
 
-  // Attach scroll listeners to the chat messages container when messages exist
+  // Attach scroll listeners to the chat messages container
   useEffect(() => {
     const container = scrollContainerRef.current || document.querySelector('.scrollbar-thin');
     if (!container) return;
@@ -150,71 +156,84 @@ const ChatMessage = () => {
     };
   }, [messages.length]);
 
-  // Utility: derive a friendly title from the first question
   const generateTitleFromQuestion = (text: string) => {
     if (!text || typeof text !== 'string') return getTranslation('defaultChatTitle', language);
-    // Use the full question text, truncated to 100 characters for display
     return text.length > 100 ? text.slice(0, 97).trim() + '...' : text;
   };
 
   const handleSubmitProblem = useCallback(
     async (problemText: string, image?: File) => {
-      // Re-enable follow-on-submit (user explicitly asked for new content)
-      setFollowWhileStreaming(true); 
-      if (!problemText.trim()) return;
+      setFollowWhileStreaming(true);
+
+      // Allow image-only OR text-only OR both; block only if truly empty
+      const hasText = problemText.trim().length > 0;
+      const hasImage = !!image;
+      if (!hasText && !hasImage) return;
 
       cancelledRef.current = false;
-
-      const userId = user?.id || 'guest';
-
-      // Try to get a Clerk session token early so we can pass it to the streaming endpoint
-      let token: string | undefined = await getSessionToken();
-      if (user?.id && !token) {
-        setError(getTranslation('authTokenMissing', language));
-        return;
-      }
-
-      // Fetch latest credits before submitting
-      try {
-        const current = await getCredits(userId, token);
-        // If the backend returned a concrete number and it's <= 0, block.
-        if (typeof current.remaining === 'number' && current.remaining <= 0) {
-          setError(getTranslation('noCreditsInline', language));
-          return;
-        }
-        // update local state if a concrete number was returned
-        if (typeof current.remaining === 'number') setCreditsRemaining(current.remaining);
-      } catch (err) {
-        // proceed but be cautious (unknown credits)
-      }
-
       setError(null);
       setLoading(true);
 
+      const userId = user?.id || 'guest';
+
+      let token: string | undefined = await getSessionToken();
+      if (user?.id && !token) {
+        setError(getTranslation('authTokenMissing', language));
+        setLoading(false);
+        return;
+      }
+
+      if (creditsRemaining === 0) {
+        setError(getTranslation('noCreditsInline', language));
+        setLoading(false);
+        return;
+      }
+
+      if (creditsRemaining === null) {
+        try {
+          const current = await getCredits(userId, token);
+          if (typeof current.remaining === 'number') {
+            setCreditsRemaining(current.remaining);
+            if (current.remaining <= 0) {
+              setError(getTranslation('noCreditsInline', language));
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (err) {
+          // proceed
+        }
+      }
+
       const startTime = Date.now();
-      // Keep a local active conversation id (available in catch/finally)
       let activeConversationId = conversationId;
-      let assistantMessageId = ''; // Define here so it's available in catch block
+      let assistantMessageId = '';
 
       try {
-        // Ensure a conversation exists and capture its id locally
         if (!activeConversationId) {
-          const conv = await createConversation(getTranslation('defaultChatTitle', language), userId, token);
+          const conv = await createConversation(
+            getTranslation('defaultChatTitle', language),
+            userId,
+            token
+          );
           activeConversationId = conv.id;
           setConversationId(conv.id);
         }
 
-        // Create problem object
-        const problem: Problem & any = {
+        // Build the problem object — use the text as-is (ChatInput already sets default for image-only)
+        const problem: Problem & { image?: File } = {
           id: Date.now().toString(),
           content: problemText,
           submittedAt: Date.now(),
-          userId: userId,
-          sessionId: token,
-          image: image,
+          image,
         };
 
-        // Add user message to chat and placeholder assistant message
+        // Create a stable preview URL for this image so it survives re-renders
+        if (image) {
+          const previewUrl = URL.createObjectURL(image);
+          imageUrlsRef.current.set(problem.id as string, previewUrl);
+        }
+
         const userMessage: ChatMessageType = {
           id: `msg-${Date.now()}`,
           type: 'user',
@@ -222,7 +241,6 @@ const ChatMessage = () => {
           timestamp: Date.now(),
         };
 
-        // Create placeholder for assistant message
         assistantMessageId = `msg-${Date.now()}-solution`;
         const assistantMessage: ChatMessageType = {
           id: assistantMessageId,
@@ -241,20 +259,16 @@ const ChatMessage = () => {
           timestamp: Date.now(),
         };
 
-        // Update local state and persist (also set title to first question for a new convo)
         setMessages((prev) => {
           const next = [...prev, userMessage, assistantMessage];
 
-          // If this conversation is known (or just created), persist initial messages (avoid repeated saves during streaming)
           if (activeConversationId) {
-            // If this is the first message (prev.length === 0) and title is default, set title to the question
             const shouldSetTitle = prev.length === 0;
             const title = shouldSetTitle ? generateTitleFromQuestion(problemText) : undefined;
             updateConversation(activeConversationId, userId, next, title, token);
             window.dispatchEvent(new CustomEvent('conversationUpdated'));
           }
 
-          // Auto-scroll to bottom right after adding the placeholder messages
           if (followWhileStreaming) {
             setTimeout(() => {
               const sc = scrollContainerRef.current || document.querySelector('.scrollbar-thin');
@@ -265,66 +279,59 @@ const ChatMessage = () => {
           return next;
         });
 
-        // Stream the response (support abort via AbortController)
         const controller = new AbortController();
         abortControllerRef.current = controller;
         setIsStreaming(true);
 
         let lastResponseTime = startTime;
         entryRef.current.hasReceivedChunk = false;
-        (entryRef as any).current.completed = false; 
-        // Track if server performed the charge (sent back via SSE)
+        (entryRef as any).current.completed = false;
         (entryRef as any).current.serverCharged = false;
-        (entryRef as any).current.serverRemaining = undefined; 
+        (entryRef as any).current.serverRemaining = undefined;
 
         let streamEnded = false;
         try {
           for await (const solution of solveProblemStream(problem, controller.signal, token, userId)) {
             lastResponseTime = Date.now();
 
-            // If server reported it charged the user during the stream, update state and mark it
             if ((solution as any).chargedRemaining !== undefined) {
               (entryRef as any).current.serverCharged = true;
               (entryRef as any).current.serverRemaining = (solution as any).chargedRemaining;
               try {
-                window.dispatchEvent(new CustomEvent('creditsUpdated', { detail: { userId, remaining: (solution as any).chargedRemaining } }));
-                // Update credits asynchronously to avoid setState during render
+                window.dispatchEvent(
+                  new CustomEvent('creditsUpdated', {
+                    detail: { userId, remaining: (solution as any).chargedRemaining },
+                  })
+                );
                 setTimeout(() => setCreditsRemaining((solution as any).chargedRemaining), 0);
               } catch (e) {
                 // ignore
               }
             }
 
-            // On first streaming chunk, remove big loading and mark that we received data
             if (!entryRef.current.hasReceivedChunk) {
               entryRef.current.hasReceivedChunk = true;
               setLoading(false);
             }
 
-            // Update the assistant message with streaming content and persist on final
             setMessages((prev) => {
               const next = prev.map((msg) => {
                 if (msg.id === assistantMessageId) {
-                  // IMPORTANT: solution.content already has cumulative text from the stream generator
                   const newContent = solution.content || '';
-                  
-                  // Log for debugging streaming issues
+
                   if (newContent) {
                     console.log('[ChatMessage] Content state update:', {
                       length: newContent.length,
                       status: solution.status,
                       snippet: newContent.substring(0, 50),
-                      hasContent: !!newContent,
                     });
-                  } else {
-                    console.log('[ChatMessage] No content in solution update:', solution);
                   }
-                  
+
                   return {
                     ...msg,
                     solution: {
                       ...msg.solution!,
-                      content: newContent,        // Cumulative content from stream
+                      content: newContent,
                       finalAnswer: solution.finalAnswer,
                       status: solution.status,
                       sources: solution.sources,
@@ -334,7 +341,6 @@ const ChatMessage = () => {
                 return msg;
               });
 
-              // Mark completed so we spend credit after stream
               if ((solution.status as any) === 'ok' || (solution.status as any) === 'end') {
                 (entryRef as any).current.completed = true;
                 if (activeConversationId) {
@@ -346,32 +352,26 @@ const ChatMessage = () => {
               return next;
             });
 
-            // Auto-scroll to bottom on each chunk (unless user scrolled away)
             if (followWhileStreaming) {
-              const scrollContainer = scrollContainerRef.current || document.querySelector('.scrollbar-thin');
+              const scrollContainer =
+                scrollContainerRef.current || document.querySelector('.scrollbar-thin');
               if (scrollContainer) {
-                (scrollContainer as HTMLElement).scrollTop = (scrollContainer as HTMLElement).scrollHeight;
+                (scrollContainer as HTMLElement).scrollTop = (
+                  scrollContainer as HTMLElement
+                ).scrollHeight;
               }
             }
           }
           streamEnded = true;
         } catch (err: any) {
           if (err?.name === 'AbortError') {
-            // Generation was stopped by the user
             cancelledRef.current = true;
             setError(getTranslation('generationStopped', language));
 
-            // Mark assistant message as cancelled
             setMessages((prev) => {
               const next = prev.map((msg) =>
                 msg.id === assistantMessageId
-                  ? {
-                      ...msg,
-                      solution: {
-                        ...msg.solution!,
-                        status: 'cancelled',
-                      } as any,
-                    }
+                  ? { ...msg, solution: { ...msg.solution!, status: 'cancelled' } as any }
                   : msg
               );
 
@@ -391,94 +391,60 @@ const ChatMessage = () => {
         }
 
         const responseTime = lastResponseTime - startTime;
-        
-        // If stream was successful and completed, spend a credit (skip if cancelled)
-        if (((entryRef as any).current.completed || streamEnded) && !cancelledRef.current) {
+
+        if (
+          ((entryRef as any).current.completed || streamEnded) &&
+          !cancelledRef.current
+        ) {
           if (streamEnded && !(entryRef as any).current.completed) {
             (entryRef as any).current.completed = true;
           }
-          // If server charged during stream (SSE 'charged' event), skip client-side spend
-          if ((entryRef as any).current.serverCharged) {
-            // Credits already deducted on server; update UI is handled when charged event was received
-            // Nothing else to do here
-          } else {
-            const maxAttempts = 3;
-            let attempt = 0;
-            let spent = false;
-            let lastError: any = null;
-
-            while (attempt < maxAttempts && !spent) {
-              try {
-                token = await getSessionToken();
-                if (user?.id && !token) {
-                  throw new Error(getTranslation('authTokenMissing', language));
-                }
-
-                const res = await spendCredits(userId, token);
-                // Update badge/UI
-                window.dispatchEvent(new CustomEvent('creditsUpdated', { detail: { userId, remaining: res.remaining } }));
-                setCreditsRemaining(res.remaining);
-                spent = true;
-              } catch (err) {
-                attempt++;
-                lastError = err;
-                console.warn(`spendCredits attempt ${attempt} failed`, err);
-                if (attempt < maxAttempts) {
-                  await new Promise((r) => setTimeout(r, 200 * Math.pow(2, attempt)));
-                }
+          if (user?.id) {
+            try {
+              const latestToken = await getSessionToken();
+              const latestCredits = await getCredits(userId, latestToken);
+              if (typeof latestCredits.remaining === 'number') {
+                setCreditsRemaining(latestCredits.remaining);
+                window.dispatchEvent(
+                  new CustomEvent('creditsUpdated', {
+                    detail: { userId, remaining: latestCredits.remaining },
+                  })
+                );
               }
+            } catch (err) {
+              console.warn('Failed to refresh credits after stream completion', err);
             }
-
-            // If spending on backend failed after retries, fallback for guests to local spend
-            if (!spent) {
-              if (!user?.id) {
-                try {
-                  const local = localSpendCredit();
-                  if (local?.success) {
-                    setCreditsRemaining(local.remaining ?? null);
-                    console.warn('Used local guest credit fallback after spend failure', lastError);
-                  } else {
-                    console.warn('Local guest spend failed or no credits available', lastError);
-                  }
-                } catch (e) {
-                  console.error('Failed to spend local guest credit', e);
-                }
-              } else {
-                // For authenticated users we bubble a failure event for visibility/debugging
-                console.error('Failed to spend credit after retries for user', user?.id, lastError);
-                window.dispatchEvent(new CustomEvent('creditsSpendFailed', { detail: { userId: user?.id, error: String(lastError) } }));
+          } else if (!(entryRef as any).current.serverCharged) {
+            try {
+              const local = localSpendCredit();
+              if (local?.success) {
+                setCreditsRemaining(local.remaining ?? null);
               }
+            } catch (e) {
+              console.error('Failed to spend local guest credit', e);
             }
           }
         }
 
-        // Track analytics
         await trackAnalyticsEvent({
           eventType: 'problem_submitted',
           solutionId: `solution-${Date.now()}`,
           responseTime,
           timestamp: Date.now(),
+          userId,
         });
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : getTranslation('unableToSolveTitle', language);
         setError(errorMessage);
 
-        // Mark assistant message as errored
         setMessages((prev) => {
           const next = prev.map((msg) =>
             msg.id === assistantMessageId
-              ? {
-                  ...msg,
-                  solution: {
-                    ...msg.solution!,
-                    status: 'error',
-                  } as any,
-                }
+              ? { ...msg, solution: { ...msg.solution!, status: 'error' } as any }
               : msg
           );
 
-          // Persist
           if (activeConversationId) {
             updateConversation(activeConversationId, userId, next, undefined, token);
             window.dispatchEvent(new CustomEvent('conversationUpdated'));
@@ -490,30 +456,32 @@ const ChatMessage = () => {
         setLoading(false);
       }
     },
-    [conversationId, user, getSessionToken, followWhileStreaming, language]
+    [conversationId, user, getSessionToken, followWhileStreaming, language, creditsRemaining]
   );
 
   const handleRetry = () => {
     setError(null);
-
-    // Remove any assistant messages that are in streaming or error state before retrying
-    setMessages((prev) => prev.filter((m) => !(m.type === 'assistant' && ((m.solution?.status as any) === 'streaming' || (m.solution?.status as any) === 'error'))));
-
-    // Find last user message and re-submit
+    setMessages((prev) =>
+      prev.filter(
+        (m) =>
+          !(
+            m.type === 'assistant' &&
+            ((m.solution?.status as any) === 'streaming' ||
+              (m.solution?.status as any) === 'error')
+          )
+      )
+    );
     const lastUser = [...messages].reverse().find((m) => m.type === 'user' && m.problem?.content);
     if (lastUser && lastUser.problem) {
-      handleSubmitProblem(lastUser.problem.content);
+      handleSubmitProblem(lastUser.problem.content, lastUser.problem.image);
     }
   };
 
-  const handleFeedbackSubmitted = () => {
-    // Optional: Could add a success message or other feedback here
-  };
+  const handleFeedbackSubmitted = () => {};
 
-  // Persist conversation when messages change (skip while streaming to avoid frequent backend updates)
+  // Persist conversation when messages change (skip during streaming)
   useEffect(() => {
     if (!conversationId) return;
-    // Avoid persisting on every streaming chunk — we persist at stream completion explicitly
     if (isStreaming) return;
 
     const persist = async () => {
@@ -525,6 +493,18 @@ const ChatMessage = () => {
     persist();
   }, [messages, conversationId, user, isStreaming, getSessionToken]);
 
+  // Helper: get a stable preview URL for a message's image
+  const getImageUrl = (msg: ChatMessageType): string | null => {
+    const img = msg.problem?.image;
+    if (!img) return null;
+    const id = msg.problem?.id as string;
+    if (id && imageUrlsRef.current.has(id)) return imageUrlsRef.current.get(id)!;
+    // Fallback: create on the fly (shouldn't normally happen)
+    const url = URL.createObjectURL(img);
+    if (id) imageUrlsRef.current.set(id, url);
+    return url;
+  };
+
   // Landing page when no messages
   if (messages.length === 0) {
     return (
@@ -535,11 +515,14 @@ const ChatMessage = () => {
             : 'bg-linear-to-b from-white via-[#e5f6ef] to-[#008751]'
         }`}
       >
-        <div ref={(el: HTMLDivElement | null) => { scrollContainerRef.current = el; }} className="flex-1 overflow-y-auto px-6 py-10 flex items-center justify-center scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+        <div
+          ref={(el: HTMLDivElement | null) => {
+            scrollContainerRef.current = el;
+          }}
+          className="flex-1 overflow-y-auto px-6 py-10 flex items-center justify-center scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+        >
           <div className="max-w-2xl w-full text-center space-y-8 animate-in fade-in duration-700">
-            {/* Welcome header */}
             <div className="relative text-center">
-
               <h1
                 className={`text-4xl md:text-5xl font-bold ${
                   theme === 'dark' ? 'text-white' : 'text-gray-800'
@@ -562,51 +545,34 @@ const ChatMessage = () => {
               )}
             </div>
 
-            {/* Quick tips */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-              <div
-                className={`p-4 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
-                  theme === 'dark'
-                    ? 'bg-[#1a3d2b] border-green-600'
-                    : 'bg-green-50 border-green-300'
-                }`}
-              >
-                <div className="text-2xl mb-2">📝</div>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                  {getTranslation('typeAnyProblem', language)}
-                </p>
-              </div>
-              <div
-                className={`p-4 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
-                  theme === 'dark'
-                    ? 'bg-[#1a3d2b] border-green-600'
-                    : 'bg-green-50 border-green-300'
-                }`}
-              >
-                <div className="text-2xl mb-2">⚡</div>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                  {getTranslation('getInstantExplanations', language)}
-                </p>
-              </div>
-              <div
-                className={`p-4 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
-                  theme === 'dark'
-                    ? 'bg-[#1a3d2b] border-green-600'
-                    : 'bg-green-50 border-green-300'
-                }`}
-              >
-                <div className="text-2xl mb-2">🎓</div>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                  {getTranslation('learnStepByStep', language)}
-                </p>
-              </div>
+              {[
+                { icon: '📝', key: 'typeAnyProblem' },
+                { icon: '⚡', key: 'getInstantExplanations' },
+                { icon: '📷', key: 'uploadImageTip', fallback: 'Upload an image of your problem' },
+              ].map(({ icon, key, fallback }) => (
+                <div
+                  key={key}
+                  className={`p-4 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
+                    theme === 'dark'
+                      ? 'bg-[#1a3d2b] border-green-600'
+                      : 'bg-green-50 border-green-300'
+                  }`}
+                >
+                  <div className="text-2xl mb-2">{icon}</div>
+                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                    {getTranslation(key as any, language) || fallback}
+                  </p>
+                </div>
+              ))}
             </div>
 
-            {/* Example problems */}
             <div>
-              <p className={`text-sm font-semibold mb-3 ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-              }`}>
+              <p
+                className={`text-sm font-semibold mb-3 ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                }`}
+              >
                 {getTranslation('tryAskingAbout', language)}
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
@@ -619,7 +585,11 @@ const ChatMessage = () => {
                 ].map((topic) => (
                   <button
                     key={topic.key}
-                    onClick={() => handleSubmitProblem(getTranslation('explainPrompt', language).replace('{topic}', topic.label))}
+                    onClick={() =>
+                      handleSubmitProblem(
+                        getTranslation('explainPrompt', language).replace('{topic}', topic.label)
+                      )
+                    }
                     className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 ${
                       theme === 'dark'
                         ? 'bg-green-900 text-green-100 hover:bg-green-800'
@@ -634,6 +604,20 @@ const ChatMessage = () => {
           </div>
         </div>
 
+        {loading && (
+          <div className="px-6 pb-4">
+            <div
+              className={`rounded-2xl p-6 ${
+                theme === 'dark'
+                  ? 'bg-[#1a1a1a] border border-gray-800'
+                  : 'bg-white border border-gray-200'
+              }`}
+            >
+              <LoadingState variant="solving" message={getTranslation('solvingProblem', language)} />
+            </div>
+          </div>
+        )}
+
         {creditsRemaining === 0 && (
           <div className="px-6 pb-4">
             <ErrorDisplay
@@ -644,7 +628,12 @@ const ChatMessage = () => {
           </div>
         )}
 
-        <ChatInput onSubmit={handleSubmitProblem} disabled={loading || creditsRemaining === 0} isStreaming={isStreaming} onStop={() => abortControllerRef.current?.abort()} />
+        <ChatInput
+          onSubmit={handleSubmitProblem}
+          disabled={loading || creditsRemaining === 0}
+          isStreaming={isStreaming}
+          onStop={() => abortControllerRef.current?.abort()}
+        />
       </main>
     );
   }
@@ -658,24 +647,20 @@ const ChatMessage = () => {
           : 'bg-linear-to-b from-white via-[#e5f6ef] to-[#008751]'
       }`}
     >
-      {/* Messages area */}
-      <div ref={(el: HTMLDivElement | null) => { scrollContainerRef.current = el; }} className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6 space-y-6 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+      <div
+        ref={(el: HTMLDivElement | null) => {
+          scrollContainerRef.current = el;
+        }}
+        className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6 space-y-6 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+      >
         {messages.map((msg, index) => (
           <div
             key={msg.id}
             className="w-full animate-in fade-in slide-in-from-bottom-2 duration-500"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <div
-              className={`flex ${
-                msg.type === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              <div
-                className={`max-w-3xl w-full ${
-                  msg.type === 'user' ? 'px-4' : 'px-4'
-                }`}
-              >
+            <div className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-3xl w-full ${msg.type === 'user' ? 'px-4' : 'px-4'}`}>
                 {/* User message */}
                 {msg.type === 'user' && msg.problem && (
                   <div className="flex justify-end">
@@ -686,21 +671,25 @@ const ChatMessage = () => {
                           : 'bg-green-400 text-gray-900'
                       }`}
                     >
-                      {msg.problem.image && (
-                        <div className="mb-2">
-                          <img
-                            src={URL.createObjectURL(msg.problem.image)}
-                            alt="Uploaded"
-                            className="max-w-full h-auto rounded-md max-h-48 object-contain"
-                          />
-                        </div>
-                      )}
+                      {/* Image thumbnail in chat bubble */}
+                      {msg.problem.image && (() => {
+                        const url = getImageUrl(msg);
+                        return url ? (
+                          <div className="mb-2">
+                            <img
+                              src={url}
+                              alt="Uploaded"
+                              className="max-w-full h-auto rounded-md max-h-48 object-contain"
+                            />
+                          </div>
+                        ) : null;
+                      })()}
                       <p className="text-sm">{msg.problem.content}</p>
                     </div>
                   </div>
                 )}
 
-                {/* Assistant message with solution */}
+                {/* Assistant message */}
                 {msg.type === 'assistant' && msg.solution && (
                   <div
                     className={`rounded-2xl p-6 ${
@@ -725,7 +714,6 @@ const ChatMessage = () => {
           </div>
         ))}
 
-        {/* Loading state */}
         {loading && (
           <div className="w-full animate-in fade-in duration-300">
             <div className="flex justify-start px-4">
@@ -742,7 +730,6 @@ const ChatMessage = () => {
           </div>
         )}
 
-        {/* Error state */}
         {error && (
           <div className="w-full px-4 animate-in fade-in duration-300">
             <ErrorDisplay
@@ -755,8 +742,12 @@ const ChatMessage = () => {
         )}
       </div>
 
-      {/* Input area */}
-      <ChatInput onSubmit={handleSubmitProblem} disabled={loading || creditsRemaining === 0} isStreaming={isStreaming} onStop={() => abortControllerRef.current?.abort()} />
+      <ChatInput
+        onSubmit={handleSubmitProblem}
+        disabled={loading || creditsRemaining === 0}
+        isStreaming={isStreaming}
+        onStop={() => abortControllerRef.current?.abort()}
+      />
     </main>
   );
 };
