@@ -393,12 +393,16 @@ async def ask_stream_endpoint(http_req: Request):
         user_id_from_request = str(form.get("user_id") or "guest")
         if text:
             question_text = text
-            if image and isinstance(image, UploadFile):
-                print(f"[STREAM] Processing uploaded image: {image.filename} (content_type={image.content_type})")
+            if image and hasattr(image, "read") and hasattr(image, "filename") and image.filename:
+                print(f"[STREAM] Processing uploaded image: {image.filename} (content_type={getattr(image, 'content_type', None)})")
                 attachment = await process_uploaded_image(image)
                 print(f"[STREAM] Image processed successfully, type: {attachment['type']}, bytes={len(attachment['image'])}")
             else:
-                print("[STREAM] No image file found in multipart form")
+                image_type = type(image).__name__ if image is not None else "None"
+                image_preview = None
+                if isinstance(image, (str, bytes)):
+                    image_preview = str(image)[:80]
+                print(f"[STREAM] No image file found in multipart form (image_type={image_type}, preview={image_preview})")
         else:
             raise HTTPException(status_code=400, detail="FormData must include 'text' field")
     elif "application/json" in content_type:
