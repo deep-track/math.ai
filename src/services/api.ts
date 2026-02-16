@@ -142,23 +142,17 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
   try {
     console.log('📤 Sending problem to backend:', problem.content);
 
-    let response: Response;
+    const formData = new FormData();
+    formData.append('text', problem.content);
+    formData.append('user_id', 'guest');
     if ((problem as any).image) {
-      const formData = new FormData();
-      formData.append('text', problem.content);
       formData.append('image', (problem as any).image);
-
-      response = await fetch(`${API_BASE_URL}/ask`, {
-        method: 'POST',
-        body: formData,
-      });
-    } else {
-      response = await fetch(`${API_BASE_URL}/ask`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: problem.content, user_id: 'guest' }),
-      });
     }
+
+    const response = await fetch(`${API_BASE_URL}/ask`, {
+      method: 'POST',
+      body: formData,
+    });
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));

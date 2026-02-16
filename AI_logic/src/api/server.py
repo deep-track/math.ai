@@ -225,9 +225,10 @@ async def test_endpoint():
 # 6. Main endpoint - Ask a question
 @api_router.post("/ask", response_model=AcademicResponseModel)
 async def ask_endpoint(
-    text : str = Form(...),
-    image : UploadFile = File(None),
-    user_id: str = Form("guest")
+    request: Request,
+    text: Optional[str] = Form(None),
+    image: UploadFile = File(None),
+    user_id: Optional[str] = Form(None),
 ):
     """
     Main endpoint for solving math problems.
@@ -246,6 +247,20 @@ async def ask_endpoint(
         HTTPException: If processing fails
     """
     try:
+        if text is None:
+            try:
+                payload = await request.json()
+            except Exception:
+                payload = {}
+
+            if isinstance(payload, dict):
+                text = payload.get("text") or payload.get("question") or payload.get("content")
+                user_id = payload.get("user_id") or payload.get("userId") or user_id
+
+        if not text or not str(text).strip():
+            raise HTTPException(status_code=400, detail="Missing 'text' field in request.")
+
+        user_id = user_id or "guest"
         started_at = datetime.utcnow()
         attachment = None
         if image:
