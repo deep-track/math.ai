@@ -465,8 +465,11 @@ export async function* solveProblemStream(
 
   if ((problem as any).image) {
     const formData = new FormData();
+    const imageFile = (problem as any).image as unknown;
     formData.append('text', problem.content);
-    formData.append('image', (problem as any).image);
+    if (imageFile instanceof File || imageFile instanceof Blob) {
+      formData.append('image', imageFile);
+    }
     formData.append('user_id', userId || 'guest');
 
     console.log('📤 Sending image upload request:', {
