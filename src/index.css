@@ -1,4 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
 @import "tailwindcss";
+
+:root {
+  --font-headline: "Sora", sans-serif;
+  --font-body: "Space Grotesk", sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+}
 
 /* Custom animations */
 @layer utilities {

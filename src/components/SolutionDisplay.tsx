@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -18,7 +18,7 @@ interface SolutionDisplayProps {
   solutionId?: string;
 }
 
-const SolutionDisplay: React.FC<SolutionDisplayProps> = ({
+const SolutionDisplay = ({
   solution,
   response,
   confidence = 0.9,
@@ -27,22 +27,45 @@ const SolutionDisplay: React.FC<SolutionDisplayProps> = ({
   userToken,
   onFeedbackSubmitted,
   solutionId = 'default-solution',
-}) => {
+}: SolutionDisplayProps) => {
   // Get the content from either solution or response
   const content = useMemo(() => {
+    console.log('[SolutionDisplay] Props received:', {
+      solution: solution ? {
+        content: solution.content?.substring(0, 50),
+        finalAnswer: solution.finalAnswer?.substring(0, 50),
+        status: solution.status,
+        hasContent: !!(solution.content || solution.finalAnswer)
+      } : null,
+      response: response ? {
+        answer: response.answer?.substring(0, 50),
+        hasAnswer: !!response.answer
+      } : null,
+      isLoading
+    });
+    
     if (solution?.content) {
-      console.log('[SolutionDisplay] Using solution.content, length:', solution.content.length);
-      return solution.content;
+      const len = solution.content.length;
+      if (len > 0) {
+        console.log('[SolutionDisplay] Using solution.content, length:', len, 'snippet:', solution.content.substring(0, 50));
+        return solution.content;
+      }
     }
     if (solution?.finalAnswer) {
-      console.log('[SolutionDisplay] Using solution.finalAnswer, length:', solution.finalAnswer.length);
-      return solution.finalAnswer;
+      const len = solution.finalAnswer.length;
+      if (len > 0) {
+        console.log('[SolutionDisplay] Using solution.finalAnswer, length:', len);
+        return solution.finalAnswer;
+      }
     }
     if (response?.answer) {
-      console.log('[SolutionDisplay] Using response.answer, length:', response.answer.length);
-      return response.answer;
+      const len = response.answer.length;
+      if (len > 0) {
+        console.log('[SolutionDisplay] Using response.answer, length:', len);
+        return response.answer;
+      }
     }
-    console.log('[SolutionDisplay] No content found!');
+    console.log('[SolutionDisplay] No content - solution:', JSON.stringify({content: solution?.content?.substring(0, 20), finalAnswer: solution?.finalAnswer?.substring(0, 20), status: solution?.status}), 'response:', response?.answer?.substring(0, 20));
     return '';
   }, [solution, response]);
 
@@ -58,11 +81,8 @@ const SolutionDisplay: React.FC<SolutionDisplayProps> = ({
   }
 
   if (!content) {
-    return (
-      <div className="w-full p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <p className="text-yellow-800">No solution available</p>
-      </div>
-    );
+    // Intentionally render nothing when no content is available
+    return null;
   }
 
   return (
@@ -78,59 +98,74 @@ const SolutionDisplay: React.FC<SolutionDisplayProps> = ({
 
       {/* Beautiful Markdown Content */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 prose prose-lg max-w-none">
-        <ReactMarkdown
-          remarkPlugins={[remarkMath]}
-          rehypePlugins={[rehypeKatex]}
-          components={{
-            h1: ({node, ...props}) => (
-              <h1 className="text-4xl font-bold text-gray-900 mt-8 mb-4 pb-3 border-b-2 border-green-500" {...props} />
-            ),
-            h2: ({node, ...props}) => (
-              <h2 className="text-3xl font-bold text-gray-900 mt-6 mb-3" {...props} />
-            ),
-            h3: ({node, ...props}) => (
-              <h3 className="text-2xl font-semibold text-gray-800 mt-4 mb-2" {...props} />
-            ),
-            h4: ({node, ...props}) => (
-              <h4 className="text-xl font-semibold text-gray-800 mt-3 mb-1" {...props} />
-            ),
-            p: ({node, ...props}) => (
-              <p className="text-gray-700 leading-relaxed mb-4" {...props} />
-            ),
-            strong: ({node, ...props}) => (
-              <strong className="font-bold text-gray-900" {...props} />
-            ),
-            em: ({node, ...props}) => (
-              <em className="italic text-gray-700" {...props} />
-            ),
-            ul: ({node, ...props}) => (
-              <ul className="list-disc list-inside space-y-2 mb-4 ml-4" {...props} />
-            ),
-            ol: ({node, ...props}) => (
-              <ol className="list-decimal list-inside space-y-2 mb-4 ml-4" {...props} />
-            ),
-            li: ({node, ...props}) => (
-              <li className="text-gray-700" {...props} />
-            ),
-            blockquote: ({node, ...props}) => (
-              <blockquote className="border-l-4 border-green-500 bg-green-50 pl-4 py-2 my-4 italic text-gray-700" {...props} />
-            ),
-            code: ({node, inline, ...props}: any) => 
-              inline ? (
-                <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-red-600" {...props} />
-              ) : (
-                <code className="block bg-gray-900 text-gray-100 p-4 rounded my-4 overflow-x-auto text-sm font-mono" {...props} />
-              ),
-            hr: ({node, ...props}) => (
-              <hr className="my-6 border-t-2 border-gray-300" {...props} />
-            ),
-            a: ({node, ...props}) => (
-              <a className="text-green-600 hover:text-green-700 underline" target="_blank" rel="noopener noreferrer" {...props} />
-            ),
-          }}
-        >
-          {content}
-        </ReactMarkdown>
+        {(() => {
+          try {
+            return (
+              <ReactMarkdown
+                key={solution?.status || 'unknown'} // Force remount when status changes to avoid DOM reconciliation issues during streaming
+                remarkPlugins={[remarkMath]}
+                rehypePlugins={[[rehypeKatex, { 
+                  throwOnError: false, 
+                  strict: false,
+                  trust: true,
+                  displayMode: false 
+                }]]}
+                components={{
+                  h1: ({node, ...props}) => (
+                    <h1 className="text-4xl font-bold text-gray-900 mt-8 mb-4 pb-3 border-b-2 border-green-500" {...props} />
+                  ),
+                  h2: ({node, ...props}) => (
+                    <h2 className="text-3xl font-bold text-gray-900 mt-6 mb-3" {...props} />
+                  ),
+                  h3: ({node, ...props}) => (
+                    <h3 className="text-2xl font-semibold text-gray-800 mt-4 mb-2" {...props} />
+                  ),
+                  h4: ({node, ...props}) => (
+                    <h4 className="text-xl font-semibold text-gray-800 mt-3 mb-1" {...props} />
+                  ),
+                  p: ({node, ...props}) => (
+                    <p className="text-gray-700 leading-relaxed mb-4" {...props} />
+                  ),
+                  strong: ({node, ...props}) => (
+                    <strong className="font-bold text-gray-900" {...props} />
+                  ),
+                  em: ({node, ...props}) => (
+                    <em className="italic text-gray-700" {...props} />
+                  ),
+                  ul: ({node, ...props}) => (
+                    <ul className="list-disc list-inside space-y-2 mb-4 ml-4" {...props} />
+                  ),
+                  ol: ({node, ...props}) => (
+                    <ol className="list-decimal list-inside space-y-2 mb-4 ml-4" {...props} />
+                  ),
+                  li: ({node, ...props}) => (
+                    <li className="text-gray-700" {...props} />
+                  ),
+                  blockquote: ({node, ...props}) => (
+                    <blockquote className="border-l-4 border-green-500 bg-green-50 pl-4 py-2 my-4 italic text-gray-700" {...props} />
+                  ),
+                  code: ({node, inline, ...props}: any) => 
+                    inline ? (
+                      <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-red-600" {...props} />
+                    ) : (
+                      <code className="block bg-gray-900 text-gray-100 p-4 rounded my-4 overflow-x-auto text-sm font-mono" {...props} />
+                    ),
+                  hr: ({node, ...props}) => (
+                    <hr className="my-6 border-t-2 border-gray-300" {...props} />
+                  ),
+                  a: ({node, ...props}) => (
+                    <a className="text-green-600 hover:text-green-700 underline" target="_blank" rel="noopener noreferrer" {...props} />
+                  ),
+                }}
+              >
+                {content}
+              </ReactMarkdown>
+            );
+          } catch (error) {
+            console.error('Markdown rendering error:', error);
+            return <div className="text-red-600">Error rendering content. Please try again.</div>;
+          }
+        })()}
       </div>
 
       {/* Feedback Section */}

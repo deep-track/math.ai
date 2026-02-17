@@ -26,7 +26,7 @@ export const MathRender: React.FC<MathRenderProps> = ({ content, display = false
     );
   } catch (error) {
     console.error('KaTeX rendering error:', error);
-    return <code>{content}</code>;
+    return <code className="text-red-600">{content}</code>;
   }
 };
 

@@ -1,6 +1,6 @@
 // Solution and Problem types
 export type ConfidenceLevel = 'high' | 'medium' | 'low';
-export type ResponseStatus = 'ok' | 'tutor' | 'refusal';
+export type ResponseStatus = 'ok' | 'tutor' | 'refusal' | 'streaming';
 export type FeedbackType = 'helpful' | 'incorrect';
 
 export interface Step {
@@ -28,6 +28,8 @@ export interface Solution {
   timestamp: number;
   content?: string; // Full markdown content for rendering
   sources?: Source[]; // Source references from curriculum
+  // If server performs charge during streaming it will set remaining here
+  chargedRemaining?: number;
 }
 
 export interface Problem {
@@ -35,6 +37,7 @@ export interface Problem {
   content: string;
   submittedAt: number;
   sourceLanguage?: 'en' | 'fr';
+  image?: File; // Optional image attachment
 }
 
 export interface ChatMessage {
@@ -58,6 +61,8 @@ export interface Feedback {
   type: FeedbackType;
   timestamp: number;
   additionalComments?: string;
+  userId?: string;
+  topic?: string;
 }
 
 export interface ApiError {
@@ -71,6 +76,8 @@ export interface AnalyticsEvent {
   solutionId?: string;
   responseTime?: number;
   timestamp: number;
+  userId?: string;
+  topic?: string;
 }
 
 export interface SubmitFeedbackResponse {

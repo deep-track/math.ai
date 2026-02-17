@@ -243,6 +243,11 @@ const ForgotPasswordPage = () => {
               <Link to="/login" className="text-[#00b876] hover:text-[#00d488] font-semibold transition-colors">
                 Retour à la connexion
               </Link>
+              <div className="mt-3">
+                <Link to="/" className="text-xs text-gray-400 hover:text-white transition-colors">
+                  Retour à l'accueil
+                </Link>
+              </div>
             </div>
           </div>
         </div>

@@ -10,6 +10,7 @@ services:
     buildCommand: |
       pip install --upgrade pip
       pip install -r requirements.txt
+      python src/init_db.py
 
     startCommand: |
       uvicorn src.api.server:app --host 0.0.0.0 --port $PORT
@@ -25,3 +26,8 @@ services:
         value: "True"
       - key: PYTHONUNBUFFERED
         value: "1"
+
+    disk:
+      - name: chroma-db
+        mountPath: /opt/render/project/chroma_db
+        sizeGB: 1

@@ -1,0 +1,857 @@
+{
+  "user_38seH4e2bob7yMokOBv8o6PwqiN": [
+    {
+      "id": "conv-1770129767983",
+      "title": "Chat",
+      "createdAt": "2026-02-03T17:42:47.983756",
+      "updatedAt": "2026-02-03T18:19:59.494246",
+      "messages": [
+        {
+          "id": "msg-1770140567988",
+          "type": "user",
+          "problem": {
+            "id": "1770140567988",
+            "content": "Explain Calcul",
+            "submittedAt": 1770140567988
+          },
+          "timestamp": 1770140567988
+        },
+        {
+          "id": "msg-1770140567988-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770140567988",
+            "steps": [],
+            "finalAnswer": "# Le Calcul Math\u00e9matique \ud83d\udcd0\n\nBonjour cher \u00e9tudiant ! Je suis ravi de t'expliquer ce qu'est le **calcul** en math\u00e9matiques. C'est un sujet fondamental qui nous accompagne depuis l'\u00e9cole primaire jusqu'\u00e0 l'universit\u00e9 !\n\n---\n\n## \ud83d\udccb Aper\u00e7u\n\nLe terme **\"calcul\"** en math\u00e9matiques d\u00e9signe l'ensemble des op\u00e9rations et techniques permettant de r\u00e9soudre des probl\u00e8mes num\u00e9riques. Il existe plusieurs niveaux de calcul :\n\n### **1. Le calcul arithm\u00e9tique** (niveau de base)\n- Les **quatre op\u00e9rations** : addition (+), soustraction (\u2212), multiplication (\u00d7), division (\u00f7)\n- Les **fractions** et les **pourcentages**\n- Les **puissances** et les **racines**\n\n### **2. Le calcul alg\u00e9brique** (niveau interm\u00e9diaire)\n- Manipulation des **expressions avec variables** (x, y, z...)\n- R\u00e9solution d'**\u00e9quations** et d'**in\u00e9quations**\n- Simplification d'expressions\n\n### **3. Le calcul diff\u00e9rentiel et int\u00e9gral** (niveau avanc\u00e9 - universit\u00e9)\n- Les **d\u00e9riv\u00e9es** (taux de variation)\n- Les **int\u00e9grales** (calcul d'aires et de volumes)\n\n---\n\n## \ud83c\udfaf \u00c9tapes et Exemples Pratiques (Contexte B\u00e9ninois)\n\n### **Exemple 1 : Calcul arithm\u00e9tique**\n\n**Situation** : Au march\u00e9 Dantokpa \u00e0 Cotonou, tu ach\u00e8tes :\n- 3 kg de tomates \u00e0 500 FCFA le kg\n- 2 ananas \u00e0 400 FCFA l'unit\u00e9\n\n**Calcul du total :**\n\n**\u00c9tape 1** : Co\u00fbt des tomates\n```\n3 \u00d7 500 = 1 500 FCFA\n```\n\n**\u00c9tape 2** : Co\u00fbt des ananas\n```\n2 \u00d7 400 = 800 FCFA\n```\n\n**\u00c9tape 3** : Total\n```\n1 500 + 800 = 2 300 FCFA\n```\n\n\u2705 **R\u00e9ponse** : Tu dois payer **2 300 FCFA**\n\n---\n\n### **Exemple 2 : Calcul avec fractions et pourcentages**\n\n**Situation** : Une classe de 40 \u00e9l\u00e8ves \u00e0 Porto-Novo compte 24 filles.\n\n**Calculons le pourcentage de filles :**\n\n**\u00c9tape 1** : Fraction de filles\n```\n24/40 = 3/5 (apr\u00e8s simplification)\n```\n\n**\u00c9tape 2** : Conversion en pourcentage\n```\n(24 \u00f7 40) \u00d7 100 = 0,6 \u00d7 100 = 60%\n```\n\n\u2705 **R\u00e9ponse** : **60% des \u00e9l\u00e8ves** sont des filles\n\n---\n\n### **Exemple 3 : Calcul alg\u00e9brique**\n\n**Situation** : Le prix d'un sac de riz a augment\u00e9. Le nouveau prix est 1,5 fois l'ancien prix. Si le nouveau prix est 15 000 FCFA, quel \u00e9tait l'ancien prix ?\n\n**R\u00e9solution :**\n\n**\u00c9tape 1** : Poser l'\u00e9quation\n```\nSoit x = ancien prix\n1,5x = 15 000\n```\n\n**\u00c9tape 2** : R\u00e9soudre\n```\nx = 15 000 \u00f7 1,5\nx = 10 000 FCFA\n```\n\n\u2705 **R\u00e9ponse** : L'ancien prix \u00e9tait **10 000 FCFA**\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLe **calcul** est un outil puissant qui te permet de :\n- \u2705 G\u00e9rer ton argent au quotidien\n- \u2705 R\u00e9soudre des probl\u00e8mes pratiques\n- \u2705 R\u00e9ussir tes examens (BEPC, BAC)\n- \u2705 Poursuivre des \u00e9tudes scientifiques\n\n### **Conseils pour progresser :**\n1. **Pratique quotidienne** : Fais au moins 5 exercices par jour\n2. **V\u00e9rifie tes calculs** : Utilise la calculatrice pour v\u00e9rifier\n3. **Comprends avant de m\u00e9moriser** : Ne retiens pas juste les formules !\n4. **Utilise des exemples concrets** : Lie les maths \u00e0 ta vie quotidienne\n\nN'oublie pas : **Les math\u00e9matiques sont comme le sport - plus tu t'entra\u00eenes, meilleur tu deviens !** \ud83d\udcaa\n\nAs-tu des questions sp\u00e9cifiques sur un type de calcul en particulier ? Je suis l\u00e0 pour t'aider !",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770140567988,
+            "content": "# Le Calcul Math\u00e9matique \ud83d\udcd0\n\nBonjour cher \u00e9tudiant ! Je suis ravi de t'expliquer ce qu'est le **calcul** en math\u00e9matiques. C'est un sujet fondamental qui nous accompagne depuis l'\u00e9cole primaire jusqu'\u00e0 l'universit\u00e9 !\n\n---\n\n## \ud83d\udccb Aper\u00e7u\n\nLe terme **\"calcul\"** en math\u00e9matiques d\u00e9signe l'ensemble des op\u00e9rations et techniques permettant de r\u00e9soudre des probl\u00e8mes num\u00e9riques. Il existe plusieurs niveaux de calcul :\n\n### **1. Le calcul arithm\u00e9tique** (niveau de base)\n- Les **quatre op\u00e9rations** : addition (+), soustraction (\u2212), multiplication (\u00d7), division (\u00f7)\n- Les **fractions** et les **pourcentages**\n- Les **puissances** et les **racines**\n\n### **2. Le calcul alg\u00e9brique** (niveau interm\u00e9diaire)\n- Manipulation des **expressions avec variables** (x, y, z...)\n- R\u00e9solution d'**\u00e9quations** et d'**in\u00e9quations**\n- Simplification d'expressions\n\n### **3. Le calcul diff\u00e9rentiel et int\u00e9gral** (niveau avanc\u00e9 - universit\u00e9)\n- Les **d\u00e9riv\u00e9es** (taux de variation)\n- Les **int\u00e9grales** (calcul d'aires et de volumes)\n\n---\n\n## \ud83c\udfaf \u00c9tapes et Exemples Pratiques (Contexte B\u00e9ninois)\n\n### **Exemple 1 : Calcul arithm\u00e9tique**\n\n**Situation** : Au march\u00e9 Dantokpa \u00e0 Cotonou, tu ach\u00e8tes :\n- 3 kg de tomates \u00e0 500 FCFA le kg\n- 2 ananas \u00e0 400 FCFA l'unit\u00e9\n\n**Calcul du total :**\n\n**\u00c9tape 1** : Co\u00fbt des tomates\n```\n3 \u00d7 500 = 1 500 FCFA\n```\n\n**\u00c9tape 2** : Co\u00fbt des ananas\n```\n2 \u00d7 400 = 800 FCFA\n```\n\n**\u00c9tape 3** : Total\n```\n1 500 + 800 = 2 300 FCFA\n```\n\n\u2705 **R\u00e9ponse** : Tu dois payer **2 300 FCFA**\n\n---\n\n### **Exemple 2 : Calcul avec fractions et pourcentages**\n\n**Situation** : Une classe de 40 \u00e9l\u00e8ves \u00e0 Porto-Novo compte 24 filles.\n\n**Calculons le pourcentage de filles :**\n\n**\u00c9tape 1** : Fraction de filles\n```\n24/40 = 3/5 (apr\u00e8s simplification)\n```\n\n**\u00c9tape 2** : Conversion en pourcentage\n```\n(24 \u00f7 40) \u00d7 100 = 0,6 \u00d7 100 = 60%\n```\n\n\u2705 **R\u00e9ponse** : **60% des \u00e9l\u00e8ves** sont des filles\n\n---\n\n### **Exemple 3 : Calcul alg\u00e9brique**\n\n**Situation** : Le prix d'un sac de riz a augment\u00e9. Le nouveau prix est 1,5 fois l'ancien prix. Si le nouveau prix est 15 000 FCFA, quel \u00e9tait l'ancien prix ?\n\n**R\u00e9solution :**\n\n**\u00c9tape 1** : Poser l'\u00e9quation\n```\nSoit x = ancien prix\n1,5x = 15 000\n```\n\n**\u00c9tape 2** : R\u00e9soudre\n```\nx = 15 000 \u00f7 1,5\nx = 10 000 FCFA\n```\n\n\u2705 **R\u00e9ponse** : L'ancien prix \u00e9tait **10 000 FCFA**\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLe **calcul** est un outil puissant qui te permet de :\n- \u2705 G\u00e9rer ton argent au quotidien\n- \u2705 R\u00e9soudre des probl\u00e8mes pratiques\n- \u2705 R\u00e9ussir tes examens (BEPC, BAC)\n- \u2705 Poursuivre des \u00e9tudes scientifiques\n\n### **Conseils pour progresser :**\n1. **Pratique quotidienne** : Fais au moins 5 exercices par jour\n2. **V\u00e9rifie tes calculs** : Utilise la calculatrice pour v\u00e9rifier\n3. **Comprends avant de m\u00e9moriser** : Ne retiens pas juste les formules !\n4. **Utilise des exemples concrets** : Lie les maths \u00e0 ta vie quotidienne\n\nN'oublie pas : **Les math\u00e9matiques sont comme le sport - plus tu t'entra\u00eenes, meilleur tu deviens !** \ud83d\udcaa\n\nAs-tu des questions sp\u00e9cifiques sur un type de calcul en particulier ? Je suis l\u00e0 pour t'aider !",
+            "sources": []
+          },
+          "timestamp": 1770140567988
+        }
+      ]
+    },
+    {
+      "id": "conv-1770129815135",
+      "title": "Chat",
+      "createdAt": "2026-02-03T17:43:35.135593",
+      "updatedAt": "2026-02-03T18:21:05.818535",
+      "messages": [
+        {
+          "id": "msg-1770140567988",
+          "type": "user",
+          "problem": {
+            "id": "1770140567988",
+            "content": "Explain Calcul",
+            "submittedAt": 1770140567988
+          },
+          "timestamp": 1770140567988
+        },
+        {
+          "id": "msg-1770140567988-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770140567988",
+            "steps": [],
+            "finalAnswer": "# Le Calcul Math\u00e9matique \ud83d\udcd0\n\nBonjour cher \u00e9tudiant ! Je suis ravi de t'expliquer ce qu'est le **calcul** en math\u00e9matiques. C'est un sujet fondamental qui nous accompagne depuis l'\u00e9cole primaire jusqu'\u00e0 l'universit\u00e9 !\n\n---\n\n## \ud83d\udccb Aper\u00e7u\n\nLe terme **\"calcul\"** en math\u00e9matiques d\u00e9signe l'ensemble des op\u00e9rations et techniques permettant de r\u00e9soudre des probl\u00e8mes num\u00e9riques. Il existe plusieurs niveaux de calcul :\n\n### **1. Le calcul arithm\u00e9tique** (niveau de base)\n- Les **quatre op\u00e9rations** : addition (+), soustraction (\u2212), multiplication (\u00d7), division (\u00f7)\n- Les **fractions** et les **pourcentages**\n- Les **puissances** et les **racines**\n\n### **2. Le calcul alg\u00e9brique** (niveau interm\u00e9diaire)\n- Manipulation des **expressions avec variables** (x, y, z...)\n- R\u00e9solution d'**\u00e9quations** et d'**in\u00e9quations**\n- Simplification d'expressions\n\n### **3. Le calcul diff\u00e9rentiel et int\u00e9gral** (niveau avanc\u00e9 - universit\u00e9)\n- Les **d\u00e9riv\u00e9es** (taux de variation)\n- Les **int\u00e9grales** (calcul d'aires et de volumes)\n\n---\n\n## \ud83c\udfaf \u00c9tapes et Exemples Pratiques (Contexte B\u00e9ninois)\n\n### **Exemple 1 : Calcul arithm\u00e9tique**\n\n**Situation** : Au march\u00e9 Dantokpa \u00e0 Cotonou, tu ach\u00e8tes :\n- 3 kg de tomates \u00e0 500 FCFA le kg\n- 2 ananas \u00e0 400 FCFA l'unit\u00e9\n\n**Calcul du total :**\n\n**\u00c9tape 1** : Co\u00fbt des tomates\n```\n3 \u00d7 500 = 1 500 FCFA\n```\n\n**\u00c9tape 2** : Co\u00fbt des ananas\n```\n2 \u00d7 400 = 800 FCFA\n```\n\n**\u00c9tape 3** : Total\n```\n1 500 + 800 = 2 300 FCFA\n```\n\n\u2705 **R\u00e9ponse** : Tu dois payer **2 300 FCFA**\n\n---\n\n### **Exemple 2 : Calcul avec fractions et pourcentages**\n\n**Situation** : Une classe de 40 \u00e9l\u00e8ves \u00e0 Porto-Novo compte 24 filles.\n\n**Calculons le pourcentage de filles :**\n\n**\u00c9tape 1** : Fraction de filles\n```\n24/40 = 3/5 (apr\u00e8s simplification)\n```\n\n**\u00c9tape 2** : Conversion en pourcentage\n```\n(24 \u00f7 40) \u00d7 100 = 0,6 \u00d7 100 = 60%\n```\n\n\u2705 **R\u00e9ponse** : **60% des \u00e9l\u00e8ves** sont des filles\n\n---\n\n### **Exemple 3 : Calcul alg\u00e9brique**\n\n**Situation** : Le prix d'un sac de riz a augment\u00e9. Le nouveau prix est 1,5 fois l'ancien prix. Si le nouveau prix est 15 000 FCFA, quel \u00e9tait l'ancien prix ?\n\n**R\u00e9solution :**\n\n**\u00c9tape 1** : Poser l'\u00e9quation\n```\nSoit x = ancien prix\n1,5x = 15 000\n```\n\n**\u00c9tape 2** : R\u00e9soudre\n```\nx = 15 000 \u00f7 1,5\nx = 10 000 FCFA\n```\n\n\u2705 **R\u00e9ponse** : L'ancien prix \u00e9tait **10 000 FCFA**\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLe **calcul** est un outil puissant qui te permet de :\n- \u2705 G\u00e9rer ton argent au quotidien\n- \u2705 R\u00e9soudre des probl\u00e8mes pratiques\n- \u2705 R\u00e9ussir tes examens (BEPC, BAC)\n- \u2705 Poursuivre des \u00e9tudes scientifiques\n\n### **Conseils pour progresser :**\n1. **Pratique quotidienne** : Fais au moins 5 exercices par jour\n2. **V\u00e9rifie tes calculs** : Utilise la calculatrice pour v\u00e9rifier\n3. **Comprends avant de m\u00e9moriser** : Ne retiens pas juste les formules !\n4. **Utilise des exemples concrets** : Lie les maths \u00e0 ta vie quotidienne\n\nN'oublie pas : **Les math\u00e9matiques sont comme le sport - plus tu t'entra\u00eenes, meilleur tu deviens !** \ud83d\udcaa\n\nAs-tu des questions sp\u00e9cifiques sur un type de calcul en particulier ? Je suis l\u00e0 pour t'aider !",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770140567988,
+            "content": "# Le Calcul Math\u00e9matique \ud83d\udcd0\n\nBonjour cher \u00e9tudiant ! Je suis ravi de t'expliquer ce qu'est le **calcul** en math\u00e9matiques. C'est un sujet fondamental qui nous accompagne depuis l'\u00e9cole primaire jusqu'\u00e0 l'universit\u00e9 !\n\n---\n\n## \ud83d\udccb Aper\u00e7u\n\nLe terme **\"calcul\"** en math\u00e9matiques d\u00e9signe l'ensemble des op\u00e9rations et techniques permettant de r\u00e9soudre des probl\u00e8mes num\u00e9riques. Il existe plusieurs niveaux de calcul :\n\n### **1. Le calcul arithm\u00e9tique** (niveau de base)\n- Les **quatre op\u00e9rations** : addition (+), soustraction (\u2212), multiplication (\u00d7), division (\u00f7)\n- Les **fractions** et les **pourcentages**\n- Les **puissances** et les **racines**\n\n### **2. Le calcul alg\u00e9brique** (niveau interm\u00e9diaire)\n- Manipulation des **expressions avec variables** (x, y, z...)\n- R\u00e9solution d'**\u00e9quations** et d'**in\u00e9quations**\n- Simplification d'expressions\n\n### **3. Le calcul diff\u00e9rentiel et int\u00e9gral** (niveau avanc\u00e9 - universit\u00e9)\n- Les **d\u00e9riv\u00e9es** (taux de variation)\n- Les **int\u00e9grales** (calcul d'aires et de volumes)\n\n---\n\n## \ud83c\udfaf \u00c9tapes et Exemples Pratiques (Contexte B\u00e9ninois)\n\n### **Exemple 1 : Calcul arithm\u00e9tique**\n\n**Situation** : Au march\u00e9 Dantokpa \u00e0 Cotonou, tu ach\u00e8tes :\n- 3 kg de tomates \u00e0 500 FCFA le kg\n- 2 ananas \u00e0 400 FCFA l'unit\u00e9\n\n**Calcul du total :**\n\n**\u00c9tape 1** : Co\u00fbt des tomates\n```\n3 \u00d7 500 = 1 500 FCFA\n```\n\n**\u00c9tape 2** : Co\u00fbt des ananas\n```\n2 \u00d7 400 = 800 FCFA\n```\n\n**\u00c9tape 3** : Total\n```\n1 500 + 800 = 2 300 FCFA\n```\n\n\u2705 **R\u00e9ponse** : Tu dois payer **2 300 FCFA**\n\n---\n\n### **Exemple 2 : Calcul avec fractions et pourcentages**\n\n**Situation** : Une classe de 40 \u00e9l\u00e8ves \u00e0 Porto-Novo compte 24 filles.\n\n**Calculons le pourcentage de filles :**\n\n**\u00c9tape 1** : Fraction de filles\n```\n24/40 = 3/5 (apr\u00e8s simplification)\n```\n\n**\u00c9tape 2** : Conversion en pourcentage\n```\n(24 \u00f7 40) \u00d7 100 = 0,6 \u00d7 100 = 60%\n```\n\n\u2705 **R\u00e9ponse** : **60% des \u00e9l\u00e8ves** sont des filles\n\n---\n\n### **Exemple 3 : Calcul alg\u00e9brique**\n\n**Situation** : Le prix d'un sac de riz a augment\u00e9. Le nouveau prix est 1,5 fois l'ancien prix. Si le nouveau prix est 15 000 FCFA, quel \u00e9tait l'ancien prix ?\n\n**R\u00e9solution :**\n\n**\u00c9tape 1** : Poser l'\u00e9quation\n```\nSoit x = ancien prix\n1,5x = 15 000\n```\n\n**\u00c9tape 2** : R\u00e9soudre\n```\nx = 15 000 \u00f7 1,5\nx = 10 000 FCFA\n```\n\n\u2705 **R\u00e9ponse** : L'ancien prix \u00e9tait **10 000 FCFA**\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLe **calcul** est un outil puissant qui te permet de :\n- \u2705 G\u00e9rer ton argent au quotidien\n- \u2705 R\u00e9soudre des probl\u00e8mes pratiques\n- \u2705 R\u00e9ussir tes examens (BEPC, BAC)\n- \u2705 Poursuivre des \u00e9tudes scientifiques\n\n### **Conseils pour progresser :**\n1. **Pratique quotidienne** : Fais au moins 5 exercices par jour\n2. **V\u00e9rifie tes calculs** : Utilise la calculatrice pour v\u00e9rifier\n3. **Comprends avant de m\u00e9moriser** : Ne retiens pas juste les formules !\n4. **Utilise des exemples concrets** : Lie les maths \u00e0 ta vie quotidienne\n\nN'oublie pas : **Les math\u00e9matiques sont comme le sport - plus tu t'entra\u00eenes, meilleur tu deviens !** \ud83d\udcaa\n\nAs-tu des questions sp\u00e9cifiques sur un type de calcul en particulier ? Je suis l\u00e0 pour t'aider !",
+            "sources": []
+          },
+          "timestamp": 1770140567988
+        },
+        {
+          "id": "msg-1770140615178",
+          "type": "user",
+          "problem": {
+            "id": "1770140615178",
+            "content": "2+2+2 is?",
+            "submittedAt": 1770140615178
+          },
+          "timestamp": 1770140615178
+        },
+        {
+          "id": "msg-1770140615178-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770140615178",
+            "steps": [],
+            "finalAnswer": "# Calcul de 2 + 2 + 2\n\n## Aper\u00e7u du probl\u00e8me\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b\n\nExcellente question ! Nous avons ici une **addition** de trois nombres identiques : 2 + 2 + 2\n\nC'est un exercice fondamental qui nous permet de comprendre l'addition et m\u00eame de d\u00e9couvrir la **multiplication** !\n\n## R\u00e9solution \u00e9tape par \u00e9tape\n\n### M\u00e9thode 1 : Addition progressive (de gauche \u00e0 droite)\n\n**\u00c9tape 1 :** Additionnons d'abord les deux premiers nombres\n```\n2 + 2 = 4\n```\n\n**\u00c9tape 2 :** Ajoutons maintenant le troisi\u00e8me nombre\n```\n4 + 2 = 6\n```\n\n**R\u00e9sultat : 2 + 2 + 2 = 6**\n\n### M\u00e9thode 2 : La multiplication (notion avanc\u00e9e)\n\nQuand on additionne le **m\u00eame nombre plusieurs fois**, on peut utiliser la multiplication :\n- Nous avons le nombre **2** r\u00e9p\u00e9t\u00e9 **3 fois**\n- Cela s'\u00e9crit : 2 \u00d7 3 = 6\n\n## Exemple concret du B\u00e9nin \ud83c\udde7\ud83c\uddef\n\nImagine que tu vas au march\u00e9 de Dantokpa \u00e0 Cotonou :\n- Tu ach\u00e8tes **2 oranges** le matin\n- Tu reviens et ach\u00e8tes **2 oranges** \u00e0 midi\n- Tu retournes acheter **2 oranges** le soir\n\n**Combien d'oranges as-tu en tout ?**\n2 + 2 + 2 = **6 oranges** ! \ud83c\udf4a\n\n## Conclusion\n\n**La r\u00e9ponse est : 6**\n\nContinue \u00e0 poser des questions, c'est comme \u00e7a qu'on progresse ! Tu es sur la bonne voie ! \ud83d\udcaa\ud83d\udcda",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770140615178,
+            "content": "# Calcul de 2 + 2 + 2\n\n## Aper\u00e7u du probl\u00e8me\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b\n\nExcellente question ! Nous avons ici une **addition** de trois nombres identiques : 2 + 2 + 2\n\nC'est un exercice fondamental qui nous permet de comprendre l'addition et m\u00eame de d\u00e9couvrir la **multiplication** !\n\n## R\u00e9solution \u00e9tape par \u00e9tape\n\n### M\u00e9thode 1 : Addition progressive (de gauche \u00e0 droite)\n\n**\u00c9tape 1 :** Additionnons d'abord les deux premiers nombres\n```\n2 + 2 = 4\n```\n\n**\u00c9tape 2 :** Ajoutons maintenant le troisi\u00e8me nombre\n```\n4 + 2 = 6\n```\n\n**R\u00e9sultat : 2 + 2 + 2 = 6**\n\n### M\u00e9thode 2 : La multiplication (notion avanc\u00e9e)\n\nQuand on additionne le **m\u00eame nombre plusieurs fois**, on peut utiliser la multiplication :\n- Nous avons le nombre **2** r\u00e9p\u00e9t\u00e9 **3 fois**\n- Cela s'\u00e9crit : 2 \u00d7 3 = 6\n\n## Exemple concret du B\u00e9nin \ud83c\udde7\ud83c\uddef\n\nImagine que tu vas au march\u00e9 de Dantokpa \u00e0 Cotonou :\n- Tu ach\u00e8tes **2 oranges** le matin\n- Tu reviens et ach\u00e8tes **2 oranges** \u00e0 midi\n- Tu retournes acheter **2 oranges** le soir\n\n**Combien d'oranges as-tu en tout ?**\n2 + 2 + 2 = **6 oranges** ! \ud83c\udf4a\n\n## Conclusion\n\n**La r\u00e9ponse est : 6**\n\nContinue \u00e0 poser des questions, c'est comme \u00e7a qu'on progresse ! Tu es sur la bonne voie ! \ud83d\udcaa\ud83d\udcda",
+            "sources": []
+          },
+          "timestamp": 1770140615178
+        }
+      ]
+    },
+    {
+      "id": "conv-1770131980862",
+      "title": "Chat",
+      "createdAt": "2026-02-03T18:19:40.862010",
+      "updatedAt": "2026-02-03T18:19:41.073687",
+      "messages": []
+    },
+    {
+      "id": "conv-1770132007704",
+      "title": "Chat",
+      "createdAt": "2026-02-03T18:20:07.704822",
+      "updatedAt": "2026-02-03T18:21:36.763979",
+      "messages": [
+        {
+          "id": "msg-1770140567988",
+          "type": "user",
+          "problem": {
+            "id": "1770140567988",
+            "content": "Explain Calcul",
+            "submittedAt": 1770140567988
+          },
+          "timestamp": 1770140567988
+        },
+        {
+          "id": "msg-1770140567988-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770140567988",
+            "steps": [],
+            "finalAnswer": "# Le Calcul Math\u00e9matique \ud83d\udcd0\n\nBonjour cher \u00e9tudiant ! Je suis ravi de t'expliquer ce qu'est le **calcul** en math\u00e9matiques. C'est un sujet fondamental qui nous accompagne depuis l'\u00e9cole primaire jusqu'\u00e0 l'universit\u00e9 !\n\n---\n\n## \ud83d\udccb Aper\u00e7u\n\nLe terme **\"calcul\"** en math\u00e9matiques d\u00e9signe l'ensemble des op\u00e9rations et techniques permettant de r\u00e9soudre des probl\u00e8mes num\u00e9riques. Il existe plusieurs niveaux de calcul :\n\n### **1. Le calcul arithm\u00e9tique** (niveau de base)\n- Les **quatre op\u00e9rations** : addition (+), soustraction (\u2212), multiplication (\u00d7), division (\u00f7)\n- Les **fractions** et les **pourcentages**\n- Les **puissances** et les **racines**\n\n### **2. Le calcul alg\u00e9brique** (niveau interm\u00e9diaire)\n- Manipulation des **expressions avec variables** (x, y, z...)\n- R\u00e9solution d'**\u00e9quations** et d'**in\u00e9quations**\n- Simplification d'expressions\n\n### **3. Le calcul diff\u00e9rentiel et int\u00e9gral** (niveau avanc\u00e9 - universit\u00e9)\n- Les **d\u00e9riv\u00e9es** (taux de variation)\n- Les **int\u00e9grales** (calcul d'aires et de volumes)\n\n---\n\n## \ud83c\udfaf \u00c9tapes et Exemples Pratiques (Contexte B\u00e9ninois)\n\n### **Exemple 1 : Calcul arithm\u00e9tique**\n\n**Situation** : Au march\u00e9 Dantokpa \u00e0 Cotonou, tu ach\u00e8tes :\n- 3 kg de tomates \u00e0 500 FCFA le kg\n- 2 ananas \u00e0 400 FCFA l'unit\u00e9\n\n**Calcul du total :**\n\n**\u00c9tape 1** : Co\u00fbt des tomates\n```\n3 \u00d7 500 = 1 500 FCFA\n```\n\n**\u00c9tape 2** : Co\u00fbt des ananas\n```\n2 \u00d7 400 = 800 FCFA\n```\n\n**\u00c9tape 3** : Total\n```\n1 500 + 800 = 2 300 FCFA\n```\n\n\u2705 **R\u00e9ponse** : Tu dois payer **2 300 FCFA**\n\n---\n\n### **Exemple 2 : Calcul avec fractions et pourcentages**\n\n**Situation** : Une classe de 40 \u00e9l\u00e8ves \u00e0 Porto-Novo compte 24 filles.\n\n**Calculons le pourcentage de filles :**\n\n**\u00c9tape 1** : Fraction de filles\n```\n24/40 = 3/5 (apr\u00e8s simplification)\n```\n\n**\u00c9tape 2** : Conversion en pourcentage\n```\n(24 \u00f7 40) \u00d7 100 = 0,6 \u00d7 100 = 60%\n```\n\n\u2705 **R\u00e9ponse** : **60% des \u00e9l\u00e8ves** sont des filles\n\n---\n\n### **Exemple 3 : Calcul alg\u00e9brique**\n\n**Situation** : Le prix d'un sac de riz a augment\u00e9. Le nouveau prix est 1,5 fois l'ancien prix. Si le nouveau prix est 15 000 FCFA, quel \u00e9tait l'ancien prix ?\n\n**R\u00e9solution :**\n\n**\u00c9tape 1** : Poser l'\u00e9quation\n```\nSoit x = ancien prix\n1,5x = 15 000\n```\n\n**\u00c9tape 2** : R\u00e9soudre\n```\nx = 15 000 \u00f7 1,5\nx = 10 000 FCFA\n```\n\n\u2705 **R\u00e9ponse** : L'ancien prix \u00e9tait **10 000 FCFA**\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLe **calcul** est un outil puissant qui te permet de :\n- \u2705 G\u00e9rer ton argent au quotidien\n- \u2705 R\u00e9soudre des probl\u00e8mes pratiques\n- \u2705 R\u00e9ussir tes examens (BEPC, BAC)\n- \u2705 Poursuivre des \u00e9tudes scientifiques\n\n### **Conseils pour progresser :**\n1. **Pratique quotidienne** : Fais au moins 5 exercices par jour\n2. **V\u00e9rifie tes calculs** : Utilise la calculatrice pour v\u00e9rifier\n3. **Comprends avant de m\u00e9moriser** : Ne retiens pas juste les formules !\n4. **Utilise des exemples concrets** : Lie les maths \u00e0 ta vie quotidienne\n\nN'oublie pas : **Les math\u00e9matiques sont comme le sport - plus tu t'entra\u00eenes, meilleur tu deviens !** \ud83d\udcaa\n\nAs-tu des questions sp\u00e9cifiques sur un type de calcul en particulier ? Je suis l\u00e0 pour t'aider !",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770140567988,
+            "content": "# Le Calcul Math\u00e9matique \ud83d\udcd0\n\nBonjour cher \u00e9tudiant ! Je suis ravi de t'expliquer ce qu'est le **calcul** en math\u00e9matiques. C'est un sujet fondamental qui nous accompagne depuis l'\u00e9cole primaire jusqu'\u00e0 l'universit\u00e9 !\n\n---\n\n## \ud83d\udccb Aper\u00e7u\n\nLe terme **\"calcul\"** en math\u00e9matiques d\u00e9signe l'ensemble des op\u00e9rations et techniques permettant de r\u00e9soudre des probl\u00e8mes num\u00e9riques. Il existe plusieurs niveaux de calcul :\n\n### **1. Le calcul arithm\u00e9tique** (niveau de base)\n- Les **quatre op\u00e9rations** : addition (+), soustraction (\u2212), multiplication (\u00d7), division (\u00f7)\n- Les **fractions** et les **pourcentages**\n- Les **puissances** et les **racines**\n\n### **2. Le calcul alg\u00e9brique** (niveau interm\u00e9diaire)\n- Manipulation des **expressions avec variables** (x, y, z...)\n- R\u00e9solution d'**\u00e9quations** et d'**in\u00e9quations**\n- Simplification d'expressions\n\n### **3. Le calcul diff\u00e9rentiel et int\u00e9gral** (niveau avanc\u00e9 - universit\u00e9)\n- Les **d\u00e9riv\u00e9es** (taux de variation)\n- Les **int\u00e9grales** (calcul d'aires et de volumes)\n\n---\n\n## \ud83c\udfaf \u00c9tapes et Exemples Pratiques (Contexte B\u00e9ninois)\n\n### **Exemple 1 : Calcul arithm\u00e9tique**\n\n**Situation** : Au march\u00e9 Dantokpa \u00e0 Cotonou, tu ach\u00e8tes :\n- 3 kg de tomates \u00e0 500 FCFA le kg\n- 2 ananas \u00e0 400 FCFA l'unit\u00e9\n\n**Calcul du total :**\n\n**\u00c9tape 1** : Co\u00fbt des tomates\n```\n3 \u00d7 500 = 1 500 FCFA\n```\n\n**\u00c9tape 2** : Co\u00fbt des ananas\n```\n2 \u00d7 400 = 800 FCFA\n```\n\n**\u00c9tape 3** : Total\n```\n1 500 + 800 = 2 300 FCFA\n```\n\n\u2705 **R\u00e9ponse** : Tu dois payer **2 300 FCFA**\n\n---\n\n### **Exemple 2 : Calcul avec fractions et pourcentages**\n\n**Situation** : Une classe de 40 \u00e9l\u00e8ves \u00e0 Porto-Novo compte 24 filles.\n\n**Calculons le pourcentage de filles :**\n\n**\u00c9tape 1** : Fraction de filles\n```\n24/40 = 3/5 (apr\u00e8s simplification)\n```\n\n**\u00c9tape 2** : Conversion en pourcentage\n```\n(24 \u00f7 40) \u00d7 100 = 0,6 \u00d7 100 = 60%\n```\n\n\u2705 **R\u00e9ponse** : **60% des \u00e9l\u00e8ves** sont des filles\n\n---\n\n### **Exemple 3 : Calcul alg\u00e9brique**\n\n**Situation** : Le prix d'un sac de riz a augment\u00e9. Le nouveau prix est 1,5 fois l'ancien prix. Si le nouveau prix est 15 000 FCFA, quel \u00e9tait l'ancien prix ?\n\n**R\u00e9solution :**\n\n**\u00c9tape 1** : Poser l'\u00e9quation\n```\nSoit x = ancien prix\n1,5x = 15 000\n```\n\n**\u00c9tape 2** : R\u00e9soudre\n```\nx = 15 000 \u00f7 1,5\nx = 10 000 FCFA\n```\n\n\u2705 **R\u00e9ponse** : L'ancien prix \u00e9tait **10 000 FCFA**\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLe **calcul** est un outil puissant qui te permet de :\n- \u2705 G\u00e9rer ton argent au quotidien\n- \u2705 R\u00e9soudre des probl\u00e8mes pratiques\n- \u2705 R\u00e9ussir tes examens (BEPC, BAC)\n- \u2705 Poursuivre des \u00e9tudes scientifiques\n\n### **Conseils pour progresser :**\n1. **Pratique quotidienne** : Fais au moins 5 exercices par jour\n2. **V\u00e9rifie tes calculs** : Utilise la calculatrice pour v\u00e9rifier\n3. **Comprends avant de m\u00e9moriser** : Ne retiens pas juste les formules !\n4. **Utilise des exemples concrets** : Lie les maths \u00e0 ta vie quotidienne\n\nN'oublie pas : **Les math\u00e9matiques sont comme le sport - plus tu t'entra\u00eenes, meilleur tu deviens !** \ud83d\udcaa\n\nAs-tu des questions sp\u00e9cifiques sur un type de calcul en particulier ? Je suis l\u00e0 pour t'aider !",
+            "sources": []
+          },
+          "timestamp": 1770140567988
+        },
+        {
+          "id": "msg-1770142807761",
+          "type": "user",
+          "problem": {
+            "id": "1770142807761",
+            "content": "5-0",
+            "submittedAt": 1770142807761
+          },
+          "timestamp": 1770142807761
+        },
+        {
+          "id": "msg-1770142807761-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770142807761",
+            "steps": [],
+            "finalAnswer": "# Soustraction : 5 - 0\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'accompagner dans cette op\u00e9ration math\u00e9matique simple mais importante.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons effectuer la soustraction : **5 - 0**\n\nCela signifie : \"Si j'ai 5 objets et que j'en retire 0, combien m'en reste-t-il ?\"\n\n## \ud83d\udd22 R\u00e9solution \u00e9tape par \u00e9tape\n\n### \u00c9tape 1 : Comprendre les nombres\n- **5** est notre nombre de d\u00e9part (le nombre dont on soustrait)\n- **0** est ce qu'on enl\u00e8ve (rien du tout !)\n\n### \u00c9tape 2 : Appliquer la r\u00e8gle fondamentale\nQuand on soustrait **z\u00e9ro** d'un nombre, le nombre reste **inchang\u00e9**.\n\n### \u00c9tape 3 : Calculer\n5 - 0 = **5**\n\n## \ud83c\udf0d Exemple concret du B\u00e9nin\n\nImagine que tu as **5 oranges** achet\u00e9es au march\u00e9 Dantokpa \u00e0 Cotonou. Si tu ne donnes **aucune orange** (0 orange) \u00e0 ton ami, tu gardes toujours tes **5 oranges** !\n\n\ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a  (aucune retir\u00e9e) = \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 5 - 0 = 5**\n\n**R\u00e8gle \u00e0 retenir :** Soustraire z\u00e9ro de n'importe quel nombre ne change pas ce nombre.\n\nContinue \u00e0 pratiquer, tu progresses tr\u00e8s bien ! \ud83c\udf1f",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770142807761,
+            "content": "# Soustraction : 5 - 0\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'accompagner dans cette op\u00e9ration math\u00e9matique simple mais importante.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons effectuer la soustraction : **5 - 0**\n\nCela signifie : \"Si j'ai 5 objets et que j'en retire 0, combien m'en reste-t-il ?\"\n\n## \ud83d\udd22 R\u00e9solution \u00e9tape par \u00e9tape\n\n### \u00c9tape 1 : Comprendre les nombres\n- **5** est notre nombre de d\u00e9part (le nombre dont on soustrait)\n- **0** est ce qu'on enl\u00e8ve (rien du tout !)\n\n### \u00c9tape 2 : Appliquer la r\u00e8gle fondamentale\nQuand on soustrait **z\u00e9ro** d'un nombre, le nombre reste **inchang\u00e9**.\n\n### \u00c9tape 3 : Calculer\n5 - 0 = **5**\n\n## \ud83c\udf0d Exemple concret du B\u00e9nin\n\nImagine que tu as **5 oranges** achet\u00e9es au march\u00e9 Dantokpa \u00e0 Cotonou. Si tu ne donnes **aucune orange** (0 orange) \u00e0 ton ami, tu gardes toujours tes **5 oranges** !\n\n\ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a  (aucune retir\u00e9e) = \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 5 - 0 = 5**\n\n**R\u00e8gle \u00e0 retenir :** Soustraire z\u00e9ro de n'importe quel nombre ne change pas ce nombre.\n\nContinue \u00e0 pratiquer, tu progresses tr\u00e8s bien ! \ud83c\udf1f",
+            "sources": []
+          },
+          "timestamp": 1770142807761
+        }
+      ]
+    },
+    {
+      "id": "conv-1770132031049",
+      "title": "Chat",
+      "createdAt": "2026-02-03T18:20:31.049612",
+      "updatedAt": "2026-02-03T18:20:41.888195",
+      "messages": [
+        {
+          "id": "msg-1770142831059",
+          "type": "user",
+          "problem": {
+            "id": "1770142831059",
+            "content": "5-1",
+            "submittedAt": 1770142831059
+          },
+          "timestamp": 1770142831059
+        },
+        {
+          "id": "msg-1770142831059-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770142831059",
+            "steps": [],
+            "finalAnswer": "# Solution : 5 - 1\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'aider avec cette op\u00e9ration de soustraction.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **5 - 1**\n\nIl s'agit d'une **soustraction simple** o\u00f9 nous enlevons 1 de 5.\n\n## \ud83d\udd0d \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre l'op\u00e9ration\nLa soustraction signifie \"enlever\" ou \"retirer\". Ici, nous partons de 5 et nous retirons 1.\n\n### \u00c9tape 2 : Visualisons avec un exemple concret\nImagine que tu as **5 oranges** au march\u00e9 Dantokpa \u00e0 Cotonou. Si tu donnes **1 orange** \u00e0 ton ami, combien d'oranges te reste-t-il ?\n\n\ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a  (5 oranges au d\u00e9but)\n\nTu enl\u00e8ves 1 orange : ~~\ud83c\udf4a~~\n\nIl te reste : \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a  (4 oranges)\n\n### \u00c9tape 3 : Calcul\n```\n  5\n- 1\n---\n  4\n```\n\n## \u2728 Conclusion\n\n**5 - 1 = 4**\n\nExcellent travail ! \ud83c\udf89 La soustraction est une op\u00e9ration fondamentale en math\u00e9matiques. Continue \u00e0 pratiquer et tu deviendras de plus en plus \u00e0 l'aise avec les nombres !\n\n**Astuce** : Tu peux v\u00e9rifier ton r\u00e9sultat en faisant l'addition inverse : 4 + 1 = 5 \u2713",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770142831059,
+            "content": "# Solution : 5 - 1\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'aider avec cette op\u00e9ration de soustraction.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **5 - 1**\n\nIl s'agit d'une **soustraction simple** o\u00f9 nous enlevons 1 de 5.\n\n## \ud83d\udd0d \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre l'op\u00e9ration\nLa soustraction signifie \"enlever\" ou \"retirer\". Ici, nous partons de 5 et nous retirons 1.\n\n### \u00c9tape 2 : Visualisons avec un exemple concret\nImagine que tu as **5 oranges** au march\u00e9 Dantokpa \u00e0 Cotonou. Si tu donnes **1 orange** \u00e0 ton ami, combien d'oranges te reste-t-il ?\n\n\ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a  (5 oranges au d\u00e9but)\n\nTu enl\u00e8ves 1 orange : ~~\ud83c\udf4a~~\n\nIl te reste : \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a  (4 oranges)\n\n### \u00c9tape 3 : Calcul\n```\n  5\n- 1\n---\n  4\n```\n\n## \u2728 Conclusion\n\n**5 - 1 = 4**\n\nExcellent travail ! \ud83c\udf89 La soustraction est une op\u00e9ration fondamentale en math\u00e9matiques. Continue \u00e0 pratiquer et tu deviendras de plus en plus \u00e0 l'aise avec les nombres !\n\n**Astuce** : Tu peux v\u00e9rifier ton r\u00e9sultat en faisant l'addition inverse : 4 + 1 = 5 \u2713",
+            "sources": []
+          },
+          "timestamp": 1770142831059
+        }
+      ]
+    },
+    {
+      "id": "conv-1770132082447",
+      "title": "Chat",
+      "createdAt": "2026-02-03T18:21:22.447065",
+      "updatedAt": "2026-02-03T18:21:33.275796",
+      "messages": [
+        {
+          "id": "msg-1770140567988",
+          "type": "user",
+          "problem": {
+            "id": "1770140567988",
+            "content": "Explain Calcul",
+            "submittedAt": 1770140567988
+          },
+          "timestamp": 1770140567988
+        },
+        {
+          "id": "msg-1770140567988-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770140567988",
+            "steps": [],
+            "finalAnswer": "# Le Calcul Math\u00e9matique \ud83d\udcd0\n\nBonjour cher \u00e9tudiant ! Je suis ravi de t'expliquer ce qu'est le **calcul** en math\u00e9matiques. C'est un sujet fondamental qui nous accompagne depuis l'\u00e9cole primaire jusqu'\u00e0 l'universit\u00e9 !\n\n---\n\n## \ud83d\udccb Aper\u00e7u\n\nLe terme **\"calcul\"** en math\u00e9matiques d\u00e9signe l'ensemble des op\u00e9rations et techniques permettant de r\u00e9soudre des probl\u00e8mes num\u00e9riques. Il existe plusieurs niveaux de calcul :\n\n### **1. Le calcul arithm\u00e9tique** (niveau de base)\n- Les **quatre op\u00e9rations** : addition (+), soustraction (\u2212), multiplication (\u00d7), division (\u00f7)\n- Les **fractions** et les **pourcentages**\n- Les **puissances** et les **racines**\n\n### **2. Le calcul alg\u00e9brique** (niveau interm\u00e9diaire)\n- Manipulation des **expressions avec variables** (x, y, z...)\n- R\u00e9solution d'**\u00e9quations** et d'**in\u00e9quations**\n- Simplification d'expressions\n\n### **3. Le calcul diff\u00e9rentiel et int\u00e9gral** (niveau avanc\u00e9 - universit\u00e9)\n- Les **d\u00e9riv\u00e9es** (taux de variation)\n- Les **int\u00e9grales** (calcul d'aires et de volumes)\n\n---\n\n## \ud83c\udfaf \u00c9tapes et Exemples Pratiques (Contexte B\u00e9ninois)\n\n### **Exemple 1 : Calcul arithm\u00e9tique**\n\n**Situation** : Au march\u00e9 Dantokpa \u00e0 Cotonou, tu ach\u00e8tes :\n- 3 kg de tomates \u00e0 500 FCFA le kg\n- 2 ananas \u00e0 400 FCFA l'unit\u00e9\n\n**Calcul du total :**\n\n**\u00c9tape 1** : Co\u00fbt des tomates\n```\n3 \u00d7 500 = 1 500 FCFA\n```\n\n**\u00c9tape 2** : Co\u00fbt des ananas\n```\n2 \u00d7 400 = 800 FCFA\n```\n\n**\u00c9tape 3** : Total\n```\n1 500 + 800 = 2 300 FCFA\n```\n\n\u2705 **R\u00e9ponse** : Tu dois payer **2 300 FCFA**\n\n---\n\n### **Exemple 2 : Calcul avec fractions et pourcentages**\n\n**Situation** : Une classe de 40 \u00e9l\u00e8ves \u00e0 Porto-Novo compte 24 filles.\n\n**Calculons le pourcentage de filles :**\n\n**\u00c9tape 1** : Fraction de filles\n```\n24/40 = 3/5 (apr\u00e8s simplification)\n```\n\n**\u00c9tape 2** : Conversion en pourcentage\n```\n(24 \u00f7 40) \u00d7 100 = 0,6 \u00d7 100 = 60%\n```\n\n\u2705 **R\u00e9ponse** : **60% des \u00e9l\u00e8ves** sont des filles\n\n---\n\n### **Exemple 3 : Calcul alg\u00e9brique**\n\n**Situation** : Le prix d'un sac de riz a augment\u00e9. Le nouveau prix est 1,5 fois l'ancien prix. Si le nouveau prix est 15 000 FCFA, quel \u00e9tait l'ancien prix ?\n\n**R\u00e9solution :**\n\n**\u00c9tape 1** : Poser l'\u00e9quation\n```\nSoit x = ancien prix\n1,5x = 15 000\n```\n\n**\u00c9tape 2** : R\u00e9soudre\n```\nx = 15 000 \u00f7 1,5\nx = 10 000 FCFA\n```\n\n\u2705 **R\u00e9ponse** : L'ancien prix \u00e9tait **10 000 FCFA**\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLe **calcul** est un outil puissant qui te permet de :\n- \u2705 G\u00e9rer ton argent au quotidien\n- \u2705 R\u00e9soudre des probl\u00e8mes pratiques\n- \u2705 R\u00e9ussir tes examens (BEPC, BAC)\n- \u2705 Poursuivre des \u00e9tudes scientifiques\n\n### **Conseils pour progresser :**\n1. **Pratique quotidienne** : Fais au moins 5 exercices par jour\n2. **V\u00e9rifie tes calculs** : Utilise la calculatrice pour v\u00e9rifier\n3. **Comprends avant de m\u00e9moriser** : Ne retiens pas juste les formules !\n4. **Utilise des exemples concrets** : Lie les maths \u00e0 ta vie quotidienne\n\nN'oublie pas : **Les math\u00e9matiques sont comme le sport - plus tu t'entra\u00eenes, meilleur tu deviens !** \ud83d\udcaa\n\nAs-tu des questions sp\u00e9cifiques sur un type de calcul en particulier ? Je suis l\u00e0 pour t'aider !",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770140567988,
+            "content": "# Le Calcul Math\u00e9matique \ud83d\udcd0\n\nBonjour cher \u00e9tudiant ! Je suis ravi de t'expliquer ce qu'est le **calcul** en math\u00e9matiques. C'est un sujet fondamental qui nous accompagne depuis l'\u00e9cole primaire jusqu'\u00e0 l'universit\u00e9 !\n\n---\n\n## \ud83d\udccb Aper\u00e7u\n\nLe terme **\"calcul\"** en math\u00e9matiques d\u00e9signe l'ensemble des op\u00e9rations et techniques permettant de r\u00e9soudre des probl\u00e8mes num\u00e9riques. Il existe plusieurs niveaux de calcul :\n\n### **1. Le calcul arithm\u00e9tique** (niveau de base)\n- Les **quatre op\u00e9rations** : addition (+), soustraction (\u2212), multiplication (\u00d7), division (\u00f7)\n- Les **fractions** et les **pourcentages**\n- Les **puissances** et les **racines**\n\n### **2. Le calcul alg\u00e9brique** (niveau interm\u00e9diaire)\n- Manipulation des **expressions avec variables** (x, y, z...)\n- R\u00e9solution d'**\u00e9quations** et d'**in\u00e9quations**\n- Simplification d'expressions\n\n### **3. Le calcul diff\u00e9rentiel et int\u00e9gral** (niveau avanc\u00e9 - universit\u00e9)\n- Les **d\u00e9riv\u00e9es** (taux de variation)\n- Les **int\u00e9grales** (calcul d'aires et de volumes)\n\n---\n\n## \ud83c\udfaf \u00c9tapes et Exemples Pratiques (Contexte B\u00e9ninois)\n\n### **Exemple 1 : Calcul arithm\u00e9tique**\n\n**Situation** : Au march\u00e9 Dantokpa \u00e0 Cotonou, tu ach\u00e8tes :\n- 3 kg de tomates \u00e0 500 FCFA le kg\n- 2 ananas \u00e0 400 FCFA l'unit\u00e9\n\n**Calcul du total :**\n\n**\u00c9tape 1** : Co\u00fbt des tomates\n```\n3 \u00d7 500 = 1 500 FCFA\n```\n\n**\u00c9tape 2** : Co\u00fbt des ananas\n```\n2 \u00d7 400 = 800 FCFA\n```\n\n**\u00c9tape 3** : Total\n```\n1 500 + 800 = 2 300 FCFA\n```\n\n\u2705 **R\u00e9ponse** : Tu dois payer **2 300 FCFA**\n\n---\n\n### **Exemple 2 : Calcul avec fractions et pourcentages**\n\n**Situation** : Une classe de 40 \u00e9l\u00e8ves \u00e0 Porto-Novo compte 24 filles.\n\n**Calculons le pourcentage de filles :**\n\n**\u00c9tape 1** : Fraction de filles\n```\n24/40 = 3/5 (apr\u00e8s simplification)\n```\n\n**\u00c9tape 2** : Conversion en pourcentage\n```\n(24 \u00f7 40) \u00d7 100 = 0,6 \u00d7 100 = 60%\n```\n\n\u2705 **R\u00e9ponse** : **60% des \u00e9l\u00e8ves** sont des filles\n\n---\n\n### **Exemple 3 : Calcul alg\u00e9brique**\n\n**Situation** : Le prix d'un sac de riz a augment\u00e9. Le nouveau prix est 1,5 fois l'ancien prix. Si le nouveau prix est 15 000 FCFA, quel \u00e9tait l'ancien prix ?\n\n**R\u00e9solution :**\n\n**\u00c9tape 1** : Poser l'\u00e9quation\n```\nSoit x = ancien prix\n1,5x = 15 000\n```\n\n**\u00c9tape 2** : R\u00e9soudre\n```\nx = 15 000 \u00f7 1,5\nx = 10 000 FCFA\n```\n\n\u2705 **R\u00e9ponse** : L'ancien prix \u00e9tait **10 000 FCFA**\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLe **calcul** est un outil puissant qui te permet de :\n- \u2705 G\u00e9rer ton argent au quotidien\n- \u2705 R\u00e9soudre des probl\u00e8mes pratiques\n- \u2705 R\u00e9ussir tes examens (BEPC, BAC)\n- \u2705 Poursuivre des \u00e9tudes scientifiques\n\n### **Conseils pour progresser :**\n1. **Pratique quotidienne** : Fais au moins 5 exercices par jour\n2. **V\u00e9rifie tes calculs** : Utilise la calculatrice pour v\u00e9rifier\n3. **Comprends avant de m\u00e9moriser** : Ne retiens pas juste les formules !\n4. **Utilise des exemples concrets** : Lie les maths \u00e0 ta vie quotidienne\n\nN'oublie pas : **Les math\u00e9matiques sont comme le sport - plus tu t'entra\u00eenes, meilleur tu deviens !** \ud83d\udcaa\n\nAs-tu des questions sp\u00e9cifiques sur un type de calcul en particulier ? Je suis l\u00e0 pour t'aider !",
+            "sources": []
+          },
+          "timestamp": 1770140567988
+        },
+        {
+          "id": "msg-1770140615178",
+          "type": "user",
+          "problem": {
+            "id": "1770140615178",
+            "content": "2+2+2 is?",
+            "submittedAt": 1770140615178
+          },
+          "timestamp": 1770140615178
+        },
+        {
+          "id": "msg-1770140615178-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770140615178",
+            "steps": [],
+            "finalAnswer": "# Calcul de 2 + 2 + 2\n\n## Aper\u00e7u du probl\u00e8me\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b\n\nExcellente question ! Nous avons ici une **addition** de trois nombres identiques : 2 + 2 + 2\n\nC'est un exercice fondamental qui nous permet de comprendre l'addition et m\u00eame de d\u00e9couvrir la **multiplication** !\n\n## R\u00e9solution \u00e9tape par \u00e9tape\n\n### M\u00e9thode 1 : Addition progressive (de gauche \u00e0 droite)\n\n**\u00c9tape 1 :** Additionnons d'abord les deux premiers nombres\n```\n2 + 2 = 4\n```\n\n**\u00c9tape 2 :** Ajoutons maintenant le troisi\u00e8me nombre\n```\n4 + 2 = 6\n```\n\n**R\u00e9sultat : 2 + 2 + 2 = 6**\n\n### M\u00e9thode 2 : La multiplication (notion avanc\u00e9e)\n\nQuand on additionne le **m\u00eame nombre plusieurs fois**, on peut utiliser la multiplication :\n- Nous avons le nombre **2** r\u00e9p\u00e9t\u00e9 **3 fois**\n- Cela s'\u00e9crit : 2 \u00d7 3 = 6\n\n## Exemple concret du B\u00e9nin \ud83c\udde7\ud83c\uddef\n\nImagine que tu vas au march\u00e9 de Dantokpa \u00e0 Cotonou :\n- Tu ach\u00e8tes **2 oranges** le matin\n- Tu reviens et ach\u00e8tes **2 oranges** \u00e0 midi\n- Tu retournes acheter **2 oranges** le soir\n\n**Combien d'oranges as-tu en tout ?**\n2 + 2 + 2 = **6 oranges** ! \ud83c\udf4a\n\n## Conclusion\n\n**La r\u00e9ponse est : 6**\n\nContinue \u00e0 poser des questions, c'est comme \u00e7a qu'on progresse ! Tu es sur la bonne voie ! \ud83d\udcaa\ud83d\udcda",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770140615178,
+            "content": "# Calcul de 2 + 2 + 2\n\n## Aper\u00e7u du probl\u00e8me\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b\n\nExcellente question ! Nous avons ici une **addition** de trois nombres identiques : 2 + 2 + 2\n\nC'est un exercice fondamental qui nous permet de comprendre l'addition et m\u00eame de d\u00e9couvrir la **multiplication** !\n\n## R\u00e9solution \u00e9tape par \u00e9tape\n\n### M\u00e9thode 1 : Addition progressive (de gauche \u00e0 droite)\n\n**\u00c9tape 1 :** Additionnons d'abord les deux premiers nombres\n```\n2 + 2 = 4\n```\n\n**\u00c9tape 2 :** Ajoutons maintenant le troisi\u00e8me nombre\n```\n4 + 2 = 6\n```\n\n**R\u00e9sultat : 2 + 2 + 2 = 6**\n\n### M\u00e9thode 2 : La multiplication (notion avanc\u00e9e)\n\nQuand on additionne le **m\u00eame nombre plusieurs fois**, on peut utiliser la multiplication :\n- Nous avons le nombre **2** r\u00e9p\u00e9t\u00e9 **3 fois**\n- Cela s'\u00e9crit : 2 \u00d7 3 = 6\n\n## Exemple concret du B\u00e9nin \ud83c\udde7\ud83c\uddef\n\nImagine que tu vas au march\u00e9 de Dantokpa \u00e0 Cotonou :\n- Tu ach\u00e8tes **2 oranges** le matin\n- Tu reviens et ach\u00e8tes **2 oranges** \u00e0 midi\n- Tu retournes acheter **2 oranges** le soir\n\n**Combien d'oranges as-tu en tout ?**\n2 + 2 + 2 = **6 oranges** ! \ud83c\udf4a\n\n## Conclusion\n\n**La r\u00e9ponse est : 6**\n\nContinue \u00e0 poser des questions, c'est comme \u00e7a qu'on progresse ! Tu es sur la bonne voie ! \ud83d\udcaa\ud83d\udcda",
+            "sources": []
+          },
+          "timestamp": 1770140615178
+        },
+        {
+          "id": "msg-1770142882535",
+          "type": "user",
+          "problem": {
+            "id": "1770142882535",
+            "content": "9-7",
+            "submittedAt": 1770142882535
+          },
+          "timestamp": 1770142882535
+        },
+        {
+          "id": "msg-1770142882535-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770142882535",
+            "steps": [],
+            "finalAnswer": "# Solution : 9 - 7\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'aider avec cette soustraction. C'est un excellent exercice pour renforcer tes bases en calcul mental !\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **9 - 7**\n\nIl s'agit d'une **soustraction simple** o\u00f9 nous retirons 7 de 9.\n\n## \ud83d\udd22 \u00c9tapes de r\u00e9solution\n\n### M\u00e9thode 1 : Compter \u00e0 rebours\nPartons de 9 et reculons de 7 positions :\n- 9 \u2192 8 (on retire 1)\n- 8 \u2192 7 (on retire 2)\n- 7 \u2192 6 (on retire 3)\n- 6 \u2192 5 (on retire 4)\n- 5 \u2192 4 (on retire 5)\n- 4 \u2192 3 (on retire 6)\n- 3 \u2192 **2** (on retire 7) \u2713\n\n### M\u00e9thode 2 : Avec un exemple concret\nImagine que tu as **9 mangues** \ud83e\udd6d sur ton \u00e9talage au march\u00e9 Dantokpa \u00e0 Cotonou. Un client ach\u00e8te **7 mangues**. \n\nCombien de mangues te reste-t-il ?\n\n**9 mangues - 7 mangues = 2 mangues** \ud83e\udd6d\ud83e\udd6d\n\n### V\u00e9rification\nPour v\u00e9rifier notre r\u00e9ponse, on peut faire l'addition inverse :\n**2 + 7 = 9** \u2713 C'est correct !\n\n## \u2705 Conclusion\n\n**9 - 7 = 2**\n\nBravo ! \ud83c\udf89 Tu vois, la soustraction devient facile quand on utilise des exemples de la vie quotidienne. Continue \u00e0 pratiquer et tu deviendras un champion du calcul mental !",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770142882535,
+            "content": "# Solution : 9 - 7\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'aider avec cette soustraction. C'est un excellent exercice pour renforcer tes bases en calcul mental !\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **9 - 7**\n\nIl s'agit d'une **soustraction simple** o\u00f9 nous retirons 7 de 9.\n\n## \ud83d\udd22 \u00c9tapes de r\u00e9solution\n\n### M\u00e9thode 1 : Compter \u00e0 rebours\nPartons de 9 et reculons de 7 positions :\n- 9 \u2192 8 (on retire 1)\n- 8 \u2192 7 (on retire 2)\n- 7 \u2192 6 (on retire 3)\n- 6 \u2192 5 (on retire 4)\n- 5 \u2192 4 (on retire 5)\n- 4 \u2192 3 (on retire 6)\n- 3 \u2192 **2** (on retire 7) \u2713\n\n### M\u00e9thode 2 : Avec un exemple concret\nImagine que tu as **9 mangues** \ud83e\udd6d sur ton \u00e9talage au march\u00e9 Dantokpa \u00e0 Cotonou. Un client ach\u00e8te **7 mangues**. \n\nCombien de mangues te reste-t-il ?\n\n**9 mangues - 7 mangues = 2 mangues** \ud83e\udd6d\ud83e\udd6d\n\n### V\u00e9rification\nPour v\u00e9rifier notre r\u00e9ponse, on peut faire l'addition inverse :\n**2 + 7 = 9** \u2713 C'est correct !\n\n## \u2705 Conclusion\n\n**9 - 7 = 2**\n\nBravo ! \ud83c\udf89 Tu vois, la soustraction devient facile quand on utilise des exemples de la vie quotidienne. Continue \u00e0 pratiquer et tu deviendras un champion du calcul mental !",
+            "sources": []
+          },
+          "timestamp": 1770142882535
+        }
+      ]
+    },
+    {
+      "id": "conv-1770132102835",
+      "title": "Chat",
+      "createdAt": "2026-02-03T18:21:42.835811",
+      "updatedAt": "2026-02-03T18:21:58.788148",
+      "messages": [
+        {
+          "id": "msg-1770140567988",
+          "type": "user",
+          "problem": {
+            "id": "1770140567988",
+            "content": "Explain Calcul",
+            "submittedAt": 1770140567988
+          },
+          "timestamp": 1770140567988
+        },
+        {
+          "id": "msg-1770140567988-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770140567988",
+            "steps": [],
+            "finalAnswer": "# Le Calcul Math\u00e9matique \ud83d\udcd0\n\nBonjour cher \u00e9tudiant ! Je suis ravi de t'expliquer ce qu'est le **calcul** en math\u00e9matiques. C'est un sujet fondamental qui nous accompagne depuis l'\u00e9cole primaire jusqu'\u00e0 l'universit\u00e9 !\n\n---\n\n## \ud83d\udccb Aper\u00e7u\n\nLe terme **\"calcul\"** en math\u00e9matiques d\u00e9signe l'ensemble des op\u00e9rations et techniques permettant de r\u00e9soudre des probl\u00e8mes num\u00e9riques. Il existe plusieurs niveaux de calcul :\n\n### **1. Le calcul arithm\u00e9tique** (niveau de base)\n- Les **quatre op\u00e9rations** : addition (+), soustraction (\u2212), multiplication (\u00d7), division (\u00f7)\n- Les **fractions** et les **pourcentages**\n- Les **puissances** et les **racines**\n\n### **2. Le calcul alg\u00e9brique** (niveau interm\u00e9diaire)\n- Manipulation des **expressions avec variables** (x, y, z...)\n- R\u00e9solution d'**\u00e9quations** et d'**in\u00e9quations**\n- Simplification d'expressions\n\n### **3. Le calcul diff\u00e9rentiel et int\u00e9gral** (niveau avanc\u00e9 - universit\u00e9)\n- Les **d\u00e9riv\u00e9es** (taux de variation)\n- Les **int\u00e9grales** (calcul d'aires et de volumes)\n\n---\n\n## \ud83c\udfaf \u00c9tapes et Exemples Pratiques (Contexte B\u00e9ninois)\n\n### **Exemple 1 : Calcul arithm\u00e9tique**\n\n**Situation** : Au march\u00e9 Dantokpa \u00e0 Cotonou, tu ach\u00e8tes :\n- 3 kg de tomates \u00e0 500 FCFA le kg\n- 2 ananas \u00e0 400 FCFA l'unit\u00e9\n\n**Calcul du total :**\n\n**\u00c9tape 1** : Co\u00fbt des tomates\n```\n3 \u00d7 500 = 1 500 FCFA\n```\n\n**\u00c9tape 2** : Co\u00fbt des ananas\n```\n2 \u00d7 400 = 800 FCFA\n```\n\n**\u00c9tape 3** : Total\n```\n1 500 + 800 = 2 300 FCFA\n```\n\n\u2705 **R\u00e9ponse** : Tu dois payer **2 300 FCFA**\n\n---\n\n### **Exemple 2 : Calcul avec fractions et pourcentages**\n\n**Situation** : Une classe de 40 \u00e9l\u00e8ves \u00e0 Porto-Novo compte 24 filles.\n\n**Calculons le pourcentage de filles :**\n\n**\u00c9tape 1** : Fraction de filles\n```\n24/40 = 3/5 (apr\u00e8s simplification)\n```\n\n**\u00c9tape 2** : Conversion en pourcentage\n```\n(24 \u00f7 40) \u00d7 100 = 0,6 \u00d7 100 = 60%\n```\n\n\u2705 **R\u00e9ponse** : **60% des \u00e9l\u00e8ves** sont des filles\n\n---\n\n### **Exemple 3 : Calcul alg\u00e9brique**\n\n**Situation** : Le prix d'un sac de riz a augment\u00e9. Le nouveau prix est 1,5 fois l'ancien prix. Si le nouveau prix est 15 000 FCFA, quel \u00e9tait l'ancien prix ?\n\n**R\u00e9solution :**\n\n**\u00c9tape 1** : Poser l'\u00e9quation\n```\nSoit x = ancien prix\n1,5x = 15 000\n```\n\n**\u00c9tape 2** : R\u00e9soudre\n```\nx = 15 000 \u00f7 1,5\nx = 10 000 FCFA\n```\n\n\u2705 **R\u00e9ponse** : L'ancien prix \u00e9tait **10 000 FCFA**\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLe **calcul** est un outil puissant qui te permet de :\n- \u2705 G\u00e9rer ton argent au quotidien\n- \u2705 R\u00e9soudre des probl\u00e8mes pratiques\n- \u2705 R\u00e9ussir tes examens (BEPC, BAC)\n- \u2705 Poursuivre des \u00e9tudes scientifiques\n\n### **Conseils pour progresser :**\n1. **Pratique quotidienne** : Fais au moins 5 exercices par jour\n2. **V\u00e9rifie tes calculs** : Utilise la calculatrice pour v\u00e9rifier\n3. **Comprends avant de m\u00e9moriser** : Ne retiens pas juste les formules !\n4. **Utilise des exemples concrets** : Lie les maths \u00e0 ta vie quotidienne\n\nN'oublie pas : **Les math\u00e9matiques sont comme le sport - plus tu t'entra\u00eenes, meilleur tu deviens !** \ud83d\udcaa\n\nAs-tu des questions sp\u00e9cifiques sur un type de calcul en particulier ? Je suis l\u00e0 pour t'aider !",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770140567988,
+            "content": "# Le Calcul Math\u00e9matique \ud83d\udcd0\n\nBonjour cher \u00e9tudiant ! Je suis ravi de t'expliquer ce qu'est le **calcul** en math\u00e9matiques. C'est un sujet fondamental qui nous accompagne depuis l'\u00e9cole primaire jusqu'\u00e0 l'universit\u00e9 !\n\n---\n\n## \ud83d\udccb Aper\u00e7u\n\nLe terme **\"calcul\"** en math\u00e9matiques d\u00e9signe l'ensemble des op\u00e9rations et techniques permettant de r\u00e9soudre des probl\u00e8mes num\u00e9riques. Il existe plusieurs niveaux de calcul :\n\n### **1. Le calcul arithm\u00e9tique** (niveau de base)\n- Les **quatre op\u00e9rations** : addition (+), soustraction (\u2212), multiplication (\u00d7), division (\u00f7)\n- Les **fractions** et les **pourcentages**\n- Les **puissances** et les **racines**\n\n### **2. Le calcul alg\u00e9brique** (niveau interm\u00e9diaire)\n- Manipulation des **expressions avec variables** (x, y, z...)\n- R\u00e9solution d'**\u00e9quations** et d'**in\u00e9quations**\n- Simplification d'expressions\n\n### **3. Le calcul diff\u00e9rentiel et int\u00e9gral** (niveau avanc\u00e9 - universit\u00e9)\n- Les **d\u00e9riv\u00e9es** (taux de variation)\n- Les **int\u00e9grales** (calcul d'aires et de volumes)\n\n---\n\n## \ud83c\udfaf \u00c9tapes et Exemples Pratiques (Contexte B\u00e9ninois)\n\n### **Exemple 1 : Calcul arithm\u00e9tique**\n\n**Situation** : Au march\u00e9 Dantokpa \u00e0 Cotonou, tu ach\u00e8tes :\n- 3 kg de tomates \u00e0 500 FCFA le kg\n- 2 ananas \u00e0 400 FCFA l'unit\u00e9\n\n**Calcul du total :**\n\n**\u00c9tape 1** : Co\u00fbt des tomates\n```\n3 \u00d7 500 = 1 500 FCFA\n```\n\n**\u00c9tape 2** : Co\u00fbt des ananas\n```\n2 \u00d7 400 = 800 FCFA\n```\n\n**\u00c9tape 3** : Total\n```\n1 500 + 800 = 2 300 FCFA\n```\n\n\u2705 **R\u00e9ponse** : Tu dois payer **2 300 FCFA**\n\n---\n\n### **Exemple 2 : Calcul avec fractions et pourcentages**\n\n**Situation** : Une classe de 40 \u00e9l\u00e8ves \u00e0 Porto-Novo compte 24 filles.\n\n**Calculons le pourcentage de filles :**\n\n**\u00c9tape 1** : Fraction de filles\n```\n24/40 = 3/5 (apr\u00e8s simplification)\n```\n\n**\u00c9tape 2** : Conversion en pourcentage\n```\n(24 \u00f7 40) \u00d7 100 = 0,6 \u00d7 100 = 60%\n```\n\n\u2705 **R\u00e9ponse** : **60% des \u00e9l\u00e8ves** sont des filles\n\n---\n\n### **Exemple 3 : Calcul alg\u00e9brique**\n\n**Situation** : Le prix d'un sac de riz a augment\u00e9. Le nouveau prix est 1,5 fois l'ancien prix. Si le nouveau prix est 15 000 FCFA, quel \u00e9tait l'ancien prix ?\n\n**R\u00e9solution :**\n\n**\u00c9tape 1** : Poser l'\u00e9quation\n```\nSoit x = ancien prix\n1,5x = 15 000\n```\n\n**\u00c9tape 2** : R\u00e9soudre\n```\nx = 15 000 \u00f7 1,5\nx = 10 000 FCFA\n```\n\n\u2705 **R\u00e9ponse** : L'ancien prix \u00e9tait **10 000 FCFA**\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLe **calcul** est un outil puissant qui te permet de :\n- \u2705 G\u00e9rer ton argent au quotidien\n- \u2705 R\u00e9soudre des probl\u00e8mes pratiques\n- \u2705 R\u00e9ussir tes examens (BEPC, BAC)\n- \u2705 Poursuivre des \u00e9tudes scientifiques\n\n### **Conseils pour progresser :**\n1. **Pratique quotidienne** : Fais au moins 5 exercices par jour\n2. **V\u00e9rifie tes calculs** : Utilise la calculatrice pour v\u00e9rifier\n3. **Comprends avant de m\u00e9moriser** : Ne retiens pas juste les formules !\n4. **Utilise des exemples concrets** : Lie les maths \u00e0 ta vie quotidienne\n\nN'oublie pas : **Les math\u00e9matiques sont comme le sport - plus tu t'entra\u00eenes, meilleur tu deviens !** \ud83d\udcaa\n\nAs-tu des questions sp\u00e9cifiques sur un type de calcul en particulier ? Je suis l\u00e0 pour t'aider !",
+            "sources": []
+          },
+          "timestamp": 1770140567988
+        },
+        {
+          "id": "msg-1770142807761",
+          "type": "user",
+          "problem": {
+            "id": "1770142807761",
+            "content": "5-0",
+            "submittedAt": 1770142807761
+          },
+          "timestamp": 1770142807761
+        },
+        {
+          "id": "msg-1770142807761-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770142807761",
+            "steps": [],
+            "finalAnswer": "# Soustraction : 5 - 0\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'accompagner dans cette op\u00e9ration math\u00e9matique simple mais importante.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons effectuer la soustraction : **5 - 0**\n\nCela signifie : \"Si j'ai 5 objets et que j'en retire 0, combien m'en reste-t-il ?\"\n\n## \ud83d\udd22 R\u00e9solution \u00e9tape par \u00e9tape\n\n### \u00c9tape 1 : Comprendre les nombres\n- **5** est notre nombre de d\u00e9part (le nombre dont on soustrait)\n- **0** est ce qu'on enl\u00e8ve (rien du tout !)\n\n### \u00c9tape 2 : Appliquer la r\u00e8gle fondamentale\nQuand on soustrait **z\u00e9ro** d'un nombre, le nombre reste **inchang\u00e9**.\n\n### \u00c9tape 3 : Calculer\n5 - 0 = **5**\n\n## \ud83c\udf0d Exemple concret du B\u00e9nin\n\nImagine que tu as **5 oranges** achet\u00e9es au march\u00e9 Dantokpa \u00e0 Cotonou. Si tu ne donnes **aucune orange** (0 orange) \u00e0 ton ami, tu gardes toujours tes **5 oranges** !\n\n\ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a  (aucune retir\u00e9e) = \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 5 - 0 = 5**\n\n**R\u00e8gle \u00e0 retenir :** Soustraire z\u00e9ro de n'importe quel nombre ne change pas ce nombre.\n\nContinue \u00e0 pratiquer, tu progresses tr\u00e8s bien ! \ud83c\udf1f",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770142807761,
+            "content": "# Soustraction : 5 - 0\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'accompagner dans cette op\u00e9ration math\u00e9matique simple mais importante.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons effectuer la soustraction : **5 - 0**\n\nCela signifie : \"Si j'ai 5 objets et que j'en retire 0, combien m'en reste-t-il ?\"\n\n## \ud83d\udd22 R\u00e9solution \u00e9tape par \u00e9tape\n\n### \u00c9tape 1 : Comprendre les nombres\n- **5** est notre nombre de d\u00e9part (le nombre dont on soustrait)\n- **0** est ce qu'on enl\u00e8ve (rien du tout !)\n\n### \u00c9tape 2 : Appliquer la r\u00e8gle fondamentale\nQuand on soustrait **z\u00e9ro** d'un nombre, le nombre reste **inchang\u00e9**.\n\n### \u00c9tape 3 : Calculer\n5 - 0 = **5**\n\n## \ud83c\udf0d Exemple concret du B\u00e9nin\n\nImagine que tu as **5 oranges** achet\u00e9es au march\u00e9 Dantokpa \u00e0 Cotonou. Si tu ne donnes **aucune orange** (0 orange) \u00e0 ton ami, tu gardes toujours tes **5 oranges** !\n\n\ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a  (aucune retir\u00e9e) = \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 5 - 0 = 5**\n\n**R\u00e8gle \u00e0 retenir :** Soustraire z\u00e9ro de n'importe quel nombre ne change pas ce nombre.\n\nContinue \u00e0 pratiquer, tu progresses tr\u00e8s bien ! \ud83c\udf1f",
+            "sources": []
+          },
+          "timestamp": 1770142807761
+        },
+        {
+          "id": "msg-1770142902905",
+          "type": "user",
+          "problem": {
+            "id": "1770142902905",
+            "content": "6-9",
+            "submittedAt": 1770142902905
+          },
+          "timestamp": 1770142902905
+        },
+        {
+          "id": "msg-1770142902905-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770142902905",
+            "steps": [],
+            "finalAnswer": "# R\u00e9solution : 6 - 9\n\n## Aper\u00e7u du probl\u00e8me\n\nNous devons calculer **6 - 9**, c'est-\u00e0-dire soustraire 9 de 6. \n\nCe type d'op\u00e9ration nous am\u00e8ne dans le domaine des **nombres relatifs** (nombres positifs et n\u00e9gatifs), car nous enlevons une quantit\u00e9 plus grande que celle que nous avons au d\u00e9part.\n\n## \u00c9tapes de r\u00e9solution\n\n### M\u00e9thode 1 : Utilisation de la droite num\u00e9rique\n\nImaginons que nous partons de **6** sur une droite num\u00e9rique :\n\n```\n... -5  -4  -3  -2  -1  0  1  2  3  4  5  6  7 ...\n```\n\n- On commence \u00e0 **6**\n- On recule de **9 positions** vers la gauche\n- 6 \u2192 5 \u2192 4 \u2192 3 \u2192 2 \u2192 1 \u2192 0 \u2192 -1 \u2192 -2 \u2192 **-3**\n\n**R\u00e9sultat : 6 - 9 = -3**\n\n### M\u00e9thode 2 : Raisonnement par \u00e9tapes\n\n- Je pars de **6**\n- Je dois enlever **9**\n- Je peux d'abord enlever 6 (pour arriver \u00e0 0) : 6 - 6 = 0\n- Il me reste encore **3** \u00e0 enlever : 9 - 6 = 3\n- Donc : 0 - 3 = **-3**\n\n### Exemple concret (contexte b\u00e9ninois) \ud83c\udf0d\n\nImagine que tu as **6 000 FCFA** dans ta poche. Tu dois payer **9 000 FCFA** pour un cahier et des stylos \u00e0 la librairie. \n\n- Tu donnes tes 6 000 FCFA\n- Il te manque encore 3 000 FCFA\n- Tu as donc une **dette de 3 000 FCFA** (repr\u00e9sent\u00e9e par -3 000)\n\nC'est exactement le m\u00eame principe : 6 - 9 = **-3**\n\n## Conclusion\n\n### R\u00e9ponse finale : **6 - 9 = -3**\n\n**Point important \u00e0 retenir :** Quand on soustrait un nombre plus grand d'un nombre plus petit, le r\u00e9sultat est **n\u00e9gatif**. Le signe n\u00e9gatif (-) indique qu'on est \"en dessous de z\u00e9ro\" ou qu'on a une dette.\n\nBravo pour ton travail ! Les nombres n\u00e9gatifs sont tr\u00e8s utiles dans la vie quotidienne : temp\u00e9ratures, dettes, altitudes en dessous du niveau de la mer, etc. \ud83c\udf93",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770142902905,
+            "content": "# R\u00e9solution : 6 - 9\n\n## Aper\u00e7u du probl\u00e8me\n\nNous devons calculer **6 - 9**, c'est-\u00e0-dire soustraire 9 de 6. \n\nCe type d'op\u00e9ration nous am\u00e8ne dans le domaine des **nombres relatifs** (nombres positifs et n\u00e9gatifs), car nous enlevons une quantit\u00e9 plus grande que celle que nous avons au d\u00e9part.\n\n## \u00c9tapes de r\u00e9solution\n\n### M\u00e9thode 1 : Utilisation de la droite num\u00e9rique\n\nImaginons que nous partons de **6** sur une droite num\u00e9rique :\n\n```\n... -5  -4  -3  -2  -1  0  1  2  3  4  5  6  7 ...\n```\n\n- On commence \u00e0 **6**\n- On recule de **9 positions** vers la gauche\n- 6 \u2192 5 \u2192 4 \u2192 3 \u2192 2 \u2192 1 \u2192 0 \u2192 -1 \u2192 -2 \u2192 **-3**\n\n**R\u00e9sultat : 6 - 9 = -3**\n\n### M\u00e9thode 2 : Raisonnement par \u00e9tapes\n\n- Je pars de **6**\n- Je dois enlever **9**\n- Je peux d'abord enlever 6 (pour arriver \u00e0 0) : 6 - 6 = 0\n- Il me reste encore **3** \u00e0 enlever : 9 - 6 = 3\n- Donc : 0 - 3 = **-3**\n\n### Exemple concret (contexte b\u00e9ninois) \ud83c\udf0d\n\nImagine que tu as **6 000 FCFA** dans ta poche. Tu dois payer **9 000 FCFA** pour un cahier et des stylos \u00e0 la librairie. \n\n- Tu donnes tes 6 000 FCFA\n- Il te manque encore 3 000 FCFA\n- Tu as donc une **dette de 3 000 FCFA** (repr\u00e9sent\u00e9e par -3 000)\n\nC'est exactement le m\u00eame principe : 6 - 9 = **-3**\n\n## Conclusion\n\n### R\u00e9ponse finale : **6 - 9 = -3**\n\n**Point important \u00e0 retenir :** Quand on soustrait un nombre plus grand d'un nombre plus petit, le r\u00e9sultat est **n\u00e9gatif**. Le signe n\u00e9gatif (-) indique qu'on est \"en dessous de z\u00e9ro\" ou qu'on a une dette.\n\nBravo pour ton travail ! Les nombres n\u00e9gatifs sont tr\u00e8s utiles dans la vie quotidienne : temp\u00e9ratures, dettes, altitudes en dessous du niveau de la mer, etc. \ud83c\udf93",
+            "sources": []
+          },
+          "timestamp": 1770142902905
+        }
+      ]
+    },
+    {
+      "id": "conv-1770132128179",
+      "title": "Chat",
+      "createdAt": "2026-02-03T18:22:08.179442",
+      "updatedAt": "2026-02-03T20:02:00.867630",
+      "messages": [
+        {
+          "id": "msg-1770140567988",
+          "type": "user",
+          "problem": {
+            "id": "1770140567988",
+            "content": "Explain Calcul",
+            "submittedAt": 1770140567988
+          },
+          "timestamp": 1770140567988
+        },
+        {
+          "id": "msg-1770140567988-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770140567988",
+            "steps": [],
+            "finalAnswer": "# Le Calcul Math\u00e9matique \ud83d\udcd0\n\nBonjour cher \u00e9tudiant ! Je suis ravi de t'expliquer ce qu'est le **calcul** en math\u00e9matiques. C'est un sujet fondamental qui nous accompagne depuis l'\u00e9cole primaire jusqu'\u00e0 l'universit\u00e9 !\n\n---\n\n## \ud83d\udccb Aper\u00e7u\n\nLe terme **\"calcul\"** en math\u00e9matiques d\u00e9signe l'ensemble des op\u00e9rations et techniques permettant de r\u00e9soudre des probl\u00e8mes num\u00e9riques. Il existe plusieurs niveaux de calcul :\n\n### **1. Le calcul arithm\u00e9tique** (niveau de base)\n- Les **quatre op\u00e9rations** : addition (+), soustraction (\u2212), multiplication (\u00d7), division (\u00f7)\n- Les **fractions** et les **pourcentages**\n- Les **puissances** et les **racines**\n\n### **2. Le calcul alg\u00e9brique** (niveau interm\u00e9diaire)\n- Manipulation des **expressions avec variables** (x, y, z...)\n- R\u00e9solution d'**\u00e9quations** et d'**in\u00e9quations**\n- Simplification d'expressions\n\n### **3. Le calcul diff\u00e9rentiel et int\u00e9gral** (niveau avanc\u00e9 - universit\u00e9)\n- Les **d\u00e9riv\u00e9es** (taux de variation)\n- Les **int\u00e9grales** (calcul d'aires et de volumes)\n\n---\n\n## \ud83c\udfaf \u00c9tapes et Exemples Pratiques (Contexte B\u00e9ninois)\n\n### **Exemple 1 : Calcul arithm\u00e9tique**\n\n**Situation** : Au march\u00e9 Dantokpa \u00e0 Cotonou, tu ach\u00e8tes :\n- 3 kg de tomates \u00e0 500 FCFA le kg\n- 2 ananas \u00e0 400 FCFA l'unit\u00e9\n\n**Calcul du total :**\n\n**\u00c9tape 1** : Co\u00fbt des tomates\n```\n3 \u00d7 500 = 1 500 FCFA\n```\n\n**\u00c9tape 2** : Co\u00fbt des ananas\n```\n2 \u00d7 400 = 800 FCFA\n```\n\n**\u00c9tape 3** : Total\n```\n1 500 + 800 = 2 300 FCFA\n```\n\n\u2705 **R\u00e9ponse** : Tu dois payer **2 300 FCFA**\n\n---\n\n### **Exemple 2 : Calcul avec fractions et pourcentages**\n\n**Situation** : Une classe de 40 \u00e9l\u00e8ves \u00e0 Porto-Novo compte 24 filles.\n\n**Calculons le pourcentage de filles :**\n\n**\u00c9tape 1** : Fraction de filles\n```\n24/40 = 3/5 (apr\u00e8s simplification)\n```\n\n**\u00c9tape 2** : Conversion en pourcentage\n```\n(24 \u00f7 40) \u00d7 100 = 0,6 \u00d7 100 = 60%\n```\n\n\u2705 **R\u00e9ponse** : **60% des \u00e9l\u00e8ves** sont des filles\n\n---\n\n### **Exemple 3 : Calcul alg\u00e9brique**\n\n**Situation** : Le prix d'un sac de riz a augment\u00e9. Le nouveau prix est 1,5 fois l'ancien prix. Si le nouveau prix est 15 000 FCFA, quel \u00e9tait l'ancien prix ?\n\n**R\u00e9solution :**\n\n**\u00c9tape 1** : Poser l'\u00e9quation\n```\nSoit x = ancien prix\n1,5x = 15 000\n```\n\n**\u00c9tape 2** : R\u00e9soudre\n```\nx = 15 000 \u00f7 1,5\nx = 10 000 FCFA\n```\n\n\u2705 **R\u00e9ponse** : L'ancien prix \u00e9tait **10 000 FCFA**\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLe **calcul** est un outil puissant qui te permet de :\n- \u2705 G\u00e9rer ton argent au quotidien\n- \u2705 R\u00e9soudre des probl\u00e8mes pratiques\n- \u2705 R\u00e9ussir tes examens (BEPC, BAC)\n- \u2705 Poursuivre des \u00e9tudes scientifiques\n\n### **Conseils pour progresser :**\n1. **Pratique quotidienne** : Fais au moins 5 exercices par jour\n2. **V\u00e9rifie tes calculs** : Utilise la calculatrice pour v\u00e9rifier\n3. **Comprends avant de m\u00e9moriser** : Ne retiens pas juste les formules !\n4. **Utilise des exemples concrets** : Lie les maths \u00e0 ta vie quotidienne\n\nN'oublie pas : **Les math\u00e9matiques sont comme le sport - plus tu t'entra\u00eenes, meilleur tu deviens !** \ud83d\udcaa\n\nAs-tu des questions sp\u00e9cifiques sur un type de calcul en particulier ? Je suis l\u00e0 pour t'aider !",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770140567988,
+            "content": "# Le Calcul Math\u00e9matique \ud83d\udcd0\n\nBonjour cher \u00e9tudiant ! Je suis ravi de t'expliquer ce qu'est le **calcul** en math\u00e9matiques. C'est un sujet fondamental qui nous accompagne depuis l'\u00e9cole primaire jusqu'\u00e0 l'universit\u00e9 !\n\n---\n\n## \ud83d\udccb Aper\u00e7u\n\nLe terme **\"calcul\"** en math\u00e9matiques d\u00e9signe l'ensemble des op\u00e9rations et techniques permettant de r\u00e9soudre des probl\u00e8mes num\u00e9riques. Il existe plusieurs niveaux de calcul :\n\n### **1. Le calcul arithm\u00e9tique** (niveau de base)\n- Les **quatre op\u00e9rations** : addition (+), soustraction (\u2212), multiplication (\u00d7), division (\u00f7)\n- Les **fractions** et les **pourcentages**\n- Les **puissances** et les **racines**\n\n### **2. Le calcul alg\u00e9brique** (niveau interm\u00e9diaire)\n- Manipulation des **expressions avec variables** (x, y, z...)\n- R\u00e9solution d'**\u00e9quations** et d'**in\u00e9quations**\n- Simplification d'expressions\n\n### **3. Le calcul diff\u00e9rentiel et int\u00e9gral** (niveau avanc\u00e9 - universit\u00e9)\n- Les **d\u00e9riv\u00e9es** (taux de variation)\n- Les **int\u00e9grales** (calcul d'aires et de volumes)\n\n---\n\n## \ud83c\udfaf \u00c9tapes et Exemples Pratiques (Contexte B\u00e9ninois)\n\n### **Exemple 1 : Calcul arithm\u00e9tique**\n\n**Situation** : Au march\u00e9 Dantokpa \u00e0 Cotonou, tu ach\u00e8tes :\n- 3 kg de tomates \u00e0 500 FCFA le kg\n- 2 ananas \u00e0 400 FCFA l'unit\u00e9\n\n**Calcul du total :**\n\n**\u00c9tape 1** : Co\u00fbt des tomates\n```\n3 \u00d7 500 = 1 500 FCFA\n```\n\n**\u00c9tape 2** : Co\u00fbt des ananas\n```\n2 \u00d7 400 = 800 FCFA\n```\n\n**\u00c9tape 3** : Total\n```\n1 500 + 800 = 2 300 FCFA\n```\n\n\u2705 **R\u00e9ponse** : Tu dois payer **2 300 FCFA**\n\n---\n\n### **Exemple 2 : Calcul avec fractions et pourcentages**\n\n**Situation** : Une classe de 40 \u00e9l\u00e8ves \u00e0 Porto-Novo compte 24 filles.\n\n**Calculons le pourcentage de filles :**\n\n**\u00c9tape 1** : Fraction de filles\n```\n24/40 = 3/5 (apr\u00e8s simplification)\n```\n\n**\u00c9tape 2** : Conversion en pourcentage\n```\n(24 \u00f7 40) \u00d7 100 = 0,6 \u00d7 100 = 60%\n```\n\n\u2705 **R\u00e9ponse** : **60% des \u00e9l\u00e8ves** sont des filles\n\n---\n\n### **Exemple 3 : Calcul alg\u00e9brique**\n\n**Situation** : Le prix d'un sac de riz a augment\u00e9. Le nouveau prix est 1,5 fois l'ancien prix. Si le nouveau prix est 15 000 FCFA, quel \u00e9tait l'ancien prix ?\n\n**R\u00e9solution :**\n\n**\u00c9tape 1** : Poser l'\u00e9quation\n```\nSoit x = ancien prix\n1,5x = 15 000\n```\n\n**\u00c9tape 2** : R\u00e9soudre\n```\nx = 15 000 \u00f7 1,5\nx = 10 000 FCFA\n```\n\n\u2705 **R\u00e9ponse** : L'ancien prix \u00e9tait **10 000 FCFA**\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLe **calcul** est un outil puissant qui te permet de :\n- \u2705 G\u00e9rer ton argent au quotidien\n- \u2705 R\u00e9soudre des probl\u00e8mes pratiques\n- \u2705 R\u00e9ussir tes examens (BEPC, BAC)\n- \u2705 Poursuivre des \u00e9tudes scientifiques\n\n### **Conseils pour progresser :**\n1. **Pratique quotidienne** : Fais au moins 5 exercices par jour\n2. **V\u00e9rifie tes calculs** : Utilise la calculatrice pour v\u00e9rifier\n3. **Comprends avant de m\u00e9moriser** : Ne retiens pas juste les formules !\n4. **Utilise des exemples concrets** : Lie les maths \u00e0 ta vie quotidienne\n\nN'oublie pas : **Les math\u00e9matiques sont comme le sport - plus tu t'entra\u00eenes, meilleur tu deviens !** \ud83d\udcaa\n\nAs-tu des questions sp\u00e9cifiques sur un type de calcul en particulier ? Je suis l\u00e0 pour t'aider !",
+            "sources": []
+          },
+          "timestamp": 1770140567988
+        },
+        {
+          "id": "msg-1770142807761",
+          "type": "user",
+          "problem": {
+            "id": "1770142807761",
+            "content": "5-0",
+            "submittedAt": 1770142807761
+          },
+          "timestamp": 1770142807761
+        },
+        {
+          "id": "msg-1770142807761-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770142807761",
+            "steps": [],
+            "finalAnswer": "# Soustraction : 5 - 0\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'accompagner dans cette op\u00e9ration math\u00e9matique simple mais importante.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons effectuer la soustraction : **5 - 0**\n\nCela signifie : \"Si j'ai 5 objets et que j'en retire 0, combien m'en reste-t-il ?\"\n\n## \ud83d\udd22 R\u00e9solution \u00e9tape par \u00e9tape\n\n### \u00c9tape 1 : Comprendre les nombres\n- **5** est notre nombre de d\u00e9part (le nombre dont on soustrait)\n- **0** est ce qu'on enl\u00e8ve (rien du tout !)\n\n### \u00c9tape 2 : Appliquer la r\u00e8gle fondamentale\nQuand on soustrait **z\u00e9ro** d'un nombre, le nombre reste **inchang\u00e9**.\n\n### \u00c9tape 3 : Calculer\n5 - 0 = **5**\n\n## \ud83c\udf0d Exemple concret du B\u00e9nin\n\nImagine que tu as **5 oranges** achet\u00e9es au march\u00e9 Dantokpa \u00e0 Cotonou. Si tu ne donnes **aucune orange** (0 orange) \u00e0 ton ami, tu gardes toujours tes **5 oranges** !\n\n\ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a  (aucune retir\u00e9e) = \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 5 - 0 = 5**\n\n**R\u00e8gle \u00e0 retenir :** Soustraire z\u00e9ro de n'importe quel nombre ne change pas ce nombre.\n\nContinue \u00e0 pratiquer, tu progresses tr\u00e8s bien ! \ud83c\udf1f",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770142807761,
+            "content": "# Soustraction : 5 - 0\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'accompagner dans cette op\u00e9ration math\u00e9matique simple mais importante.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons effectuer la soustraction : **5 - 0**\n\nCela signifie : \"Si j'ai 5 objets et que j'en retire 0, combien m'en reste-t-il ?\"\n\n## \ud83d\udd22 R\u00e9solution \u00e9tape par \u00e9tape\n\n### \u00c9tape 1 : Comprendre les nombres\n- **5** est notre nombre de d\u00e9part (le nombre dont on soustrait)\n- **0** est ce qu'on enl\u00e8ve (rien du tout !)\n\n### \u00c9tape 2 : Appliquer la r\u00e8gle fondamentale\nQuand on soustrait **z\u00e9ro** d'un nombre, le nombre reste **inchang\u00e9**.\n\n### \u00c9tape 3 : Calculer\n5 - 0 = **5**\n\n## \ud83c\udf0d Exemple concret du B\u00e9nin\n\nImagine que tu as **5 oranges** achet\u00e9es au march\u00e9 Dantokpa \u00e0 Cotonou. Si tu ne donnes **aucune orange** (0 orange) \u00e0 ton ami, tu gardes toujours tes **5 oranges** !\n\n\ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a  (aucune retir\u00e9e) = \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a \ud83c\udf4a\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 5 - 0 = 5**\n\n**R\u00e8gle \u00e0 retenir :** Soustraire z\u00e9ro de n'importe quel nombre ne change pas ce nombre.\n\nContinue \u00e0 pratiquer, tu progresses tr\u00e8s bien ! \ud83c\udf1f",
+            "sources": []
+          },
+          "timestamp": 1770142807761
+        },
+        {
+          "id": "msg-1770142902905",
+          "type": "user",
+          "problem": {
+            "id": "1770142902905",
+            "content": "6-9",
+            "submittedAt": 1770142902905
+          },
+          "timestamp": 1770142902905
+        },
+        {
+          "id": "msg-1770142902905-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770142902905",
+            "steps": [],
+            "finalAnswer": "# R\u00e9solution : 6 - 9\n\n## Aper\u00e7u du probl\u00e8me\n\nNous devons calculer **6 - 9**, c'est-\u00e0-dire soustraire 9 de 6. \n\nCe type d'op\u00e9ration nous am\u00e8ne dans le domaine des **nombres relatifs** (nombres positifs et n\u00e9gatifs), car nous enlevons une quantit\u00e9 plus grande que celle que nous avons au d\u00e9part.\n\n## \u00c9tapes de r\u00e9solution\n\n### M\u00e9thode 1 : Utilisation de la droite num\u00e9rique\n\nImaginons que nous partons de **6** sur une droite num\u00e9rique :\n\n```\n... -5  -4  -3  -2  -1  0  1  2  3  4  5  6  7 ...\n```\n\n- On commence \u00e0 **6**\n- On recule de **9 positions** vers la gauche\n- 6 \u2192 5 \u2192 4 \u2192 3 \u2192 2 \u2192 1 \u2192 0 \u2192 -1 \u2192 -2 \u2192 **-3**\n\n**R\u00e9sultat : 6 - 9 = -3**\n\n### M\u00e9thode 2 : Raisonnement par \u00e9tapes\n\n- Je pars de **6**\n- Je dois enlever **9**\n- Je peux d'abord enlever 6 (pour arriver \u00e0 0) : 6 - 6 = 0\n- Il me reste encore **3** \u00e0 enlever : 9 - 6 = 3\n- Donc : 0 - 3 = **-3**\n\n### Exemple concret (contexte b\u00e9ninois) \ud83c\udf0d\n\nImagine que tu as **6 000 FCFA** dans ta poche. Tu dois payer **9 000 FCFA** pour un cahier et des stylos \u00e0 la librairie. \n\n- Tu donnes tes 6 000 FCFA\n- Il te manque encore 3 000 FCFA\n- Tu as donc une **dette de 3 000 FCFA** (repr\u00e9sent\u00e9e par -3 000)\n\nC'est exactement le m\u00eame principe : 6 - 9 = **-3**\n\n## Conclusion\n\n### R\u00e9ponse finale : **6 - 9 = -3**\n\n**Point important \u00e0 retenir :** Quand on soustrait un nombre plus grand d'un nombre plus petit, le r\u00e9sultat est **n\u00e9gatif**. Le signe n\u00e9gatif (-) indique qu'on est \"en dessous de z\u00e9ro\" ou qu'on a une dette.\n\nBravo pour ton travail ! Les nombres n\u00e9gatifs sont tr\u00e8s utiles dans la vie quotidienne : temp\u00e9ratures, dettes, altitudes en dessous du niveau de la mer, etc. \ud83c\udf93",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770142902905,
+            "content": "# R\u00e9solution : 6 - 9\n\n## Aper\u00e7u du probl\u00e8me\n\nNous devons calculer **6 - 9**, c'est-\u00e0-dire soustraire 9 de 6. \n\nCe type d'op\u00e9ration nous am\u00e8ne dans le domaine des **nombres relatifs** (nombres positifs et n\u00e9gatifs), car nous enlevons une quantit\u00e9 plus grande que celle que nous avons au d\u00e9part.\n\n## \u00c9tapes de r\u00e9solution\n\n### M\u00e9thode 1 : Utilisation de la droite num\u00e9rique\n\nImaginons que nous partons de **6** sur une droite num\u00e9rique :\n\n```\n... -5  -4  -3  -2  -1  0  1  2  3  4  5  6  7 ...\n```\n\n- On commence \u00e0 **6**\n- On recule de **9 positions** vers la gauche\n- 6 \u2192 5 \u2192 4 \u2192 3 \u2192 2 \u2192 1 \u2192 0 \u2192 -1 \u2192 -2 \u2192 **-3**\n\n**R\u00e9sultat : 6 - 9 = -3**\n\n### M\u00e9thode 2 : Raisonnement par \u00e9tapes\n\n- Je pars de **6**\n- Je dois enlever **9**\n- Je peux d'abord enlever 6 (pour arriver \u00e0 0) : 6 - 6 = 0\n- Il me reste encore **3** \u00e0 enlever : 9 - 6 = 3\n- Donc : 0 - 3 = **-3**\n\n### Exemple concret (contexte b\u00e9ninois) \ud83c\udf0d\n\nImagine que tu as **6 000 FCFA** dans ta poche. Tu dois payer **9 000 FCFA** pour un cahier et des stylos \u00e0 la librairie. \n\n- Tu donnes tes 6 000 FCFA\n- Il te manque encore 3 000 FCFA\n- Tu as donc une **dette de 3 000 FCFA** (repr\u00e9sent\u00e9e par -3 000)\n\nC'est exactement le m\u00eame principe : 6 - 9 = **-3**\n\n## Conclusion\n\n### R\u00e9ponse finale : **6 - 9 = -3**\n\n**Point important \u00e0 retenir :** Quand on soustrait un nombre plus grand d'un nombre plus petit, le r\u00e9sultat est **n\u00e9gatif**. Le signe n\u00e9gatif (-) indique qu'on est \"en dessous de z\u00e9ro\" ou qu'on a une dette.\n\nBravo pour ton travail ! Les nombres n\u00e9gatifs sont tr\u00e8s utiles dans la vie quotidienne : temp\u00e9ratures, dettes, altitudes en dessous du niveau de la mer, etc. \ud83c\udf93",
+            "sources": []
+          },
+          "timestamp": 1770142902905
+        },
+        {
+          "id": "msg-1770142928286",
+          "type": "user",
+          "problem": {
+            "id": "1770142928286",
+            "content": "8-90",
+            "submittedAt": 1770142928286
+          },
+          "timestamp": 1770142928286
+        },
+        {
+          "id": "msg-1770142928286-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770142928286",
+            "steps": [],
+            "finalAnswer": "# Solution : 8 - 90\n\nBonjour cher(e) \u00e9l\u00e8ve ! Je suis ravi de t'accompagner dans ce calcul. Il s'agit d'une soustraction avec des nombres relatifs. Allons-y ensemble !\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **8 - 90**\n\nC'est une soustraction o\u00f9 nous enlevons un **grand nombre** (90) d'un **petit nombre** (8). Le r\u00e9sultat sera donc un **nombre n\u00e9gatif**.\n\n## \ud83d\udd22 \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre l'op\u00e9ration\nQuand on soustrait un grand nombre d'un petit nombre, on obtient un nombre n\u00e9gatif.\n\nOn peut reformuler : 8 - 90 = 8 + (-90)\n\n### \u00c9tape 2 : Calculer la diff\u00e9rence\nPour faciliter le calcul, pensons en termes de \"dette\" :\n- Tu as 8 francs CFA\n- Tu dois payer 90 francs CFA\n- Combien te manque-t-il ?\n\nCalculons : 90 - 8 = **82**\n\nPuisque 90 est plus grand que 8, le r\u00e9sultat est n\u00e9gatif.\n\n### \u00c9tape 3 : \u00c9crire le r\u00e9sultat\n8 - 90 = **-82**\n\n## \u2705 Conclusion\n\n**8 - 90 = -82**\n\n### \ud83d\udca1 Pour mieux retenir :\nImagine que tu as 8 mangues au march\u00e9 de Dantokpa, mais ton client en commande 90. Il te manque donc **82 mangues** pour compl\u00e9ter la commande. C'est ce que repr\u00e9sente le \u00ab -82 \u00bb : un manque de 82 unit\u00e9s.\n\nContinue \u00e0 pratiquer, tu progresses bien ! \ud83c\udf1f",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770142928286,
+            "content": "# Solution : 8 - 90\n\nBonjour cher(e) \u00e9l\u00e8ve ! Je suis ravi de t'accompagner dans ce calcul. Il s'agit d'une soustraction avec des nombres relatifs. Allons-y ensemble !\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **8 - 90**\n\nC'est une soustraction o\u00f9 nous enlevons un **grand nombre** (90) d'un **petit nombre** (8). Le r\u00e9sultat sera donc un **nombre n\u00e9gatif**.\n\n## \ud83d\udd22 \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre l'op\u00e9ration\nQuand on soustrait un grand nombre d'un petit nombre, on obtient un nombre n\u00e9gatif.\n\nOn peut reformuler : 8 - 90 = 8 + (-90)\n\n### \u00c9tape 2 : Calculer la diff\u00e9rence\nPour faciliter le calcul, pensons en termes de \"dette\" :\n- Tu as 8 francs CFA\n- Tu dois payer 90 francs CFA\n- Combien te manque-t-il ?\n\nCalculons : 90 - 8 = **82**\n\nPuisque 90 est plus grand que 8, le r\u00e9sultat est n\u00e9gatif.\n\n### \u00c9tape 3 : \u00c9crire le r\u00e9sultat\n8 - 90 = **-82**\n\n## \u2705 Conclusion\n\n**8 - 90 = -82**\n\n### \ud83d\udca1 Pour mieux retenir :\nImagine que tu as 8 mangues au march\u00e9 de Dantokpa, mais ton client en commande 90. Il te manque donc **82 mangues** pour compl\u00e9ter la commande. C'est ce que repr\u00e9sente le \u00ab -82 \u00bb : un manque de 82 unit\u00e9s.\n\nContinue \u00e0 pratiquer, tu progresses bien ! \ud83c\udf1f",
+            "sources": []
+          },
+          "timestamp": 1770142928286
+        },
+        {
+          "id": "msg-1770144942081",
+          "type": "user",
+          "problem": {
+            "id": "1770144942081",
+            "content": "7-00",
+            "submittedAt": 1770144942081
+          },
+          "timestamp": 1770144942081
+        },
+        {
+          "id": "msg-1770144942081-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770144942081",
+            "steps": [],
+            "finalAnswer": "# Solution : 7 - 00\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b\n\nJe suis ravi de t'aider avec ce calcul. C'est une excellente occasion de revoir les bases de la soustraction.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nOn nous demande de calculer : **7 - 00**\n\nC'est une op\u00e9ration de soustraction simple qui nous permet de comprendre un concept important en math\u00e9matiques.\n\n## \ud83d\udd0d \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre le nombre \"00\"\nLe nombre **00** (z\u00e9ro z\u00e9ro) est simplement une autre fa\u00e7on d'\u00e9crire **0** (z\u00e9ro).\n- 00 = 0\n\n### \u00c9tape 2 : Reformuler l'op\u00e9ration\nNotre calcul devient donc :\n**7 - 0 = ?**\n\n### \u00c9tape 3 : Appliquer la r\u00e8gle du z\u00e9ro\nEn math\u00e9matiques, il existe une r\u00e8gle fondamentale :\n> **Quand on soustrait z\u00e9ro d'un nombre, ce nombre reste inchang\u00e9.**\n\nDonc : **7 - 0 = 7**\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 7 - 00 = 7**\n\n### \ud83d\udca1 Pour retenir\n- Soustraire z\u00e9ro ne change pas un nombre\n- 00 est la m\u00eame chose que 0\n- Cette r\u00e8gle fonctionne avec n'importe quel nombre\n\n**Exemple du B\u00e9nin** \ud83c\udde7\ud83c\uddef : Si tu as 7 mangues au march\u00e9 de Dantokpa et que tu n'en vends aucune (0), tu as toujours tes 7 mangues !\n\nContinue \u00e0 bien travailler ! Les math\u00e9matiques deviennent plus faciles avec la pratique. \ud83d\udcaa",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770144942081,
+            "content": "# Solution : 7 - 00\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b\n\nJe suis ravi de t'aider avec ce calcul. C'est une excellente occasion de revoir les bases de la soustraction.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nOn nous demande de calculer : **7 - 00**\n\nC'est une op\u00e9ration de soustraction simple qui nous permet de comprendre un concept important en math\u00e9matiques.\n\n## \ud83d\udd0d \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre le nombre \"00\"\nLe nombre **00** (z\u00e9ro z\u00e9ro) est simplement une autre fa\u00e7on d'\u00e9crire **0** (z\u00e9ro).\n- 00 = 0\n\n### \u00c9tape 2 : Reformuler l'op\u00e9ration\nNotre calcul devient donc :\n**7 - 0 = ?**\n\n### \u00c9tape 3 : Appliquer la r\u00e8gle du z\u00e9ro\nEn math\u00e9matiques, il existe une r\u00e8gle fondamentale :\n> **Quand on soustrait z\u00e9ro d'un nombre, ce nombre reste inchang\u00e9.**\n\nDonc : **7 - 0 = 7**\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 7 - 00 = 7**\n\n### \ud83d\udca1 Pour retenir\n- Soustraire z\u00e9ro ne change pas un nombre\n- 00 est la m\u00eame chose que 0\n- Cette r\u00e8gle fonctionne avec n'importe quel nombre\n\n**Exemple du B\u00e9nin** \ud83c\udde7\ud83c\uddef : Si tu as 7 mangues au march\u00e9 de Dantokpa et que tu n'en vends aucune (0), tu as toujours tes 7 mangues !\n\nContinue \u00e0 bien travailler ! Les math\u00e9matiques deviennent plus faciles avec la pratique. \ud83d\udcaa",
+            "sources": []
+          },
+          "timestamp": 1770144942081
+        }
+      ]
+    },
+    {
+      "id": "conv-1770133988506",
+      "title": "Explain \u00c9quations",
+      "createdAt": "2026-02-03T18:53:08.506881",
+      "updatedAt": "2026-02-03T20:03:28.379643",
+      "messages": [
+        {
+          "id": "msg-1770144840142",
+          "type": "user",
+          "problem": {
+            "id": "1770144840142",
+            "content": "Explain \u00c9quations",
+            "submittedAt": 1770144840142
+          },
+          "timestamp": 1770144840142
+        },
+        {
+          "id": "msg-1770144840142-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770144840142",
+            "steps": [],
+            "finalAnswer": "# Les \u00c9quations : Guide Complet\n\n## \ud83d\udcda Aper\u00e7u\n\nBonjour cher(e) \u00e9l\u00e8ve ! Je suis ravi de t'expliquer ce qu'est une **\u00e9quation**. C'est un concept fondamental en math\u00e9matiques qui te servira tout au long de ta scolarit\u00e9 et m\u00eame dans la vie quotidienne !\n\n### Qu'est-ce qu'une \u00e9quation ?\n\nUne **\u00e9quation** est une \u00e9galit\u00e9 math\u00e9matique qui contient une ou plusieurs **inconnues** (g\u00e9n\u00e9ralement repr\u00e9sent\u00e9es par des lettres comme x, y, z). Notre objectif est de trouver la valeur de cette inconnue qui rend l'\u00e9galit\u00e9 vraie.\n\n**Exemple simple :** x + 5 = 12\n\nCette \u00e9quation se lit : \"un nombre x auquel on ajoute 5 donne 12\"\n\n---\n\n## \ud83d\udd0d Les \u00c9l\u00e9ments d'une \u00c9quation\n\nUne \u00e9quation se compose de :\n\n1. **Le premier membre** (\u00e0 gauche du signe =)\n2. **Le signe \u00e9gal** (=)\n3. **Le second membre** (\u00e0 droite du signe =)\n4. **L'inconnue** (la lettre qu'on cherche)\n\n**Exemple :** 3x - 7 = 14\n- Premier membre : 3x - 7\n- Second membre : 14\n- Inconnue : x\n\n---\n\n## \ud83d\udcdd \u00c9tapes pour R\u00e9soudre une \u00c9quation\n\n### **M\u00e9thode g\u00e9n\u00e9rale :**\n\n**Principe fondamental :** On peut effectuer la m\u00eame op\u00e9ration des deux c\u00f4t\u00e9s de l'\u00e9galit\u00e9 sans changer la solution.\n\n### Exemple 1 : \u00c9quation simple (contexte b\u00e9ninois)\n\n**Probl\u00e8me :** Amadou vend des ananas au march\u00e9 Dantokpa. S'il vend chaque ananas \u00e0 200 FCFA et qu'il a gagn\u00e9 1600 FCFA, combien d'ananas a-t-il vendus ?\n\n**\u00c9quation :** 200x = 1600\n\n**Solution :**\n```\n200x = 1600\n200x \u00f7 200 = 1600 \u00f7 200    (on divise les deux c\u00f4t\u00e9s par 200)\nx = 8\n```\n\n**R\u00e9ponse :** Amadou a vendu **8 ananas** \u2713\n\n---\n\n### Exemple 2 : \u00c9quation avec plusieurs op\u00e9rations\n\n**Probl\u00e8me :** R\u00e9soudre : 2x + 5 = 13\n\n**\u00c9tapes :**\n\n**\u00c9tape 1 :** Isoler le terme contenant x\n```\n2x + 5 = 13\n2x + 5 - 5 = 13 - 5    (on soustrait 5 des deux c\u00f4t\u00e9s)\n2x = 8\n```\n\n**\u00c9tape 2 :** Trouver la valeur de x\n```\n2x = 8\n2x \u00f7 2 = 8 \u00f7 2    (on divise par 2)\nx = 4\n```\n\n**V\u00e9rification :** 2(4) + 5 = 8 + 5 = 13 \u2713\n\n---\n\n### Exemple 3 : \u00c9quation plus complexe (contexte scolaire)\n\n**Probl\u00e8me :** Dans une classe de Cotonou, il y a 3 fois plus de filles que de gar\u00e7ons. Si on ajoute 5 gar\u00e7ons, il y aura 32 gar\u00e7ons au total. Combien y avait-il de gar\u00e7ons au d\u00e9but ?\n\n**\u00c9quation :** x + 5 = 32\n\n**Solution :**\n```\nx + 5 = 32\nx + 5 - 5 = 32 - 5\nx = 27\n```\n\n**R\u00e9ponse :** Il y avait **27 gar\u00e7ons** au d\u00e9but.\n\n---\n\n## \ud83c\udfaf Types d'\u00c9quations Courantes\n\n### 1. **\u00c9quations du premier degr\u00e9**\nFormat : ax + b = c\n\nExemple : 5x - 3 = 17\n\n### 2. **\u00c9quations avec parenth\u00e8ses**\nFormat : a(x + b) = c\n\nExemple : 3(x + 2) = 15\n\n**Solution :**\n```\n3(x + 2) = 15\n3x + 6 = 15    (on d\u00e9veloppe)\n3x = 9         (on soustrait 6)\nx = 3          (on divise par 3)\n```\n\n### 3. **\u00c9quations avec x des deux c\u00f4t\u00e9s**\nExemple : 5x + 2 = 2x + 11\n\n**Solution :**\n```\n5x + 2 = 2x + 11\n5x - 2x = 11 - 2    (on regroupe les termes semblables)\n3x = 9\nx = 3\n```\n\n---\n\n## \ud83d\udca1 Conseils Pratiques\n\n\u2705 **Toujours v\u00e9rifier** ta solution en la rempla\u00e7ant dans l'\u00e9quation originale\n\n\u2705 **Proc\u00e9der m\u00e9thodiquement** : isole d'abord les termes avec x\n\n\u2705 **Faire les op\u00e9rations inverses** :\n- Addition \u2194 Soustraction\n- Multiplication \u2194 Division\n\n\u2705 **Garder l'\u00e9quilibre** : ce qu'on fait \u00e0 gauche, on le fait \u00e0 droite !\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLes \u00e9quations sont comme des **\u00e9nigmes math\u00e9matiques** ! Avec de la pratique, tu deviendras expert(e) pour les r\u00e9soudre. Elles sont partout dans la vie :\n\n- Au march\u00e9 (calcul de prix)\n- Dans la construction (mesures)\n- En cuisine (proportions)\n- Dans les affaires (profits et pertes)\n\n**N'oublie pas :** Chaque \u00e9quation a une histoire \u00e0 raconter. Ton travail est de trouver la valeur myst\u00e9rieuse qui rend cette histoire vraie !\n\nContinue \u00e0 t'exercer, et bient\u00f4t tu r\u00e9soudras des \u00e9quations de plus en plus complexes avec facilit\u00e9 ! \ud83d\udcaa\n\n---\n\n**As-tu des questions sur un type d'\u00e9quation particulier ? Je suis l\u00e0 pour t'aider !**",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770144840142,
+            "content": "# Les \u00c9quations : Guide Complet\n\n## \ud83d\udcda Aper\u00e7u\n\nBonjour cher(e) \u00e9l\u00e8ve ! Je suis ravi de t'expliquer ce qu'est une **\u00e9quation**. C'est un concept fondamental en math\u00e9matiques qui te servira tout au long de ta scolarit\u00e9 et m\u00eame dans la vie quotidienne !\n\n### Qu'est-ce qu'une \u00e9quation ?\n\nUne **\u00e9quation** est une \u00e9galit\u00e9 math\u00e9matique qui contient une ou plusieurs **inconnues** (g\u00e9n\u00e9ralement repr\u00e9sent\u00e9es par des lettres comme x, y, z). Notre objectif est de trouver la valeur de cette inconnue qui rend l'\u00e9galit\u00e9 vraie.\n\n**Exemple simple :** x + 5 = 12\n\nCette \u00e9quation se lit : \"un nombre x auquel on ajoute 5 donne 12\"\n\n---\n\n## \ud83d\udd0d Les \u00c9l\u00e9ments d'une \u00c9quation\n\nUne \u00e9quation se compose de :\n\n1. **Le premier membre** (\u00e0 gauche du signe =)\n2. **Le signe \u00e9gal** (=)\n3. **Le second membre** (\u00e0 droite du signe =)\n4. **L'inconnue** (la lettre qu'on cherche)\n\n**Exemple :** 3x - 7 = 14\n- Premier membre : 3x - 7\n- Second membre : 14\n- Inconnue : x\n\n---\n\n## \ud83d\udcdd \u00c9tapes pour R\u00e9soudre une \u00c9quation\n\n### **M\u00e9thode g\u00e9n\u00e9rale :**\n\n**Principe fondamental :** On peut effectuer la m\u00eame op\u00e9ration des deux c\u00f4t\u00e9s de l'\u00e9galit\u00e9 sans changer la solution.\n\n### Exemple 1 : \u00c9quation simple (contexte b\u00e9ninois)\n\n**Probl\u00e8me :** Amadou vend des ananas au march\u00e9 Dantokpa. S'il vend chaque ananas \u00e0 200 FCFA et qu'il a gagn\u00e9 1600 FCFA, combien d'ananas a-t-il vendus ?\n\n**\u00c9quation :** 200x = 1600\n\n**Solution :**\n```\n200x = 1600\n200x \u00f7 200 = 1600 \u00f7 200    (on divise les deux c\u00f4t\u00e9s par 200)\nx = 8\n```\n\n**R\u00e9ponse :** Amadou a vendu **8 ananas** \u2713\n\n---\n\n### Exemple 2 : \u00c9quation avec plusieurs op\u00e9rations\n\n**Probl\u00e8me :** R\u00e9soudre : 2x + 5 = 13\n\n**\u00c9tapes :**\n\n**\u00c9tape 1 :** Isoler le terme contenant x\n```\n2x + 5 = 13\n2x + 5 - 5 = 13 - 5    (on soustrait 5 des deux c\u00f4t\u00e9s)\n2x = 8\n```\n\n**\u00c9tape 2 :** Trouver la valeur de x\n```\n2x = 8\n2x \u00f7 2 = 8 \u00f7 2    (on divise par 2)\nx = 4\n```\n\n**V\u00e9rification :** 2(4) + 5 = 8 + 5 = 13 \u2713\n\n---\n\n### Exemple 3 : \u00c9quation plus complexe (contexte scolaire)\n\n**Probl\u00e8me :** Dans une classe de Cotonou, il y a 3 fois plus de filles que de gar\u00e7ons. Si on ajoute 5 gar\u00e7ons, il y aura 32 gar\u00e7ons au total. Combien y avait-il de gar\u00e7ons au d\u00e9but ?\n\n**\u00c9quation :** x + 5 = 32\n\n**Solution :**\n```\nx + 5 = 32\nx + 5 - 5 = 32 - 5\nx = 27\n```\n\n**R\u00e9ponse :** Il y avait **27 gar\u00e7ons** au d\u00e9but.\n\n---\n\n## \ud83c\udfaf Types d'\u00c9quations Courantes\n\n### 1. **\u00c9quations du premier degr\u00e9**\nFormat : ax + b = c\n\nExemple : 5x - 3 = 17\n\n### 2. **\u00c9quations avec parenth\u00e8ses**\nFormat : a(x + b) = c\n\nExemple : 3(x + 2) = 15\n\n**Solution :**\n```\n3(x + 2) = 15\n3x + 6 = 15    (on d\u00e9veloppe)\n3x = 9         (on soustrait 6)\nx = 3          (on divise par 3)\n```\n\n### 3. **\u00c9quations avec x des deux c\u00f4t\u00e9s**\nExemple : 5x + 2 = 2x + 11\n\n**Solution :**\n```\n5x + 2 = 2x + 11\n5x - 2x = 11 - 2    (on regroupe les termes semblables)\n3x = 9\nx = 3\n```\n\n---\n\n## \ud83d\udca1 Conseils Pratiques\n\n\u2705 **Toujours v\u00e9rifier** ta solution en la rempla\u00e7ant dans l'\u00e9quation originale\n\n\u2705 **Proc\u00e9der m\u00e9thodiquement** : isole d'abord les termes avec x\n\n\u2705 **Faire les op\u00e9rations inverses** :\n- Addition \u2194 Soustraction\n- Multiplication \u2194 Division\n\n\u2705 **Garder l'\u00e9quilibre** : ce qu'on fait \u00e0 gauche, on le fait \u00e0 droite !\n\n---\n\n## \ud83c\udf93 Conclusion\n\nLes \u00e9quations sont comme des **\u00e9nigmes math\u00e9matiques** ! Avec de la pratique, tu deviendras expert(e) pour les r\u00e9soudre. Elles sont partout dans la vie :\n\n- Au march\u00e9 (calcul de prix)\n- Dans la construction (mesures)\n- En cuisine (proportions)\n- Dans les affaires (profits et pertes)\n\n**N'oublie pas :** Chaque \u00e9quation a une histoire \u00e0 raconter. Ton travail est de trouver la valeur myst\u00e9rieuse qui rend cette histoire vraie !\n\nContinue \u00e0 t'exercer, et bient\u00f4t tu r\u00e9soudras des \u00e9quations de plus en plus complexes avec facilit\u00e9 ! \ud83d\udcaa\n\n---\n\n**As-tu des questions sur un type d'\u00e9quation particulier ? Je suis l\u00e0 pour t'aider !**",
+            "sources": []
+          },
+          "timestamp": 1770144840142
+        },
+        {
+          "id": "msg-1770144875020",
+          "type": "user",
+          "problem": {
+            "id": "1770144875020",
+            "content": "more examples",
+            "submittedAt": 1770144875020
+          },
+          "timestamp": 1770144875020
+        },
+        {
+          "id": "msg-1770144875020-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770144875020",
+            "steps": [],
+            "finalAnswer": "# Professeur Bio : Exemples de Probl\u00e8mes Math\u00e9matiques\n\nBonjour cher(e) \u00e9l\u00e8ve ! \ud83d\udc4b\n\nJe vois que vous demandez \"more examples\" (plus d'exemples). Comme je ne connais pas le sujet sp\u00e9cifique qui vous int\u00e9resse, je vais vous proposer plusieurs exemples vari\u00e9s en math\u00e9matiques, adapt\u00e9s au contexte b\u00e9ninois.\n\n---\n\n## \ud83d\udcda EXEMPLE 1 : Probl\u00e8me d'arithm\u00e9tique (Commerce)\n\n### \u00c9nonc\u00e9\nAu march\u00e9 Dantokpa de Cotonou, Maman Adjara vend des tomates. Elle ach\u00e8te 5 caisses de tomates \u00e0 8 000 FCFA la caisse. Elle revend chaque caisse \u00e0 10 500 FCFA.\n\n**Question :** Quel est son b\u00e9n\u00e9fice total ?\n\n### Solution \u00e9tape par \u00e9tape\n\n**\u00c9tape 1 :** Calculer le co\u00fbt d'achat total\n- Co\u00fbt d'achat = 5 caisses \u00d7 8 000 FCFA = **40 000 FCFA**\n\n**\u00c9tape 2 :** Calculer la recette totale\n- Recette = 5 caisses \u00d7 10 500 FCFA = **52 500 FCFA**\n\n**\u00c9tape 3 :** Calculer le b\u00e9n\u00e9fice\n- B\u00e9n\u00e9fice = Recette - Co\u00fbt d'achat\n- B\u00e9n\u00e9fice = 52 500 - 40 000 = **12 500 FCFA**\n\n**R\u00e9ponse :** Maman Adjara r\u00e9alise un b\u00e9n\u00e9fice de **12 500 FCFA**.\n\n---\n\n## \ud83d\udcd0 EXEMPLE 2 : G\u00e9om\u00e9trie (Aire et p\u00e9rim\u00e8tre)\n\n### \u00c9nonc\u00e9\nPapa Koffi veut cl\u00f4turer son champ rectangulaire \u00e0 Parakou. Le champ mesure 25 m\u00e8tres de longueur et 15 m\u00e8tres de largeur.\n\n**Questions :**\na) Quelle est la longueur de grillage n\u00e9cessaire ?\nb) Quelle est la superficie du champ ?\n\n### Solution \u00e9tape par \u00e9tape\n\n**a) Calcul du p\u00e9rim\u00e8tre (longueur de grillage)**\n\n**Formule :** P = 2 \u00d7 (Longueur + Largeur)\n\n- P = 2 \u00d7 (25 + 15)\n- P = 2 \u00d7 40\n- P = **80 m\u00e8tres**\n\n**b) Calcul de la superficie**\n\n**Formule :** A = Longueur \u00d7 Largeur\n\n- A = 25 \u00d7 15\n- A = **375 m\u00b2**\n\n**R\u00e9ponses :** \n- a) Il faut **80 m\u00e8tres** de grillage\n- b) La superficie est de **375 m\u00b2**\n\n---\n\n## \ud83d\udd22 EXEMPLE 3 : Fractions (Partage)\n\n### \u00c9nonc\u00e9\n\u00c0 l'\u00e9cole primaire de Bohicon, un g\u00e2teau est partag\u00e9 entre 3 enfants. Akouvi re\u00e7oit 1/3 du g\u00e2teau, Kodjo re\u00e7oit 1/4, et Amina re\u00e7oit le reste.\n\n**Question :** Quelle fraction du g\u00e2teau Amina re\u00e7oit-elle ?\n\n### Solution \u00e9tape par \u00e9tape\n\n**\u00c9tape 1 :** Calculer ce qu'ont re\u00e7u Akouvi et Kodjo ensemble\n\nIl faut additionner 1/3 + 1/4\n\n- Trouver le d\u00e9nominateur commun : 12\n- 1/3 = 4/12\n- 1/4 = 3/12\n- Total = 4/12 + 3/12 = **7/12**\n\n**\u00c9tape 2 :** Calculer la part d'Amina\n\n- Part d'Amina = 1 - 7/12\n- Part d'Amina = 12/12 - 7/12 = **5/12**\n\n**R\u00e9ponse :** Amina re\u00e7oit **5/12** du g\u00e2teau.\n\n---\n\n## \ud83d\udcca EXEMPLE 4 : Pourcentages (R\u00e9duction)\n\n### \u00c9nonc\u00e9\nAu supermarch\u00e9 de Porto-Novo, un sac de riz de 25 kg co\u00fbte 15 000 FCFA. Le magasin offre une r\u00e9duction de 15%.\n\n**Question :** Quel est le nouveau prix apr\u00e8s r\u00e9duction ?\n\n### Solution \u00e9tape par \u00e9tape\n\n**\u00c9tape 1 :** Calculer le montant de la r\u00e9duction\n\n- R\u00e9duction = 15% de 15 000 FCFA\n- R\u00e9duction = (15/100) \u00d7 15 000\n- R\u00e9duction = 0,15 \u00d7 15 000 = **2 250 FCFA**\n\n**\u00c9tape 2 :** Calculer le nouveau prix\n\n- Nouveau prix = Prix initial - R\u00e9duction\n- Nouveau prix = 15 000 - 2 250 = **12 750 FCFA**\n\n**R\u00e9ponse :** Le nouveau prix est **12 750 FCFA**.\n\n---\n\n## \ud83c\udfaf Conclusion\n\nVoil\u00e0 4 exemples vari\u00e9s pour vous exercer ! N'h\u00e9sitez pas \u00e0 :\n- Me pr\u00e9ciser **quel sujet** vous int\u00e9resse particuli\u00e8rement\n- Me demander des exemples sur **un th\u00e8me sp\u00e9cifique** (\u00e9quations, g\u00e9om\u00e9trie, statistiques, etc.)\n- Me dire **votre niveau scolaire** pour des exercices adapt\u00e9s\n\nContinuez \u00e0 pratiquer r\u00e9guli\u00e8rement, c'est la cl\u00e9 du succ\u00e8s en math\u00e9matiques ! \ud83d\udcaa\n\n**Professeur Bio** \ud83c\udf1f",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770144875020,
+            "content": "# Professeur Bio : Exemples de Probl\u00e8mes Math\u00e9matiques\n\nBonjour cher(e) \u00e9l\u00e8ve ! \ud83d\udc4b\n\nJe vois que vous demandez \"more examples\" (plus d'exemples). Comme je ne connais pas le sujet sp\u00e9cifique qui vous int\u00e9resse, je vais vous proposer plusieurs exemples vari\u00e9s en math\u00e9matiques, adapt\u00e9s au contexte b\u00e9ninois.\n\n---\n\n## \ud83d\udcda EXEMPLE 1 : Probl\u00e8me d'arithm\u00e9tique (Commerce)\n\n### \u00c9nonc\u00e9\nAu march\u00e9 Dantokpa de Cotonou, Maman Adjara vend des tomates. Elle ach\u00e8te 5 caisses de tomates \u00e0 8 000 FCFA la caisse. Elle revend chaque caisse \u00e0 10 500 FCFA.\n\n**Question :** Quel est son b\u00e9n\u00e9fice total ?\n\n### Solution \u00e9tape par \u00e9tape\n\n**\u00c9tape 1 :** Calculer le co\u00fbt d'achat total\n- Co\u00fbt d'achat = 5 caisses \u00d7 8 000 FCFA = **40 000 FCFA**\n\n**\u00c9tape 2 :** Calculer la recette totale\n- Recette = 5 caisses \u00d7 10 500 FCFA = **52 500 FCFA**\n\n**\u00c9tape 3 :** Calculer le b\u00e9n\u00e9fice\n- B\u00e9n\u00e9fice = Recette - Co\u00fbt d'achat\n- B\u00e9n\u00e9fice = 52 500 - 40 000 = **12 500 FCFA**\n\n**R\u00e9ponse :** Maman Adjara r\u00e9alise un b\u00e9n\u00e9fice de **12 500 FCFA**.\n\n---\n\n## \ud83d\udcd0 EXEMPLE 2 : G\u00e9om\u00e9trie (Aire et p\u00e9rim\u00e8tre)\n\n### \u00c9nonc\u00e9\nPapa Koffi veut cl\u00f4turer son champ rectangulaire \u00e0 Parakou. Le champ mesure 25 m\u00e8tres de longueur et 15 m\u00e8tres de largeur.\n\n**Questions :**\na) Quelle est la longueur de grillage n\u00e9cessaire ?\nb) Quelle est la superficie du champ ?\n\n### Solution \u00e9tape par \u00e9tape\n\n**a) Calcul du p\u00e9rim\u00e8tre (longueur de grillage)**\n\n**Formule :** P = 2 \u00d7 (Longueur + Largeur)\n\n- P = 2 \u00d7 (25 + 15)\n- P = 2 \u00d7 40\n- P = **80 m\u00e8tres**\n\n**b) Calcul de la superficie**\n\n**Formule :** A = Longueur \u00d7 Largeur\n\n- A = 25 \u00d7 15\n- A = **375 m\u00b2**\n\n**R\u00e9ponses :** \n- a) Il faut **80 m\u00e8tres** de grillage\n- b) La superficie est de **375 m\u00b2**\n\n---\n\n## \ud83d\udd22 EXEMPLE 3 : Fractions (Partage)\n\n### \u00c9nonc\u00e9\n\u00c0 l'\u00e9cole primaire de Bohicon, un g\u00e2teau est partag\u00e9 entre 3 enfants. Akouvi re\u00e7oit 1/3 du g\u00e2teau, Kodjo re\u00e7oit 1/4, et Amina re\u00e7oit le reste.\n\n**Question :** Quelle fraction du g\u00e2teau Amina re\u00e7oit-elle ?\n\n### Solution \u00e9tape par \u00e9tape\n\n**\u00c9tape 1 :** Calculer ce qu'ont re\u00e7u Akouvi et Kodjo ensemble\n\nIl faut additionner 1/3 + 1/4\n\n- Trouver le d\u00e9nominateur commun : 12\n- 1/3 = 4/12\n- 1/4 = 3/12\n- Total = 4/12 + 3/12 = **7/12**\n\n**\u00c9tape 2 :** Calculer la part d'Amina\n\n- Part d'Amina = 1 - 7/12\n- Part d'Amina = 12/12 - 7/12 = **5/12**\n\n**R\u00e9ponse :** Amina re\u00e7oit **5/12** du g\u00e2teau.\n\n---\n\n## \ud83d\udcca EXEMPLE 4 : Pourcentages (R\u00e9duction)\n\n### \u00c9nonc\u00e9\nAu supermarch\u00e9 de Porto-Novo, un sac de riz de 25 kg co\u00fbte 15 000 FCFA. Le magasin offre une r\u00e9duction de 15%.\n\n**Question :** Quel est le nouveau prix apr\u00e8s r\u00e9duction ?\n\n### Solution \u00e9tape par \u00e9tape\n\n**\u00c9tape 1 :** Calculer le montant de la r\u00e9duction\n\n- R\u00e9duction = 15% de 15 000 FCFA\n- R\u00e9duction = (15/100) \u00d7 15 000\n- R\u00e9duction = 0,15 \u00d7 15 000 = **2 250 FCFA**\n\n**\u00c9tape 2 :** Calculer le nouveau prix\n\n- Nouveau prix = Prix initial - R\u00e9duction\n- Nouveau prix = 15 000 - 2 250 = **12 750 FCFA**\n\n**R\u00e9ponse :** Le nouveau prix est **12 750 FCFA**.\n\n---\n\n## \ud83c\udfaf Conclusion\n\nVoil\u00e0 4 exemples vari\u00e9s pour vous exercer ! N'h\u00e9sitez pas \u00e0 :\n- Me pr\u00e9ciser **quel sujet** vous int\u00e9resse particuli\u00e8rement\n- Me demander des exemples sur **un th\u00e8me sp\u00e9cifique** (\u00e9quations, g\u00e9om\u00e9trie, statistiques, etc.)\n- Me dire **votre niveau scolaire** pour des exercices adapt\u00e9s\n\nContinuez \u00e0 pratiquer r\u00e9guli\u00e8rement, c'est la cl\u00e9 du succ\u00e8s en math\u00e9matiques ! \ud83d\udcaa\n\n**Professeur Bio** \ud83c\udf1f",
+            "sources": []
+          },
+          "timestamp": 1770144875020
+        },
+        {
+          "id": "msg-1770144916295",
+          "type": "user",
+          "problem": {
+            "id": "1770144916295",
+            "content": "0-4",
+            "submittedAt": 1770144916295
+          },
+          "timestamp": 1770144916295
+        },
+        {
+          "id": "msg-1770144916295-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770144916295",
+            "steps": [],
+            "finalAnswer": "# Solution : 0 - 4\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'aider avec ce calcul de soustraction.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **0 - 4**\n\nIl s'agit d'une soustraction o\u00f9 nous retirons 4 \u00e0 partir de 0. Ce type d'op\u00e9ration nous am\u00e8ne dans le domaine des **nombres n\u00e9gatifs** (ou nombres relatifs).\n\n## \ud83d\udcdd \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre la situation\n\nImaginons une situation concr\u00e8te :\n- Tu as **0 franc CFA** dans ta poche (tu n'as rien)\n- Tu dois emprunter **4 francs CFA** \u00e0 ton ami pour acheter quelque chose\n\nQue se passe-t-il ? Tu auras une **dette de 4 francs CFA**.\n\n### \u00c9tape 2 : Utilisation de la droite num\u00e9rique\n\nPla\u00e7ons-nous sur une droite gradu\u00e9e :\n\n```\n... -5 \u2190 -4 \u2190 -3 \u2190 -2 \u2190 -1 \u2190 0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 5 ...\n```\n\n- On part de **0**\n- On recule de **4 positions** vers la gauche\n- On arrive \u00e0 **-4**\n\n### \u00c9tape 3 : Application de la r\u00e8gle\n\nQuand on soustrait un nombre plus grand que celui de d\u00e9part :\n**0 - 4 = -4**\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 0 - 4 = -4**\n\nLe r\u00e9sultat est **moins quatre** (ou **n\u00e9gatif quatre**). C'est un nombre n\u00e9gatif qui repr\u00e9sente une valeur inf\u00e9rieure \u00e0 z\u00e9ro, comme une dette, une temp\u00e9rature en dessous de z\u00e9ro, ou une profondeur sous le niveau de la mer.\n\n### \ud83d\udca1 Retiens bien :\n- Soustraire un nombre \u00e0 z\u00e9ro donne toujours le **oppos\u00e9** de ce nombre\n- L'oppos\u00e9 de 4 est -4\n\nContinue \u00e0 bien travailler ! \ud83c\udf1f",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770144916295,
+            "content": "# Solution : 0 - 4\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'aider avec ce calcul de soustraction.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **0 - 4**\n\nIl s'agit d'une soustraction o\u00f9 nous retirons 4 \u00e0 partir de 0. Ce type d'op\u00e9ration nous am\u00e8ne dans le domaine des **nombres n\u00e9gatifs** (ou nombres relatifs).\n\n## \ud83d\udcdd \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre la situation\n\nImaginons une situation concr\u00e8te :\n- Tu as **0 franc CFA** dans ta poche (tu n'as rien)\n- Tu dois emprunter **4 francs CFA** \u00e0 ton ami pour acheter quelque chose\n\nQue se passe-t-il ? Tu auras une **dette de 4 francs CFA**.\n\n### \u00c9tape 2 : Utilisation de la droite num\u00e9rique\n\nPla\u00e7ons-nous sur une droite gradu\u00e9e :\n\n```\n... -5 \u2190 -4 \u2190 -3 \u2190 -2 \u2190 -1 \u2190 0 \u2192 1 \u2192 2 \u2192 3 \u2192 4 \u2192 5 ...\n```\n\n- On part de **0**\n- On recule de **4 positions** vers la gauche\n- On arrive \u00e0 **-4**\n\n### \u00c9tape 3 : Application de la r\u00e8gle\n\nQuand on soustrait un nombre plus grand que celui de d\u00e9part :\n**0 - 4 = -4**\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 0 - 4 = -4**\n\nLe r\u00e9sultat est **moins quatre** (ou **n\u00e9gatif quatre**). C'est un nombre n\u00e9gatif qui repr\u00e9sente une valeur inf\u00e9rieure \u00e0 z\u00e9ro, comme une dette, une temp\u00e9rature en dessous de z\u00e9ro, ou une profondeur sous le niveau de la mer.\n\n### \ud83d\udca1 Retiens bien :\n- Soustraire un nombre \u00e0 z\u00e9ro donne toujours le **oppos\u00e9** de ce nombre\n- L'oppos\u00e9 de 4 est -4\n\nContinue \u00e0 bien travailler ! \ud83c\udf1f",
+            "sources": []
+          },
+          "timestamp": 1770144916295
+        },
+        {
+          "id": "msg-1770144991947",
+          "type": "user",
+          "problem": {
+            "id": "1770144991947",
+            "content": "8-0",
+            "submittedAt": 1770144991947
+          },
+          "timestamp": 1770144991947
+        },
+        {
+          "id": "msg-1770144991947-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770144991947",
+            "steps": [],
+            "finalAnswer": "# Solution : 8 - 0\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'aider avec cette op\u00e9ration math\u00e9matique.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **8 - 0**\n\nC'est une op\u00e9ration de **soustraction** tr\u00e8s simple mais importante \u00e0 bien comprendre !\n\n## \ud83d\udd0d \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre l'op\u00e9ration\n- Nous avons le nombre **8** (le diminuende)\n- Nous devons soustraire **0** (le diminuant)\n\n### \u00c9tape 2 : Appliquer la r\u00e8gle de soustraction du z\u00e9ro\nVoici une r\u00e8gle fondamentale en math\u00e9matiques :\n\n> **Quand on soustrait z\u00e9ro d'un nombre, ce nombre reste inchang\u00e9.**\n\n### \u00c9tape 3 : Calculer\n8 - 0 = **8**\n\n## \ud83d\udca1 Exemple concret (contexte b\u00e9ninois)\n\nImagine que tu as **8 oranges** achet\u00e9es au march\u00e9 de Dantokpa \u00e0 Cotonou. Si tu n'en donnes **aucune** (0) \u00e0 ton ami, tu gardes toujours tes **8 oranges** ! \ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 8 - 0 = 8**\n\nCette op\u00e9ration illustre une propri\u00e9t\u00e9 importante : soustraire z\u00e9ro ne change pas la valeur du nombre initial. C'est une r\u00e8gle que tu utiliseras souvent dans tes calculs !\n\nContinue \u00e0 pratiquer, tu fais du bon travail ! \ud83d\udcaa\ud83d\udcda",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770144991947,
+            "content": "# Solution : 8 - 0\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'aider avec cette op\u00e9ration math\u00e9matique.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **8 - 0**\n\nC'est une op\u00e9ration de **soustraction** tr\u00e8s simple mais importante \u00e0 bien comprendre !\n\n## \ud83d\udd0d \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre l'op\u00e9ration\n- Nous avons le nombre **8** (le diminuende)\n- Nous devons soustraire **0** (le diminuant)\n\n### \u00c9tape 2 : Appliquer la r\u00e8gle de soustraction du z\u00e9ro\nVoici une r\u00e8gle fondamentale en math\u00e9matiques :\n\n> **Quand on soustrait z\u00e9ro d'un nombre, ce nombre reste inchang\u00e9.**\n\n### \u00c9tape 3 : Calculer\n8 - 0 = **8**\n\n## \ud83d\udca1 Exemple concret (contexte b\u00e9ninois)\n\nImagine que tu as **8 oranges** achet\u00e9es au march\u00e9 de Dantokpa \u00e0 Cotonou. Si tu n'en donnes **aucune** (0) \u00e0 ton ami, tu gardes toujours tes **8 oranges** ! \ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 8 - 0 = 8**\n\nCette op\u00e9ration illustre une propri\u00e9t\u00e9 importante : soustraire z\u00e9ro ne change pas la valeur du nombre initial. C'est une r\u00e8gle que tu utiliseras souvent dans tes calculs !\n\nContinue \u00e0 pratiquer, tu fais du bon travail ! \ud83d\udcaa\ud83d\udcda",
+            "sources": []
+          },
+          "timestamp": 1770144991947
+        },
+        {
+          "id": "msg-1770145438280",
+          "type": "user",
+          "problem": {
+            "id": "1770145438280",
+            "content": "IHUNIN",
+            "submittedAt": 1770145438280
+          },
+          "timestamp": 1770145438280
+        },
+        {
+          "id": "msg-1770145446246",
+          "type": "user",
+          "problem": {
+            "id": "1770145446246",
+            "content": "IHUNIN",
+            "submittedAt": 1770145446246
+          },
+          "timestamp": 1770145446246
+        },
+        {
+          "id": "msg-1770145446246-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770145446246",
+            "steps": [],
+            "finalAnswer": "Bonjour cher apprenant ! \ud83d\udc4b\n\nJe remarque que votre question \"IHUNIN\" n'est pas claire. Il semble qu'il y ait peut-\u00eatre une erreur de frappe ou un probl\u00e8me de transmission du message.\n\n## \ud83e\udd14 Comment puis-je vous aider ?\n\nPour vous offrir la meilleure assistance en math\u00e9matiques, j'aurais besoin que vous :\n\n### 1\ufe0f\u20e3 **Pr\u00e9cisiez votre question**\n- S'agit-il d'un probl\u00e8me d'alg\u00e8bre ?\n- De g\u00e9om\u00e9trie ?\n- D'arithm\u00e9tique ?\n- De statistiques ?\n- Ou d'un autre domaine math\u00e9matique ?\n\n### 2\ufe0f\u20e3 **Partagez l'\u00e9nonc\u00e9 complet**\nN'h\u00e9sitez pas \u00e0 \u00e9crire :\n- Le texte du probl\u00e8me\n- Les donn\u00e9es num\u00e9riques\n- Ce qui est demand\u00e9\n\n### 3\ufe0f\u20e3 **Exemples de questions que je peux traiter**\n- *\"R\u00e9soudre l'\u00e9quation : 2x + 5 = 13\"*\n- *\"Calculer l'aire d'un rectangle de 8m par 5m\"*\n- *\"Un commer\u00e7ant de Cotonou ach\u00e8te des mangues \u00e0 200 FCFA...\"*\n\n## \ud83d\udca1 Je suis l\u00e0 pour vous aider !\n\nReformulez votre question math\u00e9matique, et je me ferai un plaisir de vous accompagner avec des explications d\u00e9taill\u00e9es et adapt\u00e9es au contexte b\u00e9ninois.\n\nEn attendant votre r\u00e9ponse ! \ud83d\udcda\u2728\n\n**Professeur Bio**",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770145446246,
+            "content": "Bonjour cher apprenant ! \ud83d\udc4b\n\nJe remarque que votre question \"IHUNIN\" n'est pas claire. Il semble qu'il y ait peut-\u00eatre une erreur de frappe ou un probl\u00e8me de transmission du message.\n\n## \ud83e\udd14 Comment puis-je vous aider ?\n\nPour vous offrir la meilleure assistance en math\u00e9matiques, j'aurais besoin que vous :\n\n### 1\ufe0f\u20e3 **Pr\u00e9cisiez votre question**\n- S'agit-il d'un probl\u00e8me d'alg\u00e8bre ?\n- De g\u00e9om\u00e9trie ?\n- D'arithm\u00e9tique ?\n- De statistiques ?\n- Ou d'un autre domaine math\u00e9matique ?\n\n### 2\ufe0f\u20e3 **Partagez l'\u00e9nonc\u00e9 complet**\nN'h\u00e9sitez pas \u00e0 \u00e9crire :\n- Le texte du probl\u00e8me\n- Les donn\u00e9es num\u00e9riques\n- Ce qui est demand\u00e9\n\n### 3\ufe0f\u20e3 **Exemples de questions que je peux traiter**\n- *\"R\u00e9soudre l'\u00e9quation : 2x + 5 = 13\"*\n- *\"Calculer l'aire d'un rectangle de 8m par 5m\"*\n- *\"Un commer\u00e7ant de Cotonou ach\u00e8te des mangues \u00e0 200 FCFA...\"*\n\n## \ud83d\udca1 Je suis l\u00e0 pour vous aider !\n\nReformulez votre question math\u00e9matique, et je me ferai un plaisir de vous accompagner avec des explications d\u00e9taill\u00e9es et adapt\u00e9es au contexte b\u00e9ninois.\n\nEn attendant votre r\u00e9ponse ! \ud83d\udcda\u2728\n\n**Professeur Bio**",
+            "sources": []
+          },
+          "timestamp": 1770145446246
+        },
+        {
+          "id": "msg-1770145467493",
+          "type": "user",
+          "problem": {
+            "id": "1770145467493",
+            "content": "8-0",
+            "submittedAt": 1770145467493
+          },
+          "timestamp": 1770145467493
+        },
+        {
+          "id": "msg-1770145467493-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770145467493",
+            "steps": [],
+            "finalAnswer": "# Solution : 8 - 0\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'accompagner dans ce calcul simple mais important.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nTu dois calculer : **8 - 0**\n\nIl s'agit d'une soustraction o\u00f9 on enl\u00e8ve z\u00e9ro (rien) du nombre 8.\n\n## \ud83d\udd0d \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre le z\u00e9ro en soustraction\n\nLe z\u00e9ro (0) repr\u00e9sente **rien**, **aucune quantit\u00e9**. Quand on soustrait z\u00e9ro d'un nombre, cela signifie qu'on n'enl\u00e8ve rien \u00e0 ce nombre.\n\n### \u00c9tape 2 : Application pratique\n\nImagine que tu as **8 oranges** du march\u00e9 Dantokpa \u00e0 Cotonou. Si on t'enl\u00e8ve **0 orange** (c'est-\u00e0-dire aucune orange), combien t'en reste-t-il ?\n\nTu gardes toutes tes oranges ! Donc : **8 oranges** \ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\n\n### \u00c9tape 3 : Le calcul\n\n**8 - 0 = 8**\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 8 - 0 = 8**\n\n### \ud83d\udca1 R\u00e8gle \u00e0 retenir\n\nQuand on soustrait **z\u00e9ro** de n'importe quel nombre, on obtient toujours **ce m\u00eame nombre**.\n\nExemples :\n- 5 - 0 = 5\n- 100 - 0 = 100\n- 1000 - 0 = 1000\n\nContinue comme \u00e7a ! Tu ma\u00eetrises bien les bases des math\u00e9matiques ! \ud83c\udf1f",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770145467493,
+            "content": "# Solution : 8 - 0\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'accompagner dans ce calcul simple mais important.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nTu dois calculer : **8 - 0**\n\nIl s'agit d'une soustraction o\u00f9 on enl\u00e8ve z\u00e9ro (rien) du nombre 8.\n\n## \ud83d\udd0d \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre le z\u00e9ro en soustraction\n\nLe z\u00e9ro (0) repr\u00e9sente **rien**, **aucune quantit\u00e9**. Quand on soustrait z\u00e9ro d'un nombre, cela signifie qu'on n'enl\u00e8ve rien \u00e0 ce nombre.\n\n### \u00c9tape 2 : Application pratique\n\nImagine que tu as **8 oranges** du march\u00e9 Dantokpa \u00e0 Cotonou. Si on t'enl\u00e8ve **0 orange** (c'est-\u00e0-dire aucune orange), combien t'en reste-t-il ?\n\nTu gardes toutes tes oranges ! Donc : **8 oranges** \ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\n\n### \u00c9tape 3 : Le calcul\n\n**8 - 0 = 8**\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 8 - 0 = 8**\n\n### \ud83d\udca1 R\u00e8gle \u00e0 retenir\n\nQuand on soustrait **z\u00e9ro** de n'importe quel nombre, on obtient toujours **ce m\u00eame nombre**.\n\nExemples :\n- 5 - 0 = 5\n- 100 - 0 = 100\n- 1000 - 0 = 1000\n\nContinue comme \u00e7a ! Tu ma\u00eetrises bien les bases des math\u00e9matiques ! \ud83c\udf1f",
+            "sources": []
+          },
+          "timestamp": 1770145467493
+        },
+        {
+          "id": "msg-1770148995010",
+          "type": "user",
+          "problem": {
+            "id": "1770148995010",
+            "content": "2-22",
+            "submittedAt": 1770148995010,
+            "userId": "user_38seH4e2bob7yMokOBv8o6PwqiN"
+          },
+          "timestamp": 1770148995010
+        },
+        {
+          "id": "msg-1770148995010-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770148995010",
+            "steps": [],
+            "finalAnswer": "# Solution : 2 - 22\n\nBonjour cher \u00e9l\u00e8ve ! Je suis ravi de t'aider avec ce calcul. C'est un exercice sur les **nombres relatifs** (nombres positifs et n\u00e9gatifs).\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **2 - 22**\n\nIl s'agit d'une soustraction o\u00f9 nous enlevons un nombre plus grand (22) d'un nombre plus petit (2). Le r\u00e9sultat sera donc un **nombre n\u00e9gatif**.\n\n## \ud83d\udcdd \u00c9tapes de r\u00e9solution\n\n### M\u00e9thode 1 : Par la diff\u00e9rence\nQuand on soustrait un plus grand nombre d'un plus petit nombre :\n- On calcule la diff\u00e9rence entre les deux nombres\n- On met le signe \"moins\" devant le r\u00e9sultat\n\n**Calcul :**\n- Diff\u00e9rence : 22 - 2 = 20\n- Comme on enl\u00e8ve 22 de 2, le r\u00e9sultat est n\u00e9gatif : **-20**\n\n### M\u00e9thode 2 : Sur la droite num\u00e9rique\nImagine une droite gradu\u00e9e :\n- Tu pars de **+2**\n- Tu recules de **22 unit\u00e9s** vers la gauche\n- Tu arrives \u00e0 **-20**\n\n### \ud83c\udf34 Exemple concret (contexte b\u00e9ninois)\nImagine que tu as **2000 FCFA** dans ta poche, mais tu dois payer **22000 FCFA** pour des fournitures scolaires. \n\nTu auras une dette de : 2000 - 22000 = **-20000 FCFA**\n\nCela signifie que tu dois **20000 FCFA** !\n\n## \u2705 Conclusion\n\n**2 - 22 = -20**\n\nLe r\u00e9sultat est **moins vingt** (-20), un nombre n\u00e9gatif situ\u00e9 \u00e0 20 unit\u00e9s \u00e0 gauche de z\u00e9ro sur la droite num\u00e9rique.\n\nContinue \u00e0 t'exercer avec les nombres relatifs, c'est tr\u00e8s important pour la suite ! \ud83d\udcaa",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770148995010,
+            "content": "# Solution : 2 - 22\n\nBonjour cher \u00e9l\u00e8ve ! Je suis ravi de t'aider avec ce calcul. C'est un exercice sur les **nombres relatifs** (nombres positifs et n\u00e9gatifs).\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **2 - 22**\n\nIl s'agit d'une soustraction o\u00f9 nous enlevons un nombre plus grand (22) d'un nombre plus petit (2). Le r\u00e9sultat sera donc un **nombre n\u00e9gatif**.\n\n## \ud83d\udcdd \u00c9tapes de r\u00e9solution\n\n### M\u00e9thode 1 : Par la diff\u00e9rence\nQuand on soustrait un plus grand nombre d'un plus petit nombre :\n- On calcule la diff\u00e9rence entre les deux nombres\n- On met le signe \"moins\" devant le r\u00e9sultat\n\n**Calcul :**\n- Diff\u00e9rence : 22 - 2 = 20\n- Comme on enl\u00e8ve 22 de 2, le r\u00e9sultat est n\u00e9gatif : **-20**\n\n### M\u00e9thode 2 : Sur la droite num\u00e9rique\nImagine une droite gradu\u00e9e :\n- Tu pars de **+2**\n- Tu recules de **22 unit\u00e9s** vers la gauche\n- Tu arrives \u00e0 **-20**\n\n### \ud83c\udf34 Exemple concret (contexte b\u00e9ninois)\nImagine que tu as **2000 FCFA** dans ta poche, mais tu dois payer **22000 FCFA** pour des fournitures scolaires. \n\nTu auras une dette de : 2000 - 22000 = **-20000 FCFA**\n\nCela signifie que tu dois **20000 FCFA** !\n\n## \u2705 Conclusion\n\n**2 - 22 = -20**\n\nLe r\u00e9sultat est **moins vingt** (-20), un nombre n\u00e9gatif situ\u00e9 \u00e0 20 unit\u00e9s \u00e0 gauche de z\u00e9ro sur la droite num\u00e9rique.\n\nContinue \u00e0 t'exercer avec les nombres relatifs, c'est tr\u00e8s important pour la suite ! \ud83d\udcaa",
+            "sources": []
+          },
+          "timestamp": 1770148995010
+        }
+      ]
+    },
+    {
+      "id": "conv-1770133988552",
+      "title": "5-0",
+      "createdAt": "2026-02-03T18:53:08.553756",
+      "updatedAt": "2026-02-03T18:53:42.285945",
+      "messages": [
+        {
+          "id": "msg-1770144810655",
+          "type": "user",
+          "problem": {
+            "id": "1770144810655",
+            "content": "5-0",
+            "submittedAt": 1770144810655
+          },
+          "timestamp": 1770144810655
+        },
+        {
+          "id": "msg-1770144810655-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770144810655",
+            "steps": [],
+            "finalAnswer": "# R\u00e9solution : 5 - 0\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b\n\nJe suis ravi de t'aider avec cette op\u00e9ration math\u00e9matique. C'est une excellente question pour bien comprendre les bases de la soustraction !\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **5 - 0**\n\nIl s'agit d'une **soustraction** o\u00f9 nous retirons **0** (z\u00e9ro) de **5** (cinq).\n\n## \ud83d\udd0d \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre ce que signifie soustraire z\u00e9ro\n\nQuand on soustrait **z\u00e9ro** d'un nombre, cela signifie qu'on **n'enl\u00e8ve rien** du tout !\n\n### \u00c9tape 2 : Application pratique\n\nImaginons que tu as **5 oranges** du march\u00e9 Dantokpa \u00e0 Cotonou \ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\n\nSi tu donnes **0 orange** \u00e0 ton ami (c'est-\u00e0-dire aucune orange), combien t'en reste-t-il ?\n\nTu gardes toutes tes oranges ! Donc il te reste **5 oranges**.\n\n### \u00c9tape 3 : Calcul\n\n**5 - 0 = 5**\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 5 - 0 = 5**\n\n### \ud83d\udca1 R\u00e8gle importante \u00e0 retenir :\n\n> **Tout nombre moins z\u00e9ro \u00e9gale ce m\u00eame nombre.**\n> \n> Exemples : 3 - 0 = 3 ; 10 - 0 = 10 ; 100 - 0 = 100\n\nContinue \u00e0 poser des questions, tu progresses tr\u00e8s bien ! \ud83c\udf1f",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770144810655,
+            "content": "# R\u00e9solution : 5 - 0\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b\n\nJe suis ravi de t'aider avec cette op\u00e9ration math\u00e9matique. C'est une excellente question pour bien comprendre les bases de la soustraction !\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **5 - 0**\n\nIl s'agit d'une **soustraction** o\u00f9 nous retirons **0** (z\u00e9ro) de **5** (cinq).\n\n## \ud83d\udd0d \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre ce que signifie soustraire z\u00e9ro\n\nQuand on soustrait **z\u00e9ro** d'un nombre, cela signifie qu'on **n'enl\u00e8ve rien** du tout !\n\n### \u00c9tape 2 : Application pratique\n\nImaginons que tu as **5 oranges** du march\u00e9 Dantokpa \u00e0 Cotonou \ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\n\nSi tu donnes **0 orange** \u00e0 ton ami (c'est-\u00e0-dire aucune orange), combien t'en reste-t-il ?\n\nTu gardes toutes tes oranges ! Donc il te reste **5 oranges**.\n\n### \u00c9tape 3 : Calcul\n\n**5 - 0 = 5**\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 5 - 0 = 5**\n\n### \ud83d\udca1 R\u00e8gle importante \u00e0 retenir :\n\n> **Tout nombre moins z\u00e9ro \u00e9gale ce m\u00eame nombre.**\n> \n> Exemples : 3 - 0 = 3 ; 10 - 0 = 10 ; 100 - 0 = 100\n\nContinue \u00e0 poser des questions, tu progresses tr\u00e8s bien ! \ud83c\udf1f",
+            "sources": []
+          },
+          "timestamp": 1770144810655
+        }
+      ]
+    },
+    {
+      "id": "conv-1770137972484",
+      "title": "Chat",
+      "createdAt": "2026-02-03T19:59:32.484418",
+      "updatedAt": "2026-02-03T20:00:10.822617",
+      "messages": []
+    },
+    {
+      "id": "conv-1770138142358",
+      "title": "1-1000",
+      "createdAt": "2026-02-03T20:02:22.358620",
+      "updatedAt": "2026-02-03T20:02:34.528731",
+      "messages": [
+        {
+          "id": "msg-1770148942375",
+          "type": "user",
+          "problem": {
+            "id": "1770148942375",
+            "content": "1-1000",
+            "submittedAt": 1770148942375,
+            "userId": "user_38seH4e2bob7yMokOBv8o6PwqiN"
+          },
+          "timestamp": 1770148942375
+        },
+        {
+          "id": "msg-1770148942375-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770148942375",
+            "steps": [],
+            "finalAnswer": "# Solution : 1 - 1000\n\nBonjour cher(e) \u00e9l\u00e8ve ! Je suis ravi de t'aider avec ce calcul. C'est une excellente opportunit\u00e9 pour r\u00e9viser la soustraction avec des nombres n\u00e9gatifs.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **1 - 1000**\n\nIl s'agit d'une soustraction o\u00f9 nous enlevons un grand nombre (1000) d'un petit nombre (1). Le r\u00e9sultat sera un **nombre n\u00e9gatif**.\n\n## \ud83d\udcdd \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre la soustraction\n\nQuand on soustrait : 1 - 1000\n\nOn peut se demander : \"De combien 1 est-il plus petit que 1000 ?\"\n\n### \u00c9tape 2 : M\u00e9thode de calcul\n\n**M\u00e9thode 1 - Penser en termes de dette :**\n- Si tu as 1 franc CFA et que tu dois payer 1000 francs CFA, \n- Tu seras en dette de 999 francs CFA\n\n**M\u00e9thode 2 - Calculer la diff\u00e9rence :**\n- La diff\u00e9rence entre 1000 et 1 est : 1000 - 1 = 999\n- Puisque nous soustrayons le plus grand du plus petit, le r\u00e9sultat est n\u00e9gatif\n\n### \u00c9tape 3 : Calcul final\n\n**1 - 1000 = -999**\n\n## \u2705 Conclusion\n\n**R\u00e9ponse : 1 - 1000 = -999**\n\n### \ud83d\udca1 Pour bien comprendre :\n\nLe r\u00e9sultat **-999** signifie que nous sommes 999 unit\u00e9s en dessous de z\u00e9ro.\n\n**Exemple concret :** Imagine que tu as 1 noix de coco au march\u00e9 de Dantokpa \u00e0 Cotonou, mais tu dois livrer 1000 noix de coco. Il te manquera 999 noix de coco !\n\nContinue \u00e0 pratiquer, tu progresses bien ! \ud83c\udf1f",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770148942375,
+            "content": "# Solution : 1 - 1000\n\nBonjour cher(e) \u00e9l\u00e8ve ! Je suis ravi de t'aider avec ce calcul. C'est une excellente opportunit\u00e9 pour r\u00e9viser la soustraction avec des nombres n\u00e9gatifs.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nNous devons calculer : **1 - 1000**\n\nIl s'agit d'une soustraction o\u00f9 nous enlevons un grand nombre (1000) d'un petit nombre (1). Le r\u00e9sultat sera un **nombre n\u00e9gatif**.\n\n## \ud83d\udcdd \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre la soustraction\n\nQuand on soustrait : 1 - 1000\n\nOn peut se demander : \"De combien 1 est-il plus petit que 1000 ?\"\n\n### \u00c9tape 2 : M\u00e9thode de calcul\n\n**M\u00e9thode 1 - Penser en termes de dette :**\n- Si tu as 1 franc CFA et que tu dois payer 1000 francs CFA, \n- Tu seras en dette de 999 francs CFA\n\n**M\u00e9thode 2 - Calculer la diff\u00e9rence :**\n- La diff\u00e9rence entre 1000 et 1 est : 1000 - 1 = 999\n- Puisque nous soustrayons le plus grand du plus petit, le r\u00e9sultat est n\u00e9gatif\n\n### \u00c9tape 3 : Calcul final\n\n**1 - 1000 = -999**\n\n## \u2705 Conclusion\n\n**R\u00e9ponse : 1 - 1000 = -999**\n\n### \ud83d\udca1 Pour bien comprendre :\n\nLe r\u00e9sultat **-999** signifie que nous sommes 999 unit\u00e9s en dessous de z\u00e9ro.\n\n**Exemple concret :** Imagine que tu as 1 noix de coco au march\u00e9 de Dantokpa \u00e0 Cotonou, mais tu dois livrer 1000 noix de coco. Il te manquera 999 noix de coco !\n\nContinue \u00e0 pratiquer, tu progresses bien ! \ud83c\udf1f",
+            "sources": []
+          },
+          "timestamp": 1770148942375
+        }
+      ]
+    },
+    {
+      "id": "conv-1770144875961",
+      "title": "Explain D\u00e9riv\u00e9es",
+      "createdAt": "2026-02-03T21:54:35.961745",
+      "updatedAt": "2026-02-03T21:55:09.407541",
+      "messages": [
+        {
+          "id": "msg-1770155682870",
+          "type": "user",
+          "problem": {
+            "id": "1770155682870",
+            "content": "Explain D\u00e9riv\u00e9es",
+            "submittedAt": 1770155682870,
+            "userId": "user_38seH4e2bob7yMokOBv8o6PwqiN"
+          },
+          "timestamp": 1770155682870
+        },
+        {
+          "id": "msg-1770155682870-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1770155682870",
+            "steps": [],
+            "finalAnswer": "# Les D\u00e9riv\u00e9es : Un Guide Complet\n\nBonjour cher \u00e9l\u00e8ve ! Je suis ravi de t'expliquer ce concept fondamental du calcul diff\u00e9rentiel. Les d\u00e9riv\u00e9es sont un outil puissant qui permet de comprendre comment les choses changent autour de nous.\n\n## \ud83d\udccb Aper\u00e7u\n\n### Qu'est-ce qu'une d\u00e9riv\u00e9e ?\n\nLa **d\u00e9riv\u00e9e** mesure le **taux de variation instantan\u00e9** d'une fonction. En d'autres termes, elle nous indique \u00e0 quelle vitesse une quantit\u00e9 change par rapport \u00e0 une autre.\n\n**Exemple concret du B\u00e9nin** : Imagine un vendeur de tomates au march\u00e9 Dantokpa \u00e0 Cotonou. Si le prix des tomates varie selon la saison, la d\u00e9riv\u00e9e nous dirait \u00e0 quelle vitesse le prix augmente ou diminue \u00e0 un moment pr\u00e9cis.\n\n## \ud83d\udcd6 D\u00e9finition Math\u00e9matique\n\nLa d\u00e9riv\u00e9e d'une fonction f(x) au point x est :\n\n**f'(x) = lim[h\u21920] [f(x+h) - f(x)]/h**\n\nCette formule calcule la pente de la tangente \u00e0 la courbe au point x.\n\n## \ud83d\udd0d \u00c9tapes pour Comprendre les D\u00e9riv\u00e9es\n\n### **\u00c9tape 1 : L'interpr\u00e9tation g\u00e9om\u00e9trique**\n\n- La d\u00e9riv\u00e9e repr\u00e9sente la **pente de la tangente** \u00e0 la courbe en un point\n- Si f'(x) > 0 : la fonction est croissante\n- Si f'(x) < 0 : la fonction est d\u00e9croissante\n- Si f'(x) = 0 : on a un point critique (maximum, minimum ou point d'inflexion)\n\n### **\u00c9tape 2 : Les r\u00e8gles de d\u00e9rivation essentielles**\n\nVoici les formules que tu dois ma\u00eetriser :\n\n| Fonction | D\u00e9riv\u00e9e |\n|----------|---------|\n| f(x) = c (constante) | f'(x) = 0 |\n| f(x) = x^n | f'(x) = n\u00b7x^(n-1) |\n| f(x) = e^x | f'(x) = e^x |\n| f(x) = ln(x) | f'(x) = 1/x |\n| f(x) = sin(x) | f'(x) = cos(x) |\n| f(x) = cos(x) | f'(x) = -sin(x) |\n\n### **\u00c9tape 3 : Les op\u00e9rations sur les d\u00e9riv\u00e9es**\n\n**D\u00e9riv\u00e9e d'une somme :**\n(u + v)' = u' + v'\n\n**D\u00e9riv\u00e9e d'un produit :**\n(u \u00d7 v)' = u'v + uv'\n\n**D\u00e9riv\u00e9e d'un quotient :**\n(u/v)' = (u'v - uv')/v\u00b2\n\n**D\u00e9riv\u00e9e d'une fonction compos\u00e9e (r\u00e8gle de la cha\u00eene) :**\n[f(g(x))]' = f'(g(x)) \u00d7 g'(x)\n\n## \ud83d\udca1 Exemples Pratiques\n\n### **Exemple 1 : Fonction polynomiale**\n\nSoit f(x) = 3x\u00b2 + 5x - 2\n\n**Solution :**\n- D\u00e9riv\u00e9e de 3x\u00b2 : 3 \u00d7 2x = 6x\n- D\u00e9riv\u00e9e de 5x : 5\n- D\u00e9riv\u00e9e de -2 : 0\n\n**R\u00e9ponse : f'(x) = 6x + 5**\n\n### **Exemple 2 : Application au B\u00e9nin**\n\nSupposons que la production de coton au B\u00e9nin (en tonnes) suit la fonction :\nP(t) = -2t\u00b2 + 40t + 100, o\u00f9 t est le temps en mois.\n\nPour savoir \u00e0 quelle vitesse la production change :\n\nP'(t) = -4t + 40\n\n- Au mois t = 5 : P'(5) = -4(5) + 40 = 20 tonnes/mois (la production augmente)\n- Au mois t = 10 : P'(10) = -4(10) + 40 = 0 (production maximale)\n- Au mois t = 15 : P'(15) = -4(15) + 40 = -20 tonnes/mois (la production diminue)\n\n### **Exemple 3 : Fonction compos\u00e9e**\n\nSoit f(x) = (2x + 3)\u2075\n\n**Solution avec la r\u00e8gle de la cha\u00eene :**\n- Fonction ext\u00e9rieure : u\u2075 \u2192 d\u00e9riv\u00e9e : 5u\u2074\n- Fonction int\u00e9rieure : u = 2x + 3 \u2192 d\u00e9riv\u00e9e : 2\n\n**R\u00e9ponse : f'(x) = 5(2x + 3)\u2074 \u00d7 2 = 10(2x + 3)\u2074**\n\n## \ud83c\udfaf Applications Pratiques\n\nLes d\u00e9riv\u00e9es sont utilis\u00e9es pour :\n\n\u2705 **Optimisation** : Maximiser les profits, minimiser les co\u00fbts\n\u2705 **Physique** : Calculer la vitesse (d\u00e9riv\u00e9e de la position) et l'acc\u00e9l\u00e9ration (d\u00e9riv\u00e9e de la vitesse)\n\u2705 **\u00c9conomie** : Co\u00fbt marginal, revenu marginal\n\u2705 **Ing\u00e9nierie** : Concevoir des routes, des ponts\n\n## \ud83c\udf93 Conclusion\n\nLes d\u00e9riv\u00e9es sont un concept central en math\u00e9matiques qui permet de comprendre **comment les choses changent**. \n\n**Points cl\u00e9s \u00e0 retenir :**\n- La d\u00e9riv\u00e9e mesure le taux de variation instantan\u00e9\n- Elle repr\u00e9sente la pente de la tangente \u00e0 une courbe\n- Ma\u00eetrise les r\u00e8gles de base et les op\u00e9rations\n- Pratique r\u00e9guli\u00e8rement avec des exercices vari\u00e9s\n\nContinue \u00e0 t'exercer, et tu verras que les d\u00e9riv\u00e9es deviendront un outil naturel pour toi ! N'h\u00e9site pas si tu as des questions suppl\u00e9mentaires.\n\n**Bon courage dans tes \u00e9tudes ! \ud83c\udf1f**",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1770155682870,
+            "content": "# Les D\u00e9riv\u00e9es : Un Guide Complet\n\nBonjour cher \u00e9l\u00e8ve ! Je suis ravi de t'expliquer ce concept fondamental du calcul diff\u00e9rentiel. Les d\u00e9riv\u00e9es sont un outil puissant qui permet de comprendre comment les choses changent autour de nous.\n\n## \ud83d\udccb Aper\u00e7u\n\n### Qu'est-ce qu'une d\u00e9riv\u00e9e ?\n\nLa **d\u00e9riv\u00e9e** mesure le **taux de variation instantan\u00e9** d'une fonction. En d'autres termes, elle nous indique \u00e0 quelle vitesse une quantit\u00e9 change par rapport \u00e0 une autre.\n\n**Exemple concret du B\u00e9nin** : Imagine un vendeur de tomates au march\u00e9 Dantokpa \u00e0 Cotonou. Si le prix des tomates varie selon la saison, la d\u00e9riv\u00e9e nous dirait \u00e0 quelle vitesse le prix augmente ou diminue \u00e0 un moment pr\u00e9cis.\n\n## \ud83d\udcd6 D\u00e9finition Math\u00e9matique\n\nLa d\u00e9riv\u00e9e d'une fonction f(x) au point x est :\n\n**f'(x) = lim[h\u21920] [f(x+h) - f(x)]/h**\n\nCette formule calcule la pente de la tangente \u00e0 la courbe au point x.\n\n## \ud83d\udd0d \u00c9tapes pour Comprendre les D\u00e9riv\u00e9es\n\n### **\u00c9tape 1 : L'interpr\u00e9tation g\u00e9om\u00e9trique**\n\n- La d\u00e9riv\u00e9e repr\u00e9sente la **pente de la tangente** \u00e0 la courbe en un point\n- Si f'(x) > 0 : la fonction est croissante\n- Si f'(x) < 0 : la fonction est d\u00e9croissante\n- Si f'(x) = 0 : on a un point critique (maximum, minimum ou point d'inflexion)\n\n### **\u00c9tape 2 : Les r\u00e8gles de d\u00e9rivation essentielles**\n\nVoici les formules que tu dois ma\u00eetriser :\n\n| Fonction | D\u00e9riv\u00e9e |\n|----------|---------|\n| f(x) = c (constante) | f'(x) = 0 |\n| f(x) = x^n | f'(x) = n\u00b7x^(n-1) |\n| f(x) = e^x | f'(x) = e^x |\n| f(x) = ln(x) | f'(x) = 1/x |\n| f(x) = sin(x) | f'(x) = cos(x) |\n| f(x) = cos(x) | f'(x) = -sin(x) |\n\n### **\u00c9tape 3 : Les op\u00e9rations sur les d\u00e9riv\u00e9es**\n\n**D\u00e9riv\u00e9e d'une somme :**\n(u + v)' = u' + v'\n\n**D\u00e9riv\u00e9e d'un produit :**\n(u \u00d7 v)' = u'v + uv'\n\n**D\u00e9riv\u00e9e d'un quotient :**\n(u/v)' = (u'v - uv')/v\u00b2\n\n**D\u00e9riv\u00e9e d'une fonction compos\u00e9e (r\u00e8gle de la cha\u00eene) :**\n[f(g(x))]' = f'(g(x)) \u00d7 g'(x)\n\n## \ud83d\udca1 Exemples Pratiques\n\n### **Exemple 1 : Fonction polynomiale**\n\nSoit f(x) = 3x\u00b2 + 5x - 2\n\n**Solution :**\n- D\u00e9riv\u00e9e de 3x\u00b2 : 3 \u00d7 2x = 6x\n- D\u00e9riv\u00e9e de 5x : 5\n- D\u00e9riv\u00e9e de -2 : 0\n\n**R\u00e9ponse : f'(x) = 6x + 5**\n\n### **Exemple 2 : Application au B\u00e9nin**\n\nSupposons que la production de coton au B\u00e9nin (en tonnes) suit la fonction :\nP(t) = -2t\u00b2 + 40t + 100, o\u00f9 t est le temps en mois.\n\nPour savoir \u00e0 quelle vitesse la production change :\n\nP'(t) = -4t + 40\n\n- Au mois t = 5 : P'(5) = -4(5) + 40 = 20 tonnes/mois (la production augmente)\n- Au mois t = 10 : P'(10) = -4(10) + 40 = 0 (production maximale)\n- Au mois t = 15 : P'(15) = -4(15) + 40 = -20 tonnes/mois (la production diminue)\n\n### **Exemple 3 : Fonction compos\u00e9e**\n\nSoit f(x) = (2x + 3)\u2075\n\n**Solution avec la r\u00e8gle de la cha\u00eene :**\n- Fonction ext\u00e9rieure : u\u2075 \u2192 d\u00e9riv\u00e9e : 5u\u2074\n- Fonction int\u00e9rieure : u = 2x + 3 \u2192 d\u00e9riv\u00e9e : 2\n\n**R\u00e9ponse : f'(x) = 5(2x + 3)\u2074 \u00d7 2 = 10(2x + 3)\u2074**\n\n## \ud83c\udfaf Applications Pratiques\n\nLes d\u00e9riv\u00e9es sont utilis\u00e9es pour :\n\n\u2705 **Optimisation** : Maximiser les profits, minimiser les co\u00fbts\n\u2705 **Physique** : Calculer la vitesse (d\u00e9riv\u00e9e de la position) et l'acc\u00e9l\u00e9ration (d\u00e9riv\u00e9e de la vitesse)\n\u2705 **\u00c9conomie** : Co\u00fbt marginal, revenu marginal\n\u2705 **Ing\u00e9nierie** : Concevoir des routes, des ponts\n\n## \ud83c\udf93 Conclusion\n\nLes d\u00e9riv\u00e9es sont un concept central en math\u00e9matiques qui permet de comprendre **comment les choses changent**. \n\n**Points cl\u00e9s \u00e0 retenir :**\n- La d\u00e9riv\u00e9e mesure le taux de variation instantan\u00e9\n- Elle repr\u00e9sente la pente de la tangente \u00e0 une courbe\n- Ma\u00eetrise les r\u00e8gles de base et les op\u00e9rations\n- Pratique r\u00e9guli\u00e8rement avec des exercices vari\u00e9s\n\nContinue \u00e0 t'exercer, et tu verras que les d\u00e9riv\u00e9es deviendront un outil naturel pour toi ! N'h\u00e9site pas si tu as des questions suppl\u00e9mentaires.\n\n**Bon courage dans tes \u00e9tudes ! \ud83c\udf1f**",
+            "sources": []
+          },
+          "timestamp": 1770155682870
+        }
+      ]
+    },
+    {
+      "id": "conv-1771060516722",
+      "title": "5-4",
+      "createdAt": "2026-02-14T12:15:16.722892",
+      "updatedAt": "2026-02-14T12:15:29.677932",
+      "messages": [
+        {
+          "id": "msg-1771071316741",
+          "type": "user",
+          "problem": {
+            "id": "1771071316741",
+            "content": "5-4",
+            "submittedAt": 1771071316741,
+            "userId": "user_38seH4e2bob7yMokOBv8o6PwqiN",
+            "sessionId": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18zOHNkaUI3UjRDdTRXaGQ4MmNJM1lVcm42enoiLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwOi8vbG9jYWxob3N0OjUxNzMiLCJleHAiOjE3NzEwNzEzNTMsImZ2YSI6WzE5NCwtMV0sImlhdCI6MTc3MTA3MTI5MywiaXNzIjoiaHR0cHM6Ly9oZXJvaWMtcmFtLTM1LmNsZXJrLmFjY291bnRzLmRldiIsIm5iZiI6MTc3MTA3MTI4Mywic2lkIjoic2Vzc18zOWViZ21mdzFtcFJEUTRqQUNjYmJDcjBOanEiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c2VyXzM4c2VINGUyYm9iN3lNb2tPQnY4bzZQd3FpTiIsInYiOjJ9.GJMGEBw0-f_jb3lylplveaQFf6RmrWprrkqUB9hEIcI_L57fAW3djKkOo39J06jd2UD6Bb66g4B7ELIPXAueAUX4v086ugNjqVFB4bg1D9iH5a_SXfyDCA0sweITCOl48oKqSS6_YQNIh7_kN5-BEubw1DQ3Vmmf2M2UkHH4_-02ShVD5eQJ2SSNfCStFEw50ZZBt2B7oFwlAr1j6nT9-9GBdrcWOClrDN33mV9bU8en0JfzChL_D60mFvN58Day-LoV0Yq9-C_MM3RuvoXCHsVXAPXttZIT2SZ1875hi_K0LMh28ynZcYvLK9DSUmgvotQR86oBGIdeana1C2fmRg"
+          },
+          "timestamp": 1771071316741
+        },
+        {
+          "id": "msg-1771071316741-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771071316741",
+            "steps": [],
+            "finalAnswer": "Voir explication ci-dessus",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1771071316741,
+            "content": "# Solution : 5 - 4\n\nBonjour cher \u00e9l\u00e8ve ! \ud83d\udc4b Je suis ravi de t'aider avec ce calcul de soustraction.\n\n## \ud83d\udccb Aper\u00e7u du probl\u00e8me\n\nTu dois calculer : **5 - 4**\n\nIl s'agit d'une **soustraction simple** o\u00f9 nous retirons 4 de 5.\n\n## \ud83d\udd22 \u00c9tapes de r\u00e9solution\n\n### \u00c9tape 1 : Comprendre la soustraction\nLa soustraction signifie \"enlever\" ou \"retirer\" une quantit\u00e9 d'une autre.\n\n### \u00c9tape 2 : Visualisons avec un exemple concret\nImagine que tu as **5 oranges** \ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a\ud83c\udf4a au march\u00e9 de Dantokpa \u00e0 Cotonou.\n\nSi tu donnes **4 oranges** \u00e0 ton ami, combien t'en reste-t-il ?\n\n### \u00c9tape 3 : Calculons\n```\n5 - 4 = ?\n```\n\nEn retirant 4 de 5 :\n- Je commence avec 5\n- J'enl\u00e8ve 1 \u2192 il reste 4\n- J'enl\u00e8ve 1 \u2192 il reste 3\n- J'enl\u00e8ve 1 \u2192 il reste 2\n- J'enl\u00e8ve 1 \u2192 il reste 1\n\nOu plus simplement : **5 - 4 = 1**\n\n## \u2705 Conclusion\n\n**R\u00e9ponse finale : 5 - 4 = 1**\n\nIl te reste **1 orange** ! \ud83c\udf4a\n\n---\n\n### \ud83d\udca1 Conseil p\u00e9dagogique\nLa soustraction et l'addition sont inverses :\n- Si 5 - 4 = 1\n- Alors 1 + 4 = 5 \u2713\n\nContinue \u00e0 pratiquer, tu progresses tr\u00e8s bien ! \ud83c\udf1fVoir explication ci-dessus",
+            "sources": []
+          },
+          "timestamp": 1771071316742
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771071329541",
+    "response_time": 12833,
+    "timestamp": "2026-02-14T12:15:29.541000",
+    "user_id": "user_38seH4e2bob7yMokOBv8o6PwqiN",
+    "topic": null,
+    "id": "ev-8f5656b8d2d2"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771072256869",
+    "response_time": 13547,
+    "timestamp": "2026-02-14T12:30:56.869000",
+    "user_id": "user_38t7ivbZNy2t5Dkj4intj1UTufg",
+    "topic": null,
+    "id": "ev-589c65c16d46"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771072416697",
+    "response_time": 18675,
+    "timestamp": "2026-02-14T12:33:36.697000",
+    "user_id": "user_38t7ivbZNy2t5Dkj4intj1UTufg",
+    "topic": null,
+    "id": "ev-faeefc9750a3"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771072445440",
+    "response_time": 12429,
+    "timestamp": "2026-02-14T12:34:05.440000",
+    "user_id": "user_38t7ivbZNy2t5Dkj4intj1UTufg",
+    "topic": null,
+    "id": "ev-a8135de6de6b"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771072580305",
+    "response_time": 48667,
+    "timestamp": "2026-02-14T12:36:20.305000",
+    "user_id": "user_38seH4e2bob7yMokOBv8o6PwqiN",
+    "topic": null,
+    "id": "ev-80ccaf19675f"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771072767288",
+    "response_time": 34194,
+    "timestamp": "2026-02-14T12:39:27.288000",
+    "user_id": "user_38seH4e2bob7yMokOBv8o6PwqiN",
+    "topic": null,
+    "id": "ev-498ade8d0a4d"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771073003860",
+    "response_time": 18154,
+    "timestamp": "2026-02-14T12:43:23.860000",
+    "user_id": "user_38seH4e2bob7yMokOBv8o6PwqiN",
+    "topic": null,
+    "id": "ev-c01dc52b8186"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771073850028",
+    "response_time": 10951,
+    "timestamp": "2026-02-14T12:57:30.028000",
+    "user_id": "user_38seH4e2bob7yMokOBv8o6PwqiN",
+    "topic": null,
+    "id": "ev-1b969b73e1a5"
+  }
+]

@@ -292,6 +292,11 @@ const SignUpPage = () => {
             <p className="text-sm text-gray-400">
               Vous avez déjà un compte? <a href="/login" className="text-[#00b876] hover:text-[#00d488] font-bold transition-colors">Se connecter</a>
             </p>
+            <div className="mt-3">
+              <a href="/" className="text-xs text-gray-400 hover:text-white transition-colors">
+                Retour à l'accueil
+              </a>
+            </div>
           </div>
         </div>
 
