@@ -136,6 +136,7 @@ app.add_middleware(
         "http://localhost:5176",
         "http://localhost:3000",
         "http://127.0.0.1:5173",
+<<<<<<< HEAD
         "http://127.0.0.1:5174",
         "http://127.0.0.1:5175",
         "http://127.0.0.1:3000",      
@@ -152,6 +153,10 @@ app.add_middleware(
         "https://mathai.fr",
         "https://mathai-deeptracks-projects-32338107.vercel.app",
         "https://math-ai-1-b5es.onrender.com",
+=======
+        "http://127.0.0.1:3000",
+        "https://deep-track-mathai.vercel.app",  # Vercel production 
+>>>>>>> 6419d00fa40cf43afc9c0da6eb8e3b36ef351bf7
     ],
     allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
