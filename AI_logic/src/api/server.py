@@ -406,7 +406,7 @@ async def ask_stream_endpoint(http_req: Request):
         else:
             raise HTTPException(status_code=400, detail="FormData must include 'text' field")
     elif "application/json" in content_type:
-        # Handle JSON input
+        # Handle JSON inputs
         try:
             json_data = await http_req.json()
             print(f"[STREAM] Incoming JSON keys: {list(json_data.keys()) if isinstance(json_data, dict) else type(json_data)}")
@@ -427,7 +427,7 @@ async def ask_stream_endpoint(http_req: Request):
     if attachment:
         print(f"[STREAM] {request_id} With attachment: {attachment['type']}")
 
-    def generate():  # NOT async - your orchestrator is sync!
+    def generate():  
         chunk_count = 0
         final_conclusion = ""
         stream_sources = []
