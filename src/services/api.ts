@@ -1,4 +1,5 @@
 import type { Problem, Solution, Feedback, AnalyticsEvent, SubmitFeedbackResponse, AnalyticsResponse } from '../types';
+import { PromptCache } from './promptCache';
 
 // Get API base URL from environment, default to localhost
 let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -468,6 +469,7 @@ export async function updateConversation(conversationId: string, userId: string,
  *   OLD:  { type:"chunk", text:"..." }  { type:"start", ... }  { type:"end", ... }
  *
  * Also handles SSE wrapper: lines starting with "data: "
+ * Caches text-only responses to avoid duplicate API calls.
  */
 export async function* solveProblemStream(
   problem: Problem,
@@ -475,7 +477,26 @@ export async function* solveProblemStream(
   token?: string,
   userId?: string
 ) {
+  const cache = PromptCache.getInstance();
+
+  // Only cache text-only problems (no images/documents)
+  const hasAttachments = (problem as any).image || (problem as any).document;
+  if (!hasAttachments) {
+    const cached = await cache.get(problem.content);
+    if (cached) {
+      console.log('💾 Using cached response for prompt:', problem.content.substring(0, 50));
+      // Yield tokens from cache
+      for (const token of cached.tokens) {
+        yield { content: token, status: 'streaming' };
+      }
+      // Yield final result
+      yield { content: cached.tokens.join(''), finalAnswer: cached.tokens.join(''), status: 'ok', sources: cached.metadata?.sources || [] };
+      return;
+    }
+  }
+
   let response: Response;
+  const collectedTokens: string[] = [];
 
   if ((problem as any).image) {
     const formData = new FormData();
@@ -584,6 +605,7 @@ export async function* solveProblemStream(
     // Text token
     if (data.token !== undefined) {
       accumulatedContent += data.token;
+      collectedTokens.push(data.token);
       yield { content: accumulatedContent, finalAnswer: '', status: 'streaming', sources };
       return;
     }
@@ -614,6 +636,7 @@ export async function* solveProblemStream(
       const text = data.text ?? data.content ?? data.token ?? '';
       if (text) {
         accumulatedContent += text;
+        collectedTokens.push(text);
         yield { content: accumulatedContent, finalAnswer: '', status: 'streaming', sources };
       }
       return;
@@ -642,6 +665,7 @@ export async function* solveProblemStream(
     if (fallbackText && typeof fallbackText === 'string') {
       console.warn('[SSE] Unrecognised chunk format, using fallback text extraction:', data);
       accumulatedContent += fallbackText;
+      collectedTokens.push(fallbackText);
       yield { content: accumulatedContent, finalAnswer: '', status: 'streaming', sources };
     }
   }
@@ -702,6 +726,16 @@ export async function* solveProblemStream(
     if (accumulatedContent && status !== 'ok') {
       console.log('[SSE] auto-completing stream');
       yield { content: accumulatedContent, finalAnswer: accumulatedContent, status: 'ok', sources };
+    }
+
+    // Cache the response if it was a text-only prompt
+    if (!hasAttachments && collectedTokens.length > 0) {
+      try {
+        await cache.set(problem.content, collectedTokens, { sources });
+        console.log('💾 Cached response for prompt:', problem.content.substring(0, 50));
+      } catch (err) {
+        console.warn('Failed to cache response:', err);
+      }
     }
   } finally {
     reader.releaseLock();

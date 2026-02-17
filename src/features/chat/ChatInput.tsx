@@ -7,7 +7,7 @@ import { useTheme } from '../../theme/useTheme';
 const MAX_CHAR_LIMIT = 5000;
 
 interface ChatInputProps {
-  onSubmit?: (message: string, image?: File) => void;
+  onSubmit?: (message: string, image?: File, document?: File) => void;
   disabled?: boolean;
   placeholder?: string;
   isStreaming?: boolean;
@@ -25,10 +25,14 @@ const ChatInput = ({
   const [message, setMessage] = useState('');
   const [charCount, setCharCount] = useState(0);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [showUploadMenu, setShowUploadMenu] = useState(false);
+  const uploadMenuRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   // Revoke object URLs on unmount to avoid memory leaks
   useEffect(() => {
@@ -36,6 +40,19 @@ const ChatInput = ({
       if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
     };
   }, [imagePreviewUrl]);
+
+  // Handle click outside popover
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (uploadMenuRef.current && !uploadMenuRef.current.contains(e.target as Node)) {
+        setShowUploadMenu(false);
+      }
+    };
+    if (showUploadMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showUploadMenu]);
 
   // Global paste listener for image pasting from clipboard
   useEffect(() => {
@@ -78,9 +95,28 @@ const ChatInput = ({
     if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
     setSelectedImage(file);
     setImagePreviewUrl(URL.createObjectURL(file));
+    // Clear document if image is selected
+    removeDocument();
     // Focus textarea after image selection
     setTimeout(() => textareaRef.current?.focus(), 0);
   }, [imagePreviewUrl]);
+
+  const setDocument = useCallback((file: File) => {
+    const ALLOWED = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    if (!ALLOWED.includes(file.type)) {
+      alert('Only PDF, DOCX, and TXT documents are supported.');
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      alert('Document must be under 20MB.');
+      return;
+    }
+    setSelectedDocument(file);
+    // Clear image if document is selected
+    removeImage();
+    // Focus textarea after document selection
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  }, []);
 
   const removeImage = useCallback(() => {
     if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
@@ -88,6 +124,11 @@ const ChatInput = ({
     setImagePreviewUrl(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, [imagePreviewUrl]);
+
+  const removeDocument = useCallback(() => {
+    setSelectedDocument(null);
+    if (docInputRef.current) docInputRef.current.value = '';
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -100,21 +141,25 @@ const ChatInput = ({
   const handleSubmit = useCallback(() => {
     const hasText = message.trim().length > 0;
     const hasImage = selectedImage !== null;
+    const hasDocument = selectedDocument !== null;
 
-    if (!hasText && !hasImage) return;
+    if (!hasText && !hasImage && !hasDocument) return;
     if (disabled) return;
 
-    // If image only (no text), pass a default prompt so backend always has text
+    // If only attachment (no text), pass a default prompt
     const textToSend = hasText
       ? message.trim()
+      : hasDocument
+      ? 'Analyze and help me with this document:'
       : 'Analyse et résous ce qui est montré dans cette image.';
 
-    onSubmit?.(textToSend, selectedImage || undefined);
+    onSubmit?.(textToSend, selectedImage || undefined, selectedDocument || undefined);
     setMessage('');
     setCharCount(0);
     removeImage();
+    removeDocument();
     setTimeout(() => textareaRef.current?.focus(), 0);
-  }, [message, selectedImage, disabled, onSubmit, removeImage]);
+  }, [message, selectedImage, selectedDocument, disabled, onSubmit, removeImage, removeDocument]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Ctrl+Enter or Cmd+Enter to submit
@@ -162,7 +207,12 @@ const ChatInput = ({
     if (file) setImage(file);
   };
 
-  const isEmpty = message.trim().length === 0 && !selectedImage;
+  const handleDocumentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setDocument(file);
+  };
+
+  const isEmpty = message.trim().length === 0 && !selectedImage && !selectedDocument;
   const canSubmit = !isEmpty && !disabled;
 
   return (
@@ -216,6 +266,33 @@ const ChatInput = ({
         </div>
       )}
 
+      {/* Document preview */}
+      {selectedDocument && (
+        <div className="mb-2 flex items-start gap-3 p-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-xl">
+          <div className="text-2xl flex-shrink-0">📄</div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+              {selectedDocument.name}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              {(selectedDocument.size / 1024 / 1024).toFixed(2)} MB · Document will be analyzed
+            </p>
+            {message.trim() === '' && (
+              <p className="text-xs text-green-600 dark:text-green-400 mt-1 italic">
+                ✓ Will analyze document automatically — you can also add a specific question
+              </p>
+            )}
+          </div>
+          <button
+            onClick={removeDocument}
+            className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 text-lg leading-none"
+            title="Remove document"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* Textarea */}
       <TextareaAutosize
         ref={textareaRef}
@@ -229,6 +306,8 @@ const ChatInput = ({
         placeholder={
           selectedImage
             ? 'Add a specific question about the image, or press Enter to solve it...'
+            : selectedDocument
+            ? 'Add a specific question about the document, or press Enter...'
             : placeholder || 'Ask a math or physics question... (paste or drop an image 📷)'
         }
         disabled={disabled}
@@ -239,12 +318,19 @@ const ChatInput = ({
         } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
       />
 
-      {/* Hidden file input */}
+      {/* Hidden file inputs */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/avif"
         onChange={handleImageSelect}
+        className="hidden"
+      />
+      <input
+        ref={docInputRef}
+        type="file"
+        accept=".pdf,application/pdf,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.txt,text/plain"
+        onChange={handleDocumentSelect}
         className="hidden"
       />
 
@@ -279,24 +365,62 @@ const ChatInput = ({
             </button>
           )}
 
-          {/* Image upload button */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={disabled}
-            className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-all duration-200 ${
-              selectedImage
-                ? 'text-green-600 dark:text-green-400 font-semibold'
-                : theme === 'dark'
-                ? 'hover:bg-gray-800 text-gray-500 hover:text-gray-300'
-                : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
-            } ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
-            title="Upload image (or paste / drag & drop)"
-          >
-            <span>📷</span>
-            <span className="hidden sm:inline">
-              {selectedImage ? 'Image attached' : 'Image'}
-            </span>
-          </button>
+          {/* Unified upload button with popover */}
+          <div className="relative">
+            <button
+              onClick={() => setShowUploadMenu(!showUploadMenu)}
+              disabled={disabled}
+              className={`flex items-center justify-center h-6 w-6 rounded-full transition-all duration-200 ${
+                selectedImage || selectedDocument
+                  ? 'bg-green-600 text-white'
+                  : theme === 'dark'
+                  ? 'hover:bg-gray-800 text-gray-500 hover:text-gray-300'
+                  : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+              } ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+              title="Upload image or document"
+            >
+              <span className="text-sm">+</span>
+            </button>
+
+            {/* Popover menu */}
+            {showUploadMenu && (
+              <div
+                ref={uploadMenuRef}
+                className={`absolute bottom-full left-0 mb-2 rounded-lg shadow-lg border z-50 ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-200'
+                }`}
+              >
+                <button
+                  onClick={() => {
+                    fileInputRef.current?.click();
+                    setShowUploadMenu(false);
+                  }}
+                  className={`block w-full text-left px-4 py-2 text-sm transition-colors rounded-t-lg ${
+                    theme === 'dark'
+                      ? 'hover:bg-gray-700 text-gray-200'
+                      : 'hover:bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  📷 Image
+                </button>
+                <button
+                  onClick={() => {
+                    docInputRef.current?.click();
+                    setShowUploadMenu(false);
+                  }}
+                  className={`block w-full text-left px-4 py-2 text-sm transition-colors rounded-b-lg ${
+                    theme === 'dark'
+                      ? 'hover:bg-gray-700 text-gray-200'
+                      : 'hover:bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  📄 Document
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Scroll hint button — keeps your existing down-arrow */}
           <button

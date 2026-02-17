@@ -50,8 +50,8 @@ const MainLayout = () => {
                 </svg>
               </button>
             </div>
-            <div className="flex h-screen w-screen overflow-hidden bg-slate-50 pt-0 md:pt-0">
-              {/* Sidebar - desktop: always visible, mobile: toggle */}
+
+            <div className="flex h-screen w-screen overflow-hidden bg-slate-50 pt-0 md:pt-0">{/* Sidebar - desktop: always visible, mobile: toggle */}
               <div className={`${
                 sidebarOpen 
                   ? 'fixed left-0 top-4 h-[calc(100%-32px)] z-40 w-64' 

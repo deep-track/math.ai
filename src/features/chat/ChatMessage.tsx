@@ -4,6 +4,7 @@ import { useUser, useAuth } from '@clerk/clerk-react';
 import ChatInput from './ChatInput';
 import SolutionDisplay from '../../components/SolutionDisplay';
 import LoadingState from '../../components/LoadingState';
+import InlineSpinner from '../../components/InlineSpinner';
 import ErrorDisplay from '../../components/ErrorDisplay';
 import GuestNamePrompt from '../../components/GuestNamePrompt';
 import { getCredits as localGetCredits, spendCredit as localSpendCredit } from '../credits/creditsService';
@@ -162,13 +163,14 @@ const ChatMessage = () => {
   };
 
   const handleSubmitProblem = useCallback(
-    async (problemText: string, image?: File) => {
+    async (problemText: string, image?: File, document?: File) => {
       setFollowWhileStreaming(true);
 
       // Allow image-only OR text-only OR both; block only if truly empty
       const hasText = problemText.trim().length > 0;
       const hasImage = !!image;
-      if (!hasText && !hasImage) return;
+      const hasDocument = !!document;
+      if (!hasText && !hasImage && !hasDocument) return;
 
       cancelledRef.current = false;
       setError(null);
@@ -221,14 +223,15 @@ const ChatMessage = () => {
         }
 
         // Build the problem object — use the text as-is (ChatInput already sets default for image-only)
-        const problem: Problem & { image?: File } = {
+        const problem: Problem & { image?: File; document?: File } = {
           id: Date.now().toString(),
           content: problemText,
           submittedAt: Date.now(),
           image,
+          document,
         };
 
-        // Create a stable preview URL for this image so it survives re-renders
+        // Create stable preview URLs for attachments
         if (image) {
           const previewUrl = URL.createObjectURL(image);
           imageUrlsRef.current.set(problem.id as string, previewUrl);
@@ -718,13 +721,16 @@ const ChatMessage = () => {
           <div className="w-full animate-in fade-in duration-300">
             <div className="flex justify-start px-4">
               <div
-                className={`rounded-2xl p-8 ${
+                className={`rounded-2xl p-4 ${
                   theme === 'dark'
                     ? 'bg-[#1a1a1a] border border-gray-800'
                     : 'bg-white border border-gray-200'
                 }`}
               >
-                <LoadingState variant="solving" message={getTranslation('solvingProblem', language)} />
+                <InlineSpinner 
+                  message={getTranslation('solvingProblem', language)}
+                  size="md"
+                />
               </div>
             </div>
           </div>
