@@ -163,4 +163,5 @@ class PromptCache {
   }
 }
 
-export { PromptCache, generateCacheKey, CacheEntry };
+export { PromptCache, generateCacheKey };
+export type { CacheEntry };

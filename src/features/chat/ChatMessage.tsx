@@ -163,13 +163,13 @@ const ChatMessage = () => {
   };
 
   const handleSubmitProblem = useCallback(
-    async (problemText: string, image?: File, document?: File) => {
+    async (problemText: string, image?: File, documentFile?: File) => {
       setFollowWhileStreaming(true);
 
       // Allow image-only OR text-only OR both; block only if truly empty
       const hasText = problemText.trim().length > 0;
       const hasImage = !!image;
-      const hasDocument = !!document;
+      const hasDocument = !!documentFile;
       if (!hasText && !hasImage && !hasDocument) return;
 
       cancelledRef.current = false;
@@ -228,7 +228,7 @@ const ChatMessage = () => {
           content: problemText,
           submittedAt: Date.now(),
           image,
-          document,
+          document: documentFile,
         };
 
         // Create stable preview URLs for attachments

@@ -4,7 +4,6 @@ import { useLanguage } from '../hooks/useLanguage';
 import { useState } from 'react';
 
 interface MessageActionsProps {
-  solutionId: string;
   content: string;
   onRefresh?: () => void;
   onFeedback?: (helpful: boolean) => void;
@@ -12,7 +11,6 @@ interface MessageActionsProps {
 }
 
 const MessageActions: React.FC<MessageActionsProps> = ({
-  solutionId,
   content,
   onRefresh,
   onFeedback,
