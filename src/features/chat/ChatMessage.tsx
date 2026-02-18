@@ -17,7 +17,7 @@ import {
 } from '../../services/api';
 import { getTranslation } from '../../utils/translations';
 import { useLanguage } from '../../hooks/useLanguage';
-import { getRandomTopics, COURSE_MODULES } from '../../data/courseModules';
+import { getRandomTopics } from '../../data/courseModules';
 import type { ChatMessage as ChatMessageType, Problem } from '../../types';
 
 const ChatMessage = () => {
