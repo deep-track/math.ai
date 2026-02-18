@@ -163,6 +163,23 @@ export async function solveProblem(problem: Problem): Promise<Solution> {
         formData.append('image', imageFile, 'upload.png');
       }
     }
+    if ((problem as any).document) {
+      const documentFile = (problem as any).document as unknown;
+      if (documentFile instanceof File) {
+        console.log('📄 Attaching document (solveProblem):', {
+          name: documentFile.name,
+          type: documentFile.type,
+          size: documentFile.size,
+        });
+        formData.append('document', documentFile, documentFile.name || 'upload.pdf');
+      } else if (documentFile instanceof Blob) {
+        console.log('📄 Attaching document blob (solveProblem):', {
+          type: documentFile.type,
+          size: documentFile.size,
+        });
+        formData.append('document', documentFile, 'upload.pdf');
+      }
+    }
 
     const response = await fetch(`${API_BASE_URL}/ask`, {
       method: 'POST',
@@ -500,7 +517,7 @@ export async function* solveProblemStream(
   let response: Response;
   const collectedTokens: string[] = [];
 
-  if ((problem as any).image) {
+  if ((problem as any).image || (problem as any).document) {
     const formData = new FormData();
     const imageFile = (problem as any).image as unknown;
     formData.append('text', problem.content);
@@ -518,13 +535,31 @@ export async function* solveProblemStream(
       });
       formData.append('image', imageFile, 'upload.png');
     }
+    const documentFile = (problem as any).document as unknown;
+    if (documentFile instanceof File) {
+      console.log('📄 Attaching document (solveProblemStream):', {
+        name: documentFile.name,
+        type: documentFile.type,
+        size: documentFile.size,
+      });
+      formData.append('document', documentFile, documentFile.name || 'upload.pdf');
+    } else if (documentFile instanceof Blob) {
+      console.log('📄 Attaching document blob (solveProblemStream):', {
+        type: documentFile.type,
+        size: documentFile.size,
+      });
+      formData.append('document', documentFile, 'upload.pdf');
+    }
     formData.append('user_id', userId || 'guest');
 
     console.log('📤 Sending image upload request:', {
       text: problem.content,
-      imageName: (problem as any).image.name,
-      imageSize: (problem as any).image.size,
-      imageType: (problem as any).image.type,
+      imageName: (problem as any).image?.name,
+      imageSize: (problem as any).image?.size,
+      imageType: (problem as any).image?.type,
+      documentName: (problem as any).document?.name,
+      documentSize: (problem as any).document?.size,
+      documentType: (problem as any).document?.type,
       userId: userId || 'guest',
     });
 

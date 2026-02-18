@@ -36,7 +36,13 @@ if os.path.exists("/opt/render/project"):
     print(f"[CONFIG] Using Render persistent disk: {CHROMA_DB_DIR}")
 else:
     CHROMA_DB_DIR = os.path.join(BASE_DIR, "chroma_db")
-    print(f"[CONFIG] Using local disk: {CHROMA_DB_DIR}")
+    # Check if temp DB exists (from fresh ingestion), use that
+    temp_db = os.path.join(BASE_DIR, "chroma_db_temp")
+    if os.path.exists(temp_db) and not os.path.exists(CHROMA_DB_DIR):
+        CHROMA_DB_DIR = temp_db
+        print(f"[CONFIG] Using fresh ChromaDB from ingestion: {CHROMA_DB_DIR}")
+    else:
+        print(f"[CONFIG] Using local disk: {CHROMA_DB_DIR}")
 
 logger = AgentLogger(verbose=VERBOSE_MODE)
 
@@ -117,27 +123,45 @@ Output ONLY the raw transcribed content. No commentary, no "I see...", no preamb
 # SYSTEM PROMPT — concise tutoring style
 # ═════════════════════════════════════════════════════════════════════════════
 
-SYSTEM_PROMPT = """Tu es **Professeur Bio**, tuteur IA pour les étudiants de l'Université du Bénin (L1/L2).
+SYSTEM_PROMPT = """Tu es **Professeur Bio**, un tuteur IA pour les étudiants de l'Université du Bénin (L1/L2).
 
-## RÈGLE PRINCIPALE : Sois BREF et DIRECT.
-- Réponds en quelques lignes maximum, sauf si l'élève demande plus de détails.
-- Pas de longs développements ni de structures rigides à chaque fois.
-- Va droit au but : donne la réponse, explique l'essentiel, c'est tout.
-- Utilise LaTeX pour les formules : inline $...$ ou display $$...$$
-- Toujours en français, ton simple et encourageant.
-- Termine par une courte question de vérification ❓ si utile.
+## STYLE : CONCIS, CLAIR, ÉTAPE PAR ÉTAPE
+- **Réponse courte** : 3-5 phrases maximum (2-3 si c'est une question simple).
+- **Structure légère** : Énonce le concept, puis 1-2 étapes clés, puis la conclusion.
+- **Pas de blabla** : Aucune introduction, aucun préambule. Va droit au but.
+- **Pas de répétition** : Ne redemande pas la question.
+- **LaTeX inline** : $formule$ pour les mathématiques courtes.
 
-## TES RESSOURCES
-Tu as accès à des documents du programme (MTH1220, MTH1122, PHY1223).
-- Si le contexte fourni est pertinent → utilise-le et mentionne la source brièvement.
-- Sinon → réponds avec tes connaissances. Pas de restrictions.
+## PRIORITÉ ABSOLUE : CONSULTATION DES RESSOURCES
+**AVANT de répondre** :
+1. **Cherche dans le contexte fourni** (curriculum du Bénin) — c'est la source fiable.
+2. **Si contexte pertinent trouvé** → utilise-le ET cite la source (ex: "Voir MTH1220, p.15").
+3. **Si aucun contexte pertinent** → réponds avec tes connaissances générales.
+4. **JAMAIS inventer** : si tu ne trouves pas dans le curriculum ET tu n'es pas certain, dis-le.
 
-## CE QU'IL NE FAUT PAS FAIRE
-- ❌ Ne répète pas la question en entier
-- ❌ Pas de sections "Étape 0, Étape 1, Étape 2..." systématiques
-- ❌ Pas de titres et sous-titres inutiles
-- ❌ Ne liste pas les "prérequis" et "erreurs classiques" à chaque réponse
-- ❌ Pas de blocs de code formatés pour les réponses normales"""
+## INSTRUCTIONS PAR CAS
+
+**Pour une question simple** : 
+- 1 phrase qui énonce la réponse / concept
+- 1 ligne d'explication rapide
+- Si utile, 1 petite vérification ✓
+
+**Pour un problème** :
+- **Étape 1** : [action/concept clé]
+- **Étape 2** : [suite logique]
+- **Réponse** : [résultat direct]
+
+**Pour un concept** :
+- Définition rapide
+- 1 exemple concret
+- C'est tout
+
+## CE QU'IL NE FAUT ABSOLUMENT PAS FAIRE
+- ❌ Listes à puces longues
+- ❌ Titres/sous-titres multiples
+- ❌ Cadres ou boîtes de texte
+- ❌ Sections comme "Prérequis", "Erreurs courantes", "Pour aller plus loin"
+- ❌ Explication plus longue qu'une réponse courte — sauf si demandé explicitement"""
 
 # ── Tutor prompt template ────────────────────────────────────────────────────
 
@@ -202,6 +226,15 @@ def extract_image_content(attachment: dict) -> tuple[str, str, str]:
     if not attachment or not claude_client:
         return "", "", ""
 
+    image_payload = None
+    if isinstance(attachment, dict):
+        image_payload = attachment.get("image")
+        if image_payload is None and attachment.get("type") and attachment.get("image"):
+            image_payload = attachment
+
+    if not image_payload:
+        return "", "", ""
+
     logger.log_step("Action", "Running OCR on uploaded image...")
     try:
         response = claude_client.messages.create(
@@ -214,8 +247,8 @@ def extract_image_content(attachment: dict) -> tuple[str, str, str]:
                         "type": "image",
                         "source": {
                             "type": "base64",
-                            "media_type": attachment.get("type"),
-                            "data": attachment.get("image"),
+                            "media_type": image_payload.get("type"),
+                            "data": image_payload.get("image"),
                         },
                     },
                     {"type": "text", "text": IMAGE_OCR_PROMPT}
@@ -240,6 +273,20 @@ def extract_image_content(attachment: dict) -> tuple[str, str, str]:
     )
 
     return extracted, image_section, image_recap_instruction
+
+
+def extract_document_content(attachment: dict) -> tuple[str, str]:
+    if not attachment or not isinstance(attachment, dict):
+        return "", ""
+    document_text = attachment.get("document_text") or ""
+    if not document_text:
+        return "", ""
+    document_section = f"""## 📄 CONTENU DU DOCUMENT
+```
+{document_text}
+```
+"""
+    return document_text, document_section
 
 
 def _build_prompt(
@@ -267,13 +314,22 @@ def ask_math_ai(question: str, history: str = "", attachment=None) -> dict:
     execution_steps = []
 
     image_section = ""
+    document_section = ""
     image_recap_instruction = ""
     search_query = question
 
     if attachment:
         img_text, image_section, image_recap_instruction = extract_image_content(attachment)
+        doc_text, document_section = extract_document_content(attachment)
         if img_text:
-            search_query = (question + "\n" + img_text).strip() if question.strip() else img_text
+            search_query = (search_query + "\n" + img_text).strip() if search_query.strip() else img_text
+        if doc_text:
+            search_query = (search_query + "\n" + doc_text).strip() if search_query.strip() else doc_text
+
+    if document_section and image_section:
+        image_section = f"{image_section}\n{document_section}"
+    elif document_section:
+        image_section = document_section
 
     context_observation, sources = search_curriculum(search_query)
 
@@ -332,14 +388,24 @@ def ask_math_ai_stream(question: str, history: str = "", attachment=None):
     execution_steps = []
 
     image_section = ""
+    document_section = ""
     image_recap_instruction = ""
     search_query = question
 
     if attachment:
         img_text, image_section, image_recap_instruction = extract_image_content(attachment)
+        doc_text, document_section = extract_document_content(attachment)
         if img_text:
-            search_query = (question + "\n" + img_text).strip() if question.strip() else img_text
+            search_query = (search_query + "\n" + img_text).strip() if search_query.strip() else img_text
             logger.log_step("Observation", f"OCR done, search query: {search_query[:100]}")
+        if doc_text:
+            search_query = (search_query + "\n" + doc_text).strip() if search_query.strip() else doc_text
+            logger.log_step("Observation", f"Document parsed, search query: {search_query[:100]}")
+
+    if document_section and image_section:
+        image_section = f"{image_section}\n{document_section}"
+    elif document_section:
+        image_section = document_section
 
     context_observation, sources = search_curriculum(search_query)
 

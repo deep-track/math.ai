@@ -133,5 +133,77 @@
     "user_id": "user_38seH4e2bob7yMokOBv8o6PwqiN",
     "topic": null,
     "id": "ev-794ba4e490d7"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771409793260",
+    "response_time": 4480,
+    "timestamp": "2026-02-18T10:16:33.260000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-8c5ea7a8c00a"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771410221486",
+    "response_time": 4407,
+    "timestamp": "2026-02-18T10:23:41.486000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-f3e30271b1cf"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771410241797",
+    "response_time": 36,
+    "timestamp": "2026-02-18T10:24:01.797000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-5798b348bc9b"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771410788467",
+    "response_time": 12634,
+    "timestamp": "2026-02-18T10:33:08.467000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-8c07973edbda"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771414561259",
+    "response_time": 8719,
+    "timestamp": "2026-02-18T11:36:01.259000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-cd2c1f50e2e7"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771414567976",
+    "response_time": 3914,
+    "timestamp": "2026-02-18T11:36:07.976000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-dcff71033ec9"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771414574393",
+    "response_time": 1734,
+    "timestamp": "2026-02-18T11:36:14.393000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-8b5f844c9962"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771414601535",
+    "response_time": 2416,
+    "timestamp": "2026-02-18T11:36:41.535000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-8902d20c07ba"
   }
 ]

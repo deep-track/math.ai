@@ -9,11 +9,21 @@ load_dotenv()
 
 # CONFIGURATION 
 COHERE_API_KEY = os.getenv("COHERE_API_KEY")
-CHROMA_PATH = os.getenv("CHROMA_PATH", "./chroma_db") 
+CHROMA_PATH = os.getenv("CHROMA_PATH", "./chroma_db_temp") 
 COLLECTION_NAME = "math_curriculum_benin"
 
 # Initialize Clients
 co = cohere.Client(COHERE_API_KEY)
+
+# Clean up temp if it exists
+import shutil
+if os.path.exists(CHROMA_PATH):
+    try:
+        shutil.rmtree(CHROMA_PATH)
+        print(f"Cleaned {CHROMA_PATH}")
+    except Exception as e:
+        print(f"Could not clean {CHROMA_PATH}: {e}, creating fresh collection")
+
 chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
 
 def run_ingestion(json_file_path: str):

@@ -23,7 +23,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 # 2. Import the AI orchestrator
 from src.engine.orchestrator import ask_math_ai, ask_math_ai_stream
-from src.utils.process_uploads import process_uploaded_image
+from src.utils.process_uploads import process_uploaded_image, process_uploaded_document
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -31,6 +31,34 @@ app = FastAPI(
     description="Backend API for the Math.AI tutor application",
     version="1.0.0"
 )
+
+def _cors_headers(request: Request) -> dict:
+    origin = request.headers.get("origin") or "*"
+    return {
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Expose-Headers": "*",
+    }
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+        headers=_cors_headers(request),
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error"},
+        headers=_cors_headers(request),
+    )
 
 # Create API router with /api prefix
 from fastapi import APIRouter
@@ -229,6 +257,7 @@ async def ask_endpoint(
     request: Request,
     text: Optional[str] = Form(None),
     image: UploadFile = File(None),
+    document: UploadFile = File(None),
     user_id: Optional[str] = Form(None),
 ):
     """
@@ -264,10 +293,24 @@ async def ask_endpoint(
         user_id = user_id or "guest"
         started_at = datetime.utcnow()
         attachment = None
+        image_payload = None
+        document_text = None
         if image:
             print(f"[INFO] Processing uploaded image: {image.filename}")
-            attachment = await process_uploaded_image(image)
-            print(f"[INFO] Image processed successfully,type: {attachment['type']}")
+            image_payload = await process_uploaded_image(image)
+            print(f"[INFO] Image processed successfully,type: {image_payload['type']}")
+
+        if document:
+            print(f"[INFO] Processing uploaded document: {document.filename}")
+            document_text = await process_uploaded_document(document)
+            print(f"[INFO] Document processed successfully, chars: {len(document_text)}")
+
+        if image_payload or document_text:
+            attachment = {
+                "image": image_payload,
+                "document_text": document_text,
+                "document_name": getattr(document, "filename", None),
+            }
 
         # Log the incoming request
         print(f"\n{'='*60}")
@@ -391,19 +434,34 @@ async def ask_stream_endpoint(http_req: Request):
         print(f"[STREAM] Incoming multipart form keys: {list(form.keys())}")
         text = form.get("text")
         image = form.get("image")
+        document = form.get("document")
         user_id_from_request = str(form.get("user_id") or "guest")
         if text:
             question_text = text
+            image_payload = None
+            document_text = None
             if image and hasattr(image, "read") and hasattr(image, "filename") and image.filename:
                 print(f"[STREAM] Processing uploaded image: {image.filename} (content_type={getattr(image, 'content_type', None)})")
-                attachment = await process_uploaded_image(image)
-                print(f"[STREAM] Image processed successfully, type: {attachment['type']}, bytes={len(attachment['image'])}")
+                image_payload = await process_uploaded_image(image)
+                print(f"[STREAM] Image processed successfully, type: {image_payload['type']}, bytes={len(image_payload['image'])}")
             else:
                 image_type = type(image).__name__ if image is not None else "None"
                 image_preview = None
                 if isinstance(image, (str, bytes)):
                     image_preview = str(image)[:80]
                 print(f"[STREAM] No image file found in multipart form (image_type={image_type}, preview={image_preview})")
+
+            if document and hasattr(document, "read") and hasattr(document, "filename") and document.filename:
+                print(f"[STREAM] Processing uploaded document: {document.filename} (content_type={getattr(document, 'content_type', None)})")
+                document_text = await process_uploaded_document(document)
+                print(f"[STREAM] Document processed successfully, chars={len(document_text)}")
+
+            if image_payload or document_text:
+                attachment = {
+                    "image": image_payload,
+                    "document_text": document_text,
+                    "document_name": getattr(document, "filename", None),
+                }
         else:
             raise HTTPException(status_code=400, detail="FormData must include 'text' field")
     elif "application/json" in content_type:
@@ -426,7 +484,12 @@ async def ask_stream_endpoint(http_req: Request):
 
     print(f"\n[STREAM] {request_id} Question: {question_text}")
     if attachment:
-        print(f"[STREAM] {request_id} With attachment: {attachment['type']}")
+        attachment_info = []
+        if attachment.get("image"):
+            attachment_info.append(f"image ({attachment['image'].get('type', 'unknown')})")
+        if attachment.get("document_text"):
+            attachment_info.append(f"document ({len(attachment['document_text'])} chars)")
+        print(f"[STREAM] {request_id} With attachment: {', '.join(attachment_info)}")
 
     def generate():  
         chunk_count = 0

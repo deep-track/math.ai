@@ -228,6 +228,376 @@
           "timestamp": 1771344323722
         }
       ]
+    },
+    {
+      "id": "conv-1771398980791",
+      "title": "what is here",
+      "createdAt": "2026-02-18T10:16:20.791182",
+      "updatedAt": "2026-02-18T10:16:47.273226",
+      "messages": [
+        {
+          "id": "msg-1771409780803",
+          "type": "user",
+          "problem": {
+            "id": "1771409780803",
+            "content": "what is here",
+            "submittedAt": 1771409780803,
+            "document": {}
+          },
+          "timestamp": 1771409780803
+        },
+        {
+          "id": "msg-1771409780803-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771409780803",
+            "steps": [],
+            "finalAnswer": "",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "error",
+            "timestamp": 1771409780803,
+            "content": "",
+            "sources": []
+          },
+          "timestamp": 1771409780803
+        },
+        {
+          "id": "msg-1771409788738",
+          "type": "user",
+          "problem": {
+            "id": "1771409788738",
+            "content": "hi",
+            "submittedAt": 1771409788738
+          },
+          "timestamp": 1771409788738
+        },
+        {
+          "id": "msg-1771409788738-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771409788738",
+            "steps": [],
+            "finalAnswer": "Voir explication ci-dessus",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1771409788738,
+            "content": "Salut ! \ud83d\udc4b\n\nJe suis **Professeur Bio**, ton tuteur en sciences pour l'universit\u00e9. Je suis l\u00e0 pour t'aider en maths, physique et bio (L1/L2).\n\nTu as une question sur un cours, un exercice ou un concept \u00e0 \u00e9claircir ? \n\nN'h\u00e9site pas, je t'\u00e9coute ! \ud83d\ude0a",
+            "sources": []
+          },
+          "timestamp": 1771409788738
+        },
+        {
+          "id": "msg-1771409806960",
+          "type": "user",
+          "problem": {
+            "id": "1771409806960",
+            "content": "what is here",
+            "submittedAt": 1771409806960,
+            "document": {}
+          },
+          "timestamp": 1771409806960
+        },
+        {
+          "id": "msg-1771409806960-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771409806960",
+            "steps": [],
+            "finalAnswer": "",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "error",
+            "timestamp": 1771409806960,
+            "content": "",
+            "sources": []
+          },
+          "timestamp": 1771409806960
+        }
+      ]
+    },
+    {
+      "id": "conv-1771399404351",
+      "title": "summarize",
+      "createdAt": "2026-02-18T10:23:24.351026",
+      "updatedAt": "2026-02-18T10:33:08.460502",
+      "messages": [
+        {
+          "id": "msg-1771410204356",
+          "type": "user",
+          "problem": {
+            "id": "1771410204356",
+            "content": "summarize",
+            "submittedAt": 1771410204356,
+            "document": {}
+          },
+          "timestamp": 1771410204356
+        },
+        {
+          "id": "msg-1771410204356-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771410204357",
+            "steps": [],
+            "finalAnswer": "",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "error",
+            "timestamp": 1771410204357,
+            "content": "",
+            "sources": []
+          },
+          "timestamp": 1771410204357
+        },
+        {
+          "id": "msg-1771410217001",
+          "type": "user",
+          "problem": {
+            "id": "1771410217001",
+            "content": "why are you not uploading",
+            "submittedAt": 1771410217001
+          },
+          "timestamp": 1771410217001
+        },
+        {
+          "id": "msg-1771410217001-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771410217001",
+            "steps": [],
+            "finalAnswer": "Voir explication ci-dessus",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1771410217001,
+            "content": "Je suis d\u00e9j\u00e0 en ligne et je fonctionne ! \ud83d\ude0a\n\nJe pense que tu veux peut-\u00eatre dire autre chose. Est-ce que tu as un probl\u00e8me avec :\n- Le chargement de documents dans le syst\u00e8me ?\n- L'affichage de mes r\u00e9ponses ?\n- Ou une question de cours que je n'ai pas bien comprise ?\n\nPr\u00e9cise-moi ce qui ne va pas, et je t'aide tout de suite ! \ud83d\udc4d",
+            "sources": []
+          },
+          "timestamp": 1771410217001
+        },
+        {
+          "id": "msg-1771410237950",
+          "type": "user",
+          "problem": {
+            "id": "1771410237950",
+            "content": "summary",
+            "submittedAt": 1771410237950,
+            "document": {}
+          },
+          "timestamp": 1771410237950
+        },
+        {
+          "id": "msg-1771410237950-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771410237950",
+            "steps": [],
+            "finalAnswer": "",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "error",
+            "timestamp": 1771410237950,
+            "content": "",
+            "sources": []
+          },
+          "timestamp": 1771410237950
+        },
+        {
+          "id": "msg-1771410241685",
+          "type": "user",
+          "problem": {
+            "id": "1771410241685",
+            "content": "hi",
+            "submittedAt": 1771410241685
+          },
+          "timestamp": 1771410241685
+        },
+        {
+          "id": "msg-1771410241685-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771410241685",
+            "steps": [],
+            "finalAnswer": "Salut ! \ud83d\udc4b\n\nJe suis **Professeur Bio**, ton tuteur en sciences pour l'universit\u00e9. Je suis l\u00e0 pour t'aider en maths, physique et bio (L1/L2).\n\nTu as une question sur un cours, un exercice ou un concept \u00e0 \u00e9claircir ? \n\nN'h\u00e9site pas, je t'\u00e9coute ! \ud83d\ude0a",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1771410241685,
+            "content": "Salut ! \ud83d\udc4b\n\nJe suis **Professeur Bio**, ton tuteur en sciences pour l'universit\u00e9. Je suis l\u00e0 pour t'aider en maths, physique et bio (L1/L2).\n\nTu as une question sur un cours, un exercice ou un concept \u00e0 \u00e9claircir ? \n\nN'h\u00e9site pas, je t'\u00e9coute ! \ud83d\ude0a",
+            "sources": []
+          },
+          "timestamp": 1771410241685
+        },
+        {
+          "id": "msg-1771410336323",
+          "type": "user",
+          "problem": {
+            "id": "1771410336323",
+            "content": "summary",
+            "submittedAt": 1771410336323,
+            "document": {}
+          },
+          "timestamp": 1771410336323
+        },
+        {
+          "id": "msg-1771410336323-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771410336323",
+            "steps": [],
+            "finalAnswer": "",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "error",
+            "timestamp": 1771410336323,
+            "content": "",
+            "sources": []
+          },
+          "timestamp": 1771410336323
+        },
+        {
+          "id": "msg-1771410688230",
+          "type": "user",
+          "problem": {
+            "id": "1771410688230",
+            "content": "short summary",
+            "submittedAt": 1771410688230,
+            "document": {}
+          },
+          "timestamp": 1771410688230
+        },
+        {
+          "id": "msg-1771410688230-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771410688230",
+            "steps": [],
+            "finalAnswer": "",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "error",
+            "timestamp": 1771410688230,
+            "content": "",
+            "sources": []
+          },
+          "timestamp": 1771410688230
+        },
+        {
+          "id": "msg-1771410775453",
+          "type": "user",
+          "problem": {
+            "id": "1771410775453",
+            "content": "summary",
+            "submittedAt": 1771410775453,
+            "document": {}
+          },
+          "timestamp": 1771410775453
+        },
+        {
+          "id": "msg-1771410775453-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771410775453",
+            "steps": [],
+            "finalAnswer": "Voir explication ci-dessus",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1771410775453,
+            "content": "# R\u00e9sum\u00e9 : Circuits Logiques S\u00e9quentiels (Chapitre 4)\n\n## Diff\u00e9rence fondamentale\n- **Circuit combinatoire** : sortie = fonction des entr\u00e9es actuelles uniquement\n- **Circuit s\u00e9quentiel** : sortie = fonction des entr\u00e9es actuelles + \u00e9tat pr\u00e9c\u00e9dent (m\u00e9moire)\n\n## Flip-Flops (bascules)\n\u00c9l\u00e9ments m\u00e9moire de base stockant **1 bit** (0 ou 1). Ont 2 sorties : $Q$ (normale) et $\\overline{Q}$ (invers\u00e9e).\n\n### Types principaux :\n1. **SR** : SET/RESET (\u00e9tat interdit : S=R=1)\n2. **D** : Transparent latch ($Q_{n+1} = D$)\n3. **T** : Toggle ($Q_{n+1} = \\overline{Q_n}$ si T=1)\n4. **JK** : Universel, pas d'\u00e9tat interdit, peut compl\u00e9menter\n\n## D\u00e9clenchement (Clock)\n- **Level-driven** : actif pendant un niveau d'horloge (obsol\u00e8te)\n- **Master-Slave** : 2 \u00e9tages (obsol\u00e8te)\n- **Edge-triggered** : change d'\u00e9tat sur front montant \u2191 ou descendant \u2193 (moderne)\n\n## Param\u00e8tres temporels cl\u00e9s\n- **Setup time** ($t_S$) : temps avant le front\n- **Hold time** ($t_H$) : temps apr\u00e8s le front\n- **Propagation delay** ($t_{PLH}$, $t_{PHL}$)\n- **Fr\u00e9quence max** : ~15 MHz (TTL), ~5 MHz (CMOS)\n\n## Table d'excitation\nIndique les entr\u00e9es n\u00e9cessaires pour obtenir une transition $Q_n \\to Q_{n+1}$ donn\u00e9e.\n\n\u2753 **Tu veux un exemple de conversion entre flip-flops ou des pr\u00e9cisions sur un type sp\u00e9cifique ?**",
+            "sources": []
+          },
+          "timestamp": 1771410775453
+        }
+      ]
+    },
+    {
+      "id": "conv-1771403752627",
+      "title": "Expliquez Optique g\u00e9om\u00e9trique",
+      "createdAt": "2026-02-18T11:35:52.627287",
+      "updatedAt": "2026-02-18T11:36:41.518220",
+      "messages": [
+        {
+          "id": "msg-1771414552645",
+          "type": "user",
+          "problem": {
+            "id": "1771414552645",
+            "content": "Expliquez Optique g\u00e9om\u00e9trique",
+            "submittedAt": 1771414552645
+          },
+          "timestamp": 1771414552645
+        },
+        {
+          "id": "msg-1771414552645-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771414552645",
+            "steps": [],
+            "finalAnswer": "",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "cancelled",
+            "timestamp": 1771414564048,
+            "content": "# Optique g\u00e9om\u00e9trique\n\nL'**optique g\u00e9om\u00e9trique** \u00e9tudie la propagation de la lumi\u00e8re \u00e0 l'aide de **rayons lumineux** (lignes droites), en n\u00e9gligeant sa nature ondulatoire.\n\n## Principes fondamentaux\n\n1. **Propagation rectiligne** : La lumi\u00e8re se propage en ligne droite dans un milieu homog\u00e8ne.\n\n2. **Lois de Snell-Descartes** :\n   - **R\u00e9flexion** : $\\theta_i = \\theta_r$ (angle incident",
+            "sources": []
+          },
+          "timestamp": 1771414552645
+        },
+        {
+          "id": "msg-1771414572475",
+          "type": "user",
+          "problem": {
+            "id": "1771414572475",
+            "content": "Expliquez Optique g\u00e9om\u00e9trique",
+            "submittedAt": 1771414572475
+          },
+          "timestamp": 1771414572475
+        },
+        {
+          "id": "msg-1771414572475-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771414572475",
+            "steps": [],
+            "finalAnswer": "# Optique g\u00e9om\u00e9trique\n\n**D\u00e9finition** : L'optique g\u00e9om\u00e9trique \u00e9tudie la propagation de la lumi\u00e8re en la mod\u00e9lisant par des **rayons lumineux** qui se d\u00e9placent en ligne droite dans un milieu homog\u00e8ne.\n\n## Principes fondamentaux\n\n1. **Propagation rectiligne** : La lumi\u00e8re se propage en ligne droite dans un milieu transparent homog\u00e8ne\n\n2. **Lois de Snell-Descartes** :\n   - **R\u00e9flexion** : $\\theta_i = \\theta_r$ (angle incident = angle r\u00e9fl\u00e9chi)\n   - **R\u00e9fraction** : $n_1 \\sin\\theta_1 = n_2 \\sin\\theta_2$ (o\u00f9 $n$ = indice de r\u00e9fraction)\n\n3. **Ind\u00e9pendance des rayons** : Les rayons lumineux se croisent sans s'influencer\n\n## Applications concr\u00e8tes\n\n- **Miroirs plans** : image virtuelle, sym\u00e9trique\n- **Lentilles minces** : $\\frac{1}{f} = \\frac{1}{p} + \\frac{1}{p'}$ (relation de conjugaison)\n- **Prismes** : dispersion de la lumi\u00e8re blanche\n- **Fibres optiques** : r\u00e9flexion totale interne\n\n**Limites** : Cette approche ignore la nature ondulatoire de la lumi\u00e8re (diffraction, interf\u00e9rences). Valable quand les obstacles sont grands devant la longueur d'onde ($\\lambda \\approx 500$ nm).",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1771414572475,
+            "content": "# Optique g\u00e9om\u00e9trique\n\n**D\u00e9finition** : L'optique g\u00e9om\u00e9trique \u00e9tudie la propagation de la lumi\u00e8re en la mod\u00e9lisant par des **rayons lumineux** qui se d\u00e9placent en ligne droite dans un milieu homog\u00e8ne.\n\n## Principes fondamentaux\n\n1. **Propagation rectiligne** : La lumi\u00e8re se propage en ligne droite dans un milieu transparent homog\u00e8ne\n\n2. **Lois de Snell-Descartes** :\n   - **R\u00e9flexion** : $\\theta_i = \\theta_r$ (angle incident = angle r\u00e9fl\u00e9chi)\n   - **R\u00e9fraction** : $n_1 \\sin\\theta_1 = n_2 \\sin\\theta_2$ (o\u00f9 $n$ = indice de r\u00e9fraction)\n\n3. **Ind\u00e9pendance des rayons** : Les rayons lumineux se croisent sans s'influencer\n\n## Applications concr\u00e8tes\n\n- **Miroirs plans** : image virtuelle, sym\u00e9trique\n- **Lentilles minces** : $\\frac{1}{f} = \\frac{1}{p} + \\frac{1}{p'}$ (relation de conjugaison)\n- **Prismes** : dispersion de la lumi\u00e8re blanche\n- **Fibres optiques** : r\u00e9flexion totale interne\n\n**Limites** : Cette approche ignore la nature ondulatoire de la lumi\u00e8re (diffraction, interf\u00e9rences). Valable quand les obstacles sont grands devant la longueur d'onde ($\\lambda \\approx 500$ nm).",
+            "sources": []
+          },
+          "timestamp": 1771414572475
+        },
+        {
+          "id": "msg-1771414598832",
+          "type": "user",
+          "problem": {
+            "id": "1771414598832",
+            "content": "just give topic name",
+            "submittedAt": 1771414598832,
+            "document": {}
+          },
+          "timestamp": 1771414598832
+        },
+        {
+          "id": "msg-1771414598832-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1771414598832",
+            "steps": [],
+            "finalAnswer": "Voir explication ci-dessus",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1771414598832,
+            "content": "Sequential Logic Circuits",
+            "sources": []
+          },
+          "timestamp": 1771414598832
+        }
+      ]
     }
   ]
 }

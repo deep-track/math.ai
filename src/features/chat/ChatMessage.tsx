@@ -17,6 +17,7 @@ import {
 } from '../../services/api';
 import { getTranslation } from '../../utils/translations';
 import { useLanguage } from '../../hooks/useLanguage';
+import { getRandomTopics, COURSE_MODULES } from '../../data/courseModules';
 import type { ChatMessage as ChatMessageType, Problem } from '../../types';
 
 const ChatMessage = () => {
@@ -803,18 +804,12 @@ const ChatMessage = () => {
                 {getTranslation('tryAskingAbout', language)}
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
-                {[
-                  { key: 'derivatives', label: getTranslation('derivatives', language) },
-                  { key: 'equations', label: getTranslation('equations', language) },
-                  { key: 'geometry', label: getTranslation('geometry', language) },
-                  { key: 'calculus', label: getTranslation('calculus', language) },
-                  { key: 'algebra', label: getTranslation('algebra', language) },
-                ].map((topic) => (
+                {getRandomTopics(5).map((topic, idx) => (
                   <button
-                    key={topic.key}
+                    key={`topic-${idx}`}
                     onClick={() =>
                       handleSubmitProblem(
-                        getTranslation('explainPrompt', language).replace('{topic}', topic.label)
+                        getTranslation('explainPrompt', language).replace('{topic}', topic)
                       )
                     }
                     className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 ${
@@ -823,7 +818,7 @@ const ChatMessage = () => {
                         : 'bg-green-200 text-green-800 hover:bg-green-300'
                     }`}
                   >
-                    {topic.label}
+                    {topic}
                   </button>
                 ))}
               </div>
