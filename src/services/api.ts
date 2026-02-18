@@ -475,13 +475,15 @@ export async function* solveProblemStream(
   problem: Problem,
   signal?: AbortSignal,
   token?: string,
-  userId?: string
+  userId?: string,
+  options?: { forceFresh?: boolean }
 ) {
   const cache = PromptCache.getInstance();
+  const forceFresh = !!options?.forceFresh;
 
   // Only cache text-only problems (no images/documents)
   const hasAttachments = (problem as any).image || (problem as any).document;
-  if (!hasAttachments) {
+  if (!hasAttachments && !forceFresh) {
     const cached = await cache.get(problem.content);
     if (cached) {
       console.log('💾 Using cached response for prompt:', problem.content.substring(0, 50));
@@ -729,7 +731,7 @@ export async function* solveProblemStream(
     }
 
     // Cache the response if it was a text-only prompt
-    if (!hasAttachments && collectedTokens.length > 0) {
+    if (!hasAttachments && !forceFresh && collectedTokens.length > 0) {
       try {
         await cache.set(problem.content, collectedTokens, { sources });
         console.log('💾 Cached response for prompt:', problem.content.substring(0, 50));

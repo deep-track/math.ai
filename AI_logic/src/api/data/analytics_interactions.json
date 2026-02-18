@@ -206,5 +206,21 @@
     "error_flags": [],
     "source": "ask-stream",
     "id": "ix-ed2b6ec26fb7"
+  },
+  {
+    "user_id": "user_38seH4e2bob7yMokOBv8o6PwqiN",
+    "timestamp": "2026-02-18T06:59:43.413077",
+    "student_question": "is this a good ui?",
+    "retrieved_documents": [],
+    "retrieved_similarity_scores": [],
+    "model_answer": "Voir explication ci-dessus",
+    "response_latency_ms": 15788,
+    "topic": "General Math",
+    "question_type": "computation",
+    "difficulty": "easy",
+    "correctness_flag": null,
+    "error_flags": [],
+    "source": "ask-stream",
+    "id": "ix-69c55f5fb0c8"
   }
 ]

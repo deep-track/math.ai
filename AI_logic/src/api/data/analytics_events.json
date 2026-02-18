@@ -124,5 +124,14 @@
     "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
     "topic": null,
     "id": "ev-09cd91911e5b"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1771397986075",
+    "response_time": 25309,
+    "timestamp": "2026-02-18T06:59:46.075000",
+    "user_id": "user_38seH4e2bob7yMokOBv8o6PwqiN",
+    "topic": null,
+    "id": "ev-794ba4e490d7"
   }
 ]

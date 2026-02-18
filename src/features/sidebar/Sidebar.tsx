@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { useTheme } from '../../theme/useTheme';
 import DiscussionsIcon from '../../data/icons/Vector.png'
-import SidePanelDrawer from '../../data/icons/wordpress_drawer-left.png'
 import { getConversations, deleteConversation } from '../../services/api';
 import { getTranslation } from '../../utils/translations';
 import { useLanguage } from '../../hooks/useLanguage';
@@ -121,10 +120,23 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
 
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className='hover:bg-slate-700/50 px-2 py-2 rounded-md transition-all duration-200 transform hover:scale-110'
+            className={`px-2 py-2 rounded-md transition-all duration-200 transform hover:scale-110 ${
+              isCollapsed
+                ? 'bg-emerald-600/20 text-emerald-100 hover:bg-emerald-600/30'
+                : 'hover:bg-slate-700/50 text-gray-200'
+            }`}
             title={isCollapsed ? getTranslation('expandSidebar', language) : getTranslation('collapseSidebar', language)}
+            aria-label={isCollapsed ? getTranslation('expandSidebar', language) : getTranslation('collapseSidebar', language)}
           >
-            <img src={SidePanelDrawer} alt="Toggle sidebar" className="h-5 w-5 opacity-80" />
+            {isCollapsed ? (
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
+              </svg>
+            )}
           </button>
         </div>
       </div>

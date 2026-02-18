@@ -1,10 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import ConfidenceIndicator from './ConfidenceIndicator';
 import FeedbackButtons from './FeedbackButtons';
+import { getTranslation } from '../utils/translations';
+import { useLanguage } from '../hooks/useLanguage';
 import type { Solution } from '../types';
 
 interface SolutionDisplayProps {
@@ -16,6 +18,7 @@ interface SolutionDisplayProps {
   userToken?: string;
   onFeedbackSubmitted?: () => void;
   solutionId?: string;
+  onRefresh?: () => void;
 }
 
 const SolutionDisplay = ({
@@ -27,7 +30,11 @@ const SolutionDisplay = ({
   userToken,
   onFeedbackSubmitted,
   solutionId = 'default-solution',
+  onRefresh,
 }: SolutionDisplayProps) => {
+  const language = useLanguage();
+  const [copied, setCopied] = useState(false);
+
   // Get the content from either solution or response
   const content = useMemo(() => {
     console.log('[SolutionDisplay] Props received:', {
@@ -69,21 +76,20 @@ const SolutionDisplay = ({
     return '';
   }, [solution, response]);
 
-  if (isLoading) {
-    return (
-      <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md animate-in fade-in duration-500">
-        <div className="flex flex-col items-center justify-center gap-4">
-          <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-          <p className="text-gray-600">Loading solution...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (!content) {
     // Intentionally render nothing when no content is available
     return null;
   }
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      console.error('Failed to copy solution content');
+    }
+  };
 
   return (
     <div className="w-full space-y-6 animate-in fade-in duration-500">
@@ -170,6 +176,49 @@ const SolutionDisplay = ({
 
       {/* Feedback Section */}
       <div className="animate-in fade-in slide-in-from-bottom duration-500">
+        <div className="mb-4 flex flex-wrap gap-2 items-center">
+          <button
+            onClick={handleCopy}
+            className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 border ${
+              copied
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : 'text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`}
+            title={getTranslation('copyToClipboard', language)}
+          >
+            {copied ? (
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20 6L9 17l-5-5" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            )}
+            <span>{copied ? getTranslation('copied', language) : getTranslation('copyToClipboard', language)}</span>
+          </button>
+
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              disabled={isLoading}
+              className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 border ${
+                isLoading
+                  ? 'opacity-50 cursor-not-allowed text-slate-500 bg-slate-100 border-slate-200'
+                  : 'text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`}
+              title={getTranslation('refreshAnswer', language)}
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-2.64-6.36" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 3v6h-6" />
+              </svg>
+              <span>{getTranslation('refreshAnswer', language)}</span>
+            </button>
+          )}
+        </div>
+
         <FeedbackButtons
           solutionId={solutionId}
           userToken={userToken}

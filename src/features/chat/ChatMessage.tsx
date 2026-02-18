@@ -3,7 +3,6 @@ import { useTheme } from '../../theme/useTheme';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import ChatInput from './ChatInput';
 import SolutionDisplay from '../../components/SolutionDisplay';
-import LoadingState from '../../components/LoadingState';
 import InlineSpinner from '../../components/InlineSpinner';
 import ErrorDisplay from '../../components/ErrorDisplay';
 import GuestNamePrompt from '../../components/GuestNamePrompt';
@@ -163,7 +162,12 @@ const ChatMessage = () => {
   };
 
   const handleSubmitProblem = useCallback(
-    async (problemText: string, image?: File, documentFile?: File) => {
+    async (
+      problemText: string,
+      image?: File,
+      documentFile?: File,
+      options?: { forceFresh?: boolean }
+    ) => {
       setFollowWhileStreaming(true);
 
       // Allow image-only OR text-only OR both; block only if truly empty
@@ -294,7 +298,7 @@ const ChatMessage = () => {
 
         let streamEnded = false;
         try {
-          for await (const solution of solveProblemStream(problem, controller.signal, token, userId)) {
+          for await (const solution of solveProblemStream(problem, controller.signal, token, userId, options)) {
             lastResponseTime = Date.now();
 
             if ((solution as any).chargedRemaining !== undefined) {
@@ -462,6 +466,226 @@ const ChatMessage = () => {
     [conversationId, user, getSessionToken, followWhileStreaming, language, creditsRemaining]
   );
 
+  const handleRefreshResponse = useCallback(
+    async (assistantMessageId: string, problem: Problem & { image?: File; document?: File }) => {
+      setFollowWhileStreaming(true);
+      setError(null);
+      setLoading(true);
+      cancelledRef.current = false;
+
+      const userId = user?.id || 'guest';
+      let token: string | undefined = await getSessionToken();
+
+      if (user?.id && !token) {
+        setError(getTranslation('authTokenMissing', language));
+        setLoading(false);
+        return;
+      }
+
+      if (creditsRemaining === 0) {
+        setError(getTranslation('noCreditsInline', language));
+        setLoading(false);
+        return;
+      }
+
+      if (creditsRemaining === null) {
+        try {
+          const current = await getCredits(userId, token);
+          if (typeof current.remaining === 'number') {
+            setCreditsRemaining(current.remaining);
+            if (current.remaining <= 0) {
+              setError(getTranslation('noCreditsInline', language));
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (err) {
+          // proceed
+        }
+      }
+
+      const startTime = Date.now();
+      const activeConversationId = conversationId;
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessageId
+            ? {
+                ...msg,
+                solution: {
+                  ...msg.solution!,
+                  content: '',
+                  finalAnswer: '',
+                  status: 'streaming',
+                  sources: [],
+                  timestamp: Date.now(),
+                } as any,
+              }
+            : msg
+        )
+      );
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      setIsStreaming(true);
+
+      let lastResponseTime = startTime;
+      entryRef.current.hasReceivedChunk = false;
+      (entryRef as any).current.completed = false;
+      (entryRef as any).current.serverCharged = false;
+      (entryRef as any).current.serverRemaining = undefined;
+
+      let streamEnded = false;
+
+      try {
+        for await (const solution of solveProblemStream(problem, controller.signal, token, userId, { forceFresh: true })) {
+          lastResponseTime = Date.now();
+
+          if ((solution as any).chargedRemaining !== undefined) {
+            (entryRef as any).current.serverCharged = true;
+            (entryRef as any).current.serverRemaining = (solution as any).chargedRemaining;
+            try {
+              window.dispatchEvent(
+                new CustomEvent('creditsUpdated', {
+                  detail: { userId, remaining: (solution as any).chargedRemaining },
+                })
+              );
+              setTimeout(() => setCreditsRemaining((solution as any).chargedRemaining), 0);
+            } catch (e) {
+              // ignore
+            }
+          }
+
+          if (!entryRef.current.hasReceivedChunk) {
+            entryRef.current.hasReceivedChunk = true;
+            setLoading(false);
+          }
+
+          setMessages((prev) => {
+            const next = prev.map((msg) => {
+              if (msg.id === assistantMessageId) {
+                return {
+                  ...msg,
+                  solution: {
+                    ...msg.solution!,
+                    content: solution.content || '',
+                    finalAnswer: solution.finalAnswer,
+                    status: solution.status,
+                    sources: solution.sources,
+                  } as any,
+                };
+              }
+              return msg;
+            });
+
+            if ((solution.status as any) === 'ok' || (solution.status as any) === 'end') {
+              (entryRef as any).current.completed = true;
+              if (activeConversationId) {
+                updateConversation(activeConversationId, userId, next, undefined, token);
+                window.dispatchEvent(new CustomEvent('conversationUpdated'));
+              }
+            }
+
+            return next;
+          });
+
+          if (followWhileStreaming) {
+            const scrollContainer = scrollContainerRef.current || document.querySelector('.scrollbar-thin');
+            if (scrollContainer) {
+              (scrollContainer as HTMLElement).scrollTop = (scrollContainer as HTMLElement).scrollHeight;
+            }
+          }
+        }
+        streamEnded = true;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') {
+          cancelledRef.current = true;
+          setError(getTranslation('generationStopped', language));
+
+          setMessages((prev) => {
+            const next = prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? { ...msg, solution: { ...msg.solution!, status: 'cancelled' } as any }
+                : msg
+            );
+
+            if (activeConversationId) {
+              updateConversation(activeConversationId, userId, next, undefined, token);
+              window.dispatchEvent(new CustomEvent('conversationUpdated'));
+            }
+
+            return next;
+          });
+        } else {
+          const errorMessage = err instanceof Error ? err.message : getTranslation('unableToSolveTitle', language);
+          setError(errorMessage);
+
+          setMessages((prev) => {
+            const next = prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? { ...msg, solution: { ...msg.solution!, status: 'error' } as any }
+                : msg
+            );
+
+            if (activeConversationId) {
+              updateConversation(activeConversationId, userId, next, undefined, token);
+              window.dispatchEvent(new CustomEvent('conversationUpdated'));
+            }
+
+            return next;
+          });
+        }
+      } finally {
+        setIsStreaming(false);
+        abortControllerRef.current = null;
+      }
+
+      const responseTime = lastResponseTime - startTime;
+
+      if (((entryRef as any).current.completed || streamEnded) && !cancelledRef.current) {
+        if (streamEnded && !(entryRef as any).current.completed) {
+          (entryRef as any).current.completed = true;
+        }
+        if (user?.id) {
+          try {
+            const latestToken = await getSessionToken();
+            const latestCredits = await getCredits(userId, latestToken);
+            if (typeof latestCredits.remaining === 'number') {
+              setCreditsRemaining(latestCredits.remaining);
+              window.dispatchEvent(
+                new CustomEvent('creditsUpdated', {
+                  detail: { userId, remaining: latestCredits.remaining },
+                })
+              );
+            }
+          } catch (err) {
+            console.warn('Failed to refresh credits after stream completion', err);
+          }
+        } else if (!(entryRef as any).current.serverCharged) {
+          try {
+            const local = localSpendCredit();
+            if (local?.success) {
+              setCreditsRemaining(local.remaining ?? null);
+            }
+          } catch (e) {
+            console.error('Failed to spend local guest credit', e);
+          }
+        }
+      }
+
+      await trackAnalyticsEvent({
+        eventType: 'problem_submitted',
+        solutionId: `solution-${Date.now()}`,
+        responseTime,
+        timestamp: Date.now(),
+        userId,
+      });
+
+      setLoading(false);
+    },
+    [conversationId, user, getSessionToken, followWhileStreaming, language, creditsRemaining]
+  );
+
   const handleRetry = () => {
     setError(null);
     setMessages((prev) =>
@@ -609,14 +833,21 @@ const ChatMessage = () => {
 
         {loading && (
           <div className="px-6 pb-4">
-            <div
-              className={`rounded-2xl p-6 ${
-                theme === 'dark'
-                  ? 'bg-[#1a1a1a] border border-gray-800'
-                  : 'bg-white border border-gray-200'
-              }`}
-            >
-              <LoadingState variant="solving" message={getTranslation('solvingProblem', language)} />
+            <div className="w-full animate-in fade-in duration-300">
+              <div className="flex justify-start px-2">
+                <div
+                  className={`rounded-2xl p-4 ${
+                    theme === 'dark'
+                      ? 'bg-[#1a1a1a] border border-gray-800'
+                      : 'bg-white border border-gray-200'
+                  }`}
+                >
+                  <InlineSpinner
+                    message={getTranslation('solvingProblem', language)}
+                    size="md"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -694,6 +925,22 @@ const ChatMessage = () => {
 
                 {/* Assistant message */}
                 {msg.type === 'assistant' && msg.solution && (
+                  (() => {
+                    const previousUserMessage = [...messages]
+                      .slice(0, index)
+                      .reverse()
+                      .find((entry) => entry.type === 'user' && entry.problem?.content);
+
+                    const handleRefreshSolution = previousUserMessage
+                      ? () => {
+                          void handleRefreshResponse(
+                            msg.id,
+                            previousUserMessage.problem as Problem & { image?: File; document?: File }
+                          );
+                        }
+                      : undefined;
+
+                    return (
                   <div
                     className={`rounded-2xl p-6 ${
                       theme === 'dark'
@@ -708,9 +955,13 @@ const ChatMessage = () => {
                       confidenceLevel={msg.solution.confidenceLevel}
                       solutionId={msg.solution.id}
                       userToken={user?.id}
+                      isLoading={loading}
+                      onRefresh={handleRefreshSolution}
                       onFeedbackSubmitted={handleFeedbackSubmitted}
                     />
                   </div>
+                    );
+                  })()
                 )}
               </div>
             </div>

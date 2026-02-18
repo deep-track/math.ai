@@ -45,13 +45,13 @@ const AdminLayout = () => {
           </button>
         </div>
 
-        <div className="flex h-screen w-screen overflow-hidden bg-slate-50 pt-0 md:pt-0">
+        <div className="flex h-[100dvh] w-full overflow-hidden bg-slate-50">
           <div
             className={`${
               sidebarOpen
                 ? 'fixed left-0 top-4 h-[calc(100%-32px)] z-40 w-64'
                 : 'hidden md:relative md:flex'
-            } md:relative md:flex md:top-0 md:h-screen md:z-10 md:w-auto`}
+            } md:relative md:flex md:top-0 md:h-full md:z-10 md:w-auto`}
           >
             <Sidebar onNewChat={handleNewChat} onSelectConversation={handleSelectConversation} />
           </div>

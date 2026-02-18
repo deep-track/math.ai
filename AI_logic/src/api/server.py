@@ -13,6 +13,7 @@ from typing import Optional, List
 import sys
 import os
 import json
+import math
 from datetime import datetime, timedelta
 from collections import Counter, defaultdict
 import re
@@ -626,10 +627,19 @@ MONGODB_URI = os.environ.get('MONGODB_URI')
 MONGODB_DB = os.environ.get('MONGODB_DB', 'mathai')
 USE_MONGO = bool(MONGODB_URI)
 
+credits_coll = None
+conversations_coll = None
+analytics_interactions_coll = None
+analytics_feedback_coll = None
+analytics_events_coll = None
+analytics_interactions_coll_sync = None
+analytics_feedback_coll_sync = None
+analytics_events_coll_sync = None
+
 if USE_MONGO:
     try:
         from motor.motor_asyncio import AsyncIOMotorClient
-        from pymongo import ReturnDocument
+        from pymongo import ReturnDocument, MongoClient
         import certifi
         
         # Add SSL certificate verification using certifi
@@ -642,6 +652,19 @@ if USE_MONGO:
         mongo_db = mongo_client[MONGODB_DB]
         credits_coll = mongo_db['credits']
         conversations_coll = mongo_db['conversations']
+        analytics_interactions_coll = mongo_db['analytics_interactions']
+        analytics_feedback_coll = mongo_db['analytics_feedback']
+        analytics_events_coll = mongo_db['analytics_events']
+
+        mongo_sync_client = MongoClient(
+            MONGODB_URI,
+            tlsCAFile=certifi.where(),
+            serverSelectionTimeoutMS=5000
+        )
+        mongo_sync_db = mongo_sync_client[MONGODB_DB]
+        analytics_interactions_coll_sync = mongo_sync_db['analytics_interactions']
+        analytics_feedback_coll_sync = mongo_sync_db['analytics_feedback']
+        analytics_events_coll_sync = mongo_sync_db['analytics_events']
         print('[MONGO] MongoDB client initialized with SSL/TLS certificate verification')
     except ImportError:
         print('[MONGO] certifi not installed. Run: pip install certifi')
@@ -743,6 +766,10 @@ def _to_dt(value):
     if value is None:
         return None
     try:
+        if isinstance(value, datetime):
+            if value.tzinfo is not None:
+                return value.astimezone(tz=None).replace(tzinfo=None)
+            return value
         if isinstance(value, (int, float)):
             if value > 1e12:
                 return datetime.utcfromtimestamp(value / 1000)
@@ -769,6 +796,12 @@ def _log_interaction(record: dict):
     interaction = dict(record)
     interaction["id"] = interaction.get("id") or f"ix-{uuid.uuid4().hex[:12]}"
     interaction["timestamp"] = interaction.get("timestamp") or datetime.utcnow().isoformat()
+    if USE_MONGO and analytics_interactions_coll_sync is not None:
+        try:
+            analytics_interactions_coll_sync.insert_one(interaction)
+            return
+        except Exception as e:
+            print(f"[ANALYTICS] Mongo interaction write failed, using file fallback: {e}")
     _append_record(ANALYTICS_INTERACTIONS_FILE, interaction)
 
 
@@ -776,6 +809,12 @@ def _log_feedback(record: dict):
     payload = dict(record)
     payload["id"] = payload.get("id") or f"fb-{uuid.uuid4().hex[:12]}"
     payload["timestamp"] = payload.get("timestamp") or datetime.utcnow().isoformat()
+    if USE_MONGO and analytics_feedback_coll_sync is not None:
+        try:
+            analytics_feedback_coll_sync.insert_one(payload)
+            return
+        except Exception as e:
+            print(f"[ANALYTICS] Mongo feedback write failed, using file fallback: {e}")
     _append_record(ANALYTICS_FEEDBACK_FILE, payload)
 
 
@@ -783,7 +822,36 @@ def _log_event(record: dict):
     payload = dict(record)
     payload["id"] = payload.get("id") or f"ev-{uuid.uuid4().hex[:12]}"
     payload["timestamp"] = payload.get("timestamp") or datetime.utcnow().isoformat()
+    if USE_MONGO and analytics_events_coll_sync is not None:
+        try:
+            analytics_events_coll_sync.insert_one(payload)
+            return
+        except Exception as e:
+            print(f"[ANALYTICS] Mongo event write failed, using file fallback: {e}")
     _append_record(ANALYTICS_EVENTS_FILE, payload)
+
+
+def _load_analytics_records(kind: str):
+    if USE_MONGO:
+        try:
+            coll = None
+            if kind == "interactions":
+                coll = analytics_interactions_coll_sync
+            elif kind == "feedback":
+                coll = analytics_feedback_coll_sync
+            elif kind == "events":
+                coll = analytics_events_coll_sync
+
+            if coll is not None:
+                return list(coll.find({}, {"_id": 0}))
+        except Exception as e:
+            print(f"[ANALYTICS] Mongo read failed for {kind}, using file fallback: {e}")
+
+    if kind == "interactions":
+        return _load_json(ANALYTICS_INTERACTIONS_FILE, [])
+    if kind == "feedback":
+        return _load_json(ANALYTICS_FEEDBACK_FILE, [])
+    return _load_json(ANALYTICS_EVENTS_FILE, [])
 
 
 def _safe_pct(numerator: float, denominator: float) -> float:
@@ -1028,6 +1096,33 @@ async def _migrate_json_to_mongo():
                     c_copy['user_id'] = uid
                     await conversations_coll.update_one({'user_id': uid, 'id': c_copy.get('id')}, {'$set': c_copy}, upsert=True)
             print('[MONGO] Migrated conversations.json to MongoDB')
+
+        if os.path.exists(ANALYTICS_INTERACTIONS_FILE):
+            records = _load_json(ANALYTICS_INTERACTIONS_FILE, [])
+            if isinstance(records, list):
+                for item in records:
+                    payload = dict(item)
+                    payload['id'] = payload.get('id') or f"ix-{uuid.uuid4().hex[:12]}"
+                    await analytics_interactions_coll.update_one({'id': payload['id']}, {'$set': payload}, upsert=True)
+                print('[MONGO] Migrated analytics_interactions.json to MongoDB')
+
+        if os.path.exists(ANALYTICS_FEEDBACK_FILE):
+            records = _load_json(ANALYTICS_FEEDBACK_FILE, [])
+            if isinstance(records, list):
+                for item in records:
+                    payload = dict(item)
+                    payload['id'] = payload.get('id') or f"fb-{uuid.uuid4().hex[:12]}"
+                    await analytics_feedback_coll.update_one({'id': payload['id']}, {'$set': payload}, upsert=True)
+                print('[MONGO] Migrated analytics_feedback.json to MongoDB')
+
+        if os.path.exists(ANALYTICS_EVENTS_FILE):
+            records = _load_json(ANALYTICS_EVENTS_FILE, [])
+            if isinstance(records, list):
+                for item in records:
+                    payload = dict(item)
+                    payload['id'] = payload.get('id') or f"ev-{uuid.uuid4().hex[:12]}"
+                    await analytics_events_coll.update_one({'id': payload['id']}, {'$set': payload}, upsert=True)
+                print('[MONGO] Migrated analytics_events.json to MongoDB')
     except Exception as e:
         print('[MONGO] Migration error:', e)
 
@@ -1108,8 +1203,7 @@ async def track_analytics_event(req: AnalyticsEventRequest):
     return {"success": True}
 
 
-@api_router.get("/admin/metrics")
-async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
+def _resolve_admin_email_from_request(request: Request, email: str = "") -> str:
     session_header = request.headers.get('x-session-id') or request.headers.get('authorization')
     resolved_email = None
 
@@ -1135,13 +1229,57 @@ async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
     if not _is_admin_email(effective_email):
         raise HTTPException(status_code=403, detail="Admin access required")
 
+    return effective_email
+
+
+@api_router.get("/admin/metrics/source")
+async def get_admin_metrics_source(request: Request, email: str = ""):
+    effective_email = _resolve_admin_email_from_request(request, email)
+
+    collection_map = {
+        "interactions": analytics_interactions_coll_sync,
+        "feedback": analytics_feedback_coll_sync,
+        "events": analytics_events_coll_sync,
+    }
+
+    metrics_read_source = {}
+    probe_status = {}
+
+    for kind, coll in collection_map.items():
+        if USE_MONGO and coll is not None:
+            try:
+                coll.find_one({}, {"_id": 1})
+                metrics_read_source[kind] = "mongo"
+                probe_status[kind] = "ok"
+            except Exception as exc:
+                metrics_read_source[kind] = "file_fallback"
+                probe_status[kind] = f"mongo_error: {str(exc)[:120]}"
+        else:
+            metrics_read_source[kind] = "file_fallback"
+            probe_status[kind] = "mongo_not_configured"
+
+    return {
+        "adminEmail": effective_email,
+        "mongoConfigured": bool(MONGODB_URI),
+        "mongoEnabled": USE_MONGO,
+        "collectionsReady": {k: v is not None for k, v in collection_map.items()},
+        "metricsReadSource": metrics_read_source,
+        "probeStatus": probe_status,
+        "generatedAt": datetime.utcnow().isoformat(),
+    }
+
+
+@api_router.get("/admin/metrics")
+async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
+    _resolve_admin_email_from_request(request, email)
+
     days = max(1, min(days, 180))
     now = datetime.utcnow()
     since = now - timedelta(days=days)
 
-    interactions = _load_json(ANALYTICS_INTERACTIONS_FILE, [])
-    feedback = _load_json(ANALYTICS_FEEDBACK_FILE, [])
-    events = _load_json(ANALYTICS_EVENTS_FILE, [])
+    interactions = _load_analytics_records("interactions")
+    feedback = _load_analytics_records("feedback")
+    events = _load_analytics_records("events")
 
     if not isinstance(interactions, list):
         interactions = []
@@ -1160,7 +1298,12 @@ async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
     ]
 
     total_questions = len(recent_interactions)
-    latencies = [float(x.get("response_latency_ms", 0)) for x in recent_interactions if isinstance(x.get("response_latency_ms"), (int, float))]
+    latencies = [
+        float(x.get("response_latency_ms", 0))
+        for x in recent_interactions
+        if isinstance(x.get("response_latency_ms"), (int, float))
+        and math.isfinite(float(x.get("response_latency_ms", 0)))
+    ]
     avg_latency = round(sum(latencies) / len(latencies), 2) if latencies else 0
 
     users_all = [str(x.get("user_id", "guest")) for x in recent_interactions]
@@ -1174,7 +1317,8 @@ async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
     feedback_types = Counter([str(x.get("type", "")).lower() for x in recent_feedback])
     helpful = feedback_types.get("helpful", 0)
     incorrect = feedback_types.get("incorrect", 0)
-    satisfaction = _safe_pct(helpful, helpful + incorrect)
+    feedback_total = helpful + incorrect
+    satisfaction = _safe_pct(helpful, feedback_total) if feedback_total > 0 else None
 
     correctness_values = [x.get("correctness_flag") for x in recent_interactions if isinstance(x.get("correctness_flag"), bool)]
     if correctness_values:
@@ -1235,15 +1379,19 @@ async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
 
         scores = item.get("retrieved_similarity_scores")
         if isinstance(scores, list):
-            similarity_scores.extend([float(s) for s in scores if isinstance(s, (int, float))])
+            similarity_scores.extend([
+                float(s)
+                for s in scores
+                if isinstance(s, (int, float)) and math.isfinite(float(s))
+            ])
 
         flags = item.get("error_flags") or []
         if isinstance(flags, list):
             for f in flags:
                 error_patterns[str(f)] += 1
 
-    avg_retrieved_docs = round(sum(retrieval_doc_count) / len(retrieval_doc_count), 2) if retrieval_doc_count else 0
-    retrieval_failure_rate = _safe_pct(retrieval_failures, len(recent_interactions)) if recent_interactions else 0
+    avg_retrieved_docs = round(sum(retrieval_doc_count) / len(retrieval_doc_count), 2) if retrieval_doc_count else None
+    retrieval_failure_rate = _safe_pct(retrieval_failures, logs_with_retrieval) if logs_with_retrieval > 0 else None
 
     repeat_users = sum(1 for _, count in user_counts.items() if count > 1)
     repeat_usage_rate = _safe_pct(repeat_users, len(user_counts)) if user_counts else 0
@@ -1260,6 +1408,16 @@ async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
             acc = overall_accuracy
         topic_accuracy.append({"topic": topic, "count": count, "accuracy": acc})
     topic_accuracy.sort(key=lambda x: x["count"], reverse=True)
+
+    numeric_topic_accuracy = [
+        x for x in topic_accuracy
+        if isinstance(x.get("accuracy"), (int, float))
+    ]
+    lowest_performing_topic = (
+        sorted(numeric_topic_accuracy, key=lambda x: x["accuracy"])[0]
+        if numeric_topic_accuracy
+        else None
+    )
 
     feedback_by_topic = defaultdict(lambda: {"helpful": 0, "incorrect": 0})
     for fb in recent_feedback:
@@ -1286,12 +1444,17 @@ async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
         else:
             h = sum(1 for x in subset_feedback if str(x.get("type", "")).lower() == "helpful")
             i = sum(1 for x in subset_feedback if str(x.get("type", "")).lower() == "incorrect")
-            acc = _safe_pct(h, h + i)
-        sub_lat = [float(x.get("response_latency_ms", 0)) for x in subset if isinstance(x.get("response_latency_ms"), (int, float))]
+            acc = _safe_pct(h, h + i) if (h + i) > 0 else None
+        sub_lat = [
+            float(x.get("response_latency_ms", 0))
+            for x in subset
+            if isinstance(x.get("response_latency_ms"), (int, float))
+            and math.isfinite(float(x.get("response_latency_ms", 0)))
+        ]
         h = sum(1 for x in subset_feedback if str(x.get("type", "")).lower() == "helpful")
         i = sum(1 for x in subset_feedback if str(x.get("type", "")).lower() == "incorrect")
         accuracy_trend.append({"date": key, "value": acc})
-        feedback_trend.append({"date": key, "value": _safe_pct(h, h + i)})
+        feedback_trend.append({"date": key, "value": _safe_pct(h, h + i) if (h + i) > 0 else None})
         latency_trend.append({"date": key, "value": round(sum(sub_lat) / len(sub_lat), 2) if sub_lat else 0})
 
     similarity_distribution = {
@@ -1335,6 +1498,11 @@ async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
 
     peak_hours = [{"hour": h, "count": c} for h, c in sorted(hourly_counts.items(), key=lambda x: x[1], reverse=True)[:6]]
     questions_per_day = [{"date": d, "count": daily_counts.get(d, 0)} for d in per_day_keys]
+    has_error_signal = bool(error_patterns)
+    hallucination_rate = _safe_pct(error_patterns.get("hallucination", 0), total_questions) if total_questions > 0 and has_error_signal else None
+    logical_consistency_rate = round(max(0, 100 - _safe_pct(error_patterns.get("logical_inconsistency", 0), total_questions)), 2) if total_questions > 0 and has_error_signal else None
+    verification_mismatch_rate = _safe_pct(error_patterns.get("verification_mismatch", 0), total_questions) if total_questions > 0 and has_error_signal else None
+    reasked_frequency = _safe_pct(sum(1 for e in events if str(e.get("event_type")) == "problem_submitted"), total_questions) if total_questions > 0 else None
 
     return {
         "overview": {
@@ -1354,7 +1522,7 @@ async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
         },
         "quality": {
             "correctAnswersPct": overall_accuracy,
-            "incorrectAnswersPct": round(100 - overall_accuracy, 2),
+            "incorrectAnswersPct": round(100 - overall_accuracy, 2) if isinstance(overall_accuracy, (int, float)) else None,
             "accuracyByTopic": topic_accuracy,
             "accuracyOverTime": accuracy_trend,
             "teacherReviewedSampleAccuracy": overall_accuracy,
@@ -1369,7 +1537,7 @@ async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
         "topicAnalysis": {
             "mostAskedTopics": topic_accuracy[:5],
             "leastAskedTopics": sorted(topic_accuracy, key=lambda x: x["count"])[:5],
-            "lowestPerformingTopic": sorted(topic_accuracy, key=lambda x: x["accuracy"])[0] if topic_accuracy else None,
+            "lowestPerformingTopic": lowest_performing_topic,
             "feedbackByTopic": [{"topic": t, **v} for t, v in feedback_by_topic.items()],
         },
         "errors": {
@@ -1384,11 +1552,11 @@ async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
         "aiLayer": {
             "accuracyByDifficulty": [{"level": k, "count": v} for k, v in difficulty_counter.items()],
             "errorRateByQuestionType": [{"type": k, "count": v} for k, v in question_type_counter.items()],
-            "hallucinationRate": _safe_pct(error_patterns.get("hallucination", 0), total_questions if total_questions else 1),
-            "logicalConsistencyRate": round(max(0, 100 - _safe_pct(error_patterns.get("logical_inconsistency", 0), total_questions if total_questions else 1)), 2),
-            "mathVerificationMismatchRate": _safe_pct(error_patterns.get("verification_mismatch", 0), total_questions if total_questions else 1),
+            "hallucinationRate": hallucination_rate,
+            "logicalConsistencyRate": logical_consistency_rate,
+            "mathVerificationMismatchRate": verification_mismatch_rate,
             "userFlaggedAnswers": incorrect,
-            "reaskedQuestionsFrequency": _safe_pct(sum(1 for e in events if str(e.get("event_type")) == "problem_submitted"), max(1, total_questions)),
+            "reaskedQuestionsFrequency": reasked_frequency,
         },
         "system": {
             "apiLatencyMs": avg_latency,

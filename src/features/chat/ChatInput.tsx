@@ -217,7 +217,7 @@ const ChatInput = ({
 
   return (
     <div
-      className={`mx-4 mb-4 rounded-2xl border-2 px-4 pt-3 pb-2 transition-all duration-200 ${
+      className={`mx-3 md:mx-4 mb-2 md:mb-4 rounded-2xl border-2 px-4 pt-3 pb-2 transition-all duration-200 ${
         isDragging
           ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
           : theme === 'dark'
@@ -231,7 +231,7 @@ const ChatInput = ({
       {/* Drag overlay hint */}
       {isDragging && (
         <div className="absolute inset-0 flex items-center justify-center rounded-2xl pointer-events-none z-10">
-          <span className="text-green-600 font-semibold text-lg">📷 Drop image here</span>
+          <span className="text-green-600 font-semibold text-lg">📷 Déposez l’image ici</span>
         </div>
       )}
 
@@ -248,11 +248,11 @@ const ChatInput = ({
               {selectedImage.name}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              {(selectedImage.size / 1024 / 1024).toFixed(2)} MB · Image will be analyzed
+              {(selectedImage.size / 1024 / 1024).toFixed(2)} MB ·L’image sera analysée.
             </p>
             {message.trim() === '' && (
               <p className="text-xs text-green-600 dark:text-green-400 mt-1 italic">
-                ✓ Will solve image automatically — you can also add a specific question
+                ✓ L’image sera résolue automatiquement — vous pouvez également ajouter une question spécifique.
               </p>
             )}
           </div>
@@ -275,11 +275,11 @@ const ChatInput = ({
               {selectedDocument.name}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              {(selectedDocument.size / 1024 / 1024).toFixed(2)} MB · Document will be analyzed
+              {(selectedDocument.size / 1024 / 1024).toFixed(2)} MB · Le document sera analysé.
             </p>
             {message.trim() === '' && (
               <p className="text-xs text-green-600 dark:text-green-400 mt-1 italic">
-                ✓ Will analyze document automatically — you can also add a specific question
+                ✓ Le document sera analysé automatiquement — vous pouvez également ajouter une question spécifique.
               </p>
             )}
           </div>
@@ -305,10 +305,10 @@ const ChatInput = ({
         onPaste={handleTextareaPaste}
         placeholder={
           selectedImage
-            ? 'Add a specific question about the image, or press Enter to solve it...'
+            ? 'Ajoutez une question spécifique sur l’image ou appuyez sur Entrée pour la résoudre…'
             : selectedDocument
-            ? 'Add a specific question about the document, or press Enter...'
-            : placeholder || 'Ask a math or physics question... (paste or drop an image 📷)'
+            ? 'Ajoutez une question spécifique sur le document ou appuyez sur Entrée pour l’analyser…'
+            : placeholder || 'Posez une question de mathématiques ou de physique... (collez ou déposez une image 📷)'
         }
         disabled={disabled}
         className={`w-full resize-none bg-transparent text-sm outline-none transition-colors ${
@@ -370,16 +370,18 @@ const ChatInput = ({
             <button
               onClick={() => setShowUploadMenu(!showUploadMenu)}
               disabled={disabled}
-              className={`flex items-center justify-center h-6 w-6 rounded-full transition-all duration-200 ${
+              className={`inline-flex items-center justify-center h-7 w-7 rounded-md border transition-all duration-200 ${
                 selectedImage || selectedDocument
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-emerald-600 text-white border-emerald-600'
                   : theme === 'dark'
-                  ? 'hover:bg-gray-800 text-gray-500 hover:text-gray-300'
-                  : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                  ? 'border-gray-700 hover:bg-gray-800 text-gray-400 hover:text-gray-200'
+                  : 'border-gray-200 hover:bg-gray-100 text-gray-500 hover:text-gray-700'
               } ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
               title="Upload image or document"
             >
-              <span className="text-sm">+</span>
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 114.95 4.95l-9.2 9.19a1.5 1.5 0 11-2.12-2.12l8.49-8.49" />
+              </svg>
             </button>
 
             {/* Popover menu */}
@@ -397,26 +399,36 @@ const ChatInput = ({
                     fileInputRef.current?.click();
                     setShowUploadMenu(false);
                   }}
-                  className={`block w-full text-left px-4 py-2 text-sm transition-colors rounded-t-lg ${
+                  className={`inline-flex w-full items-center gap-2 text-left px-4 py-2 text-sm transition-colors rounded-t-lg ${
                     theme === 'dark'
                       ? 'hover:bg-gray-700 text-gray-200'
                       : 'hover:bg-gray-100 text-gray-800'
                   }`}
                 >
-                  📷 Image
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="4" width="18" height="16" rx="2" ry="2" />
+                    <circle cx="8.5" cy="9.5" r="1.5" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 15l-5-5L5 20" />
+                  </svg>
+                  <span>Image</span>
                 </button>
                 <button
                   onClick={() => {
                     docInputRef.current?.click();
                     setShowUploadMenu(false);
                   }}
-                  className={`block w-full text-left px-4 py-2 text-sm transition-colors rounded-b-lg ${
+                  className={`inline-flex w-full items-center gap-2 text-left px-4 py-2 text-sm transition-colors rounded-b-lg ${
                     theme === 'dark'
                       ? 'hover:bg-gray-700 text-gray-200'
                       : 'hover:bg-gray-100 text-gray-800'
                   }`}
                 >
-                  📄 Document
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 2H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V7z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 2v5h5" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6M9 17h6" />
+                  </svg>
+                  <span>Document</span>
                 </button>
               </div>
             )}

@@ -70,11 +70,11 @@ function App() {
 
   // Still checking whitelist status
   if (authState.isSignedIn && (authState.isWhitelisted === null || isChecking) && !timedOut) {
-    return <LoadingState variant="login" message="Verifying access..." />
+    return <LoadingState variant="login" message="Vérification de l’accès en cours..." />
   }
 
   if (!authState.isLoaded) {
-    return <LoadingState variant="login" message="Authenticating..." />
+    return <LoadingState variant="login" message="Authentification en cours..." />
   }
 
   return (
@@ -90,7 +90,7 @@ function App() {
         element={
           authState.isSignedIn && authState.isWhitelisted !== false
             ? (isCheckingAdmin || adminStatus === null
-              ? <LoadingState variant="login" message="Verifying admin access..." />
+              ? <LoadingState variant="login" message="Vérification de l’accès administrateur en cours..." />
               : (adminStatus.allowed ? <AdminLayout/> : <Navigate to="/home" replace />))
             : <Navigate to="/login" replace />
         }
