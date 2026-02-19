@@ -35,13 +35,14 @@ export const COURSE_MODULES: CourseModule[] = [
 /**
  * Curriculum-specific button topics (curated list, all math/physics)
  * These are the ONLY topics shown in the UI question buttons
+ * From MTH1220 (Structures algébriques) and PHY1223 (Optique générale)
  */
 export const CURRICULUM_TOPICS = [
-  "Divisibilité",
-  "Lentilles et dioptres",
-  "Fractions rationnelles",
-  "Optique physique",
   "Optique géométrique",
+  "Lentilles et dioptres",
+  "Optique physique",
+  "Fractions rationnelles",
+  "Divisibilité",
 ];
 
 /**
