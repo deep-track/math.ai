@@ -497,11 +497,12 @@ export async function* solveProblemStream(
 ) {
   const cache = PromptCache.getInstance();
   const forceFresh = !!options?.forceFresh;
+  const cacheKey = `${problem.content}::math-physics-v1`;
 
   // Only cache text-only problems (no images/documents)
   const hasAttachments = (problem as any).image || (problem as any).document;
   if (!hasAttachments && !forceFresh) {
-    const cached = await cache.get(problem.content);
+    const cached = await cache.get(cacheKey);
     if (cached) {
       console.log('💾 Using cached response for prompt:', problem.content.substring(0, 50));
       // Yield tokens from cache
@@ -768,7 +769,7 @@ export async function* solveProblemStream(
     // Cache the response if it was a text-only prompt
     if (!hasAttachments && !forceFresh && collectedTokens.length > 0) {
       try {
-        await cache.set(problem.content, collectedTokens, { sources });
+        await cache.set(cacheKey, collectedTokens, { sources });
         console.log('💾 Cached response for prompt:', problem.content.substring(0, 50));
       } catch (err) {
         console.warn('Failed to cache response:', err);
