@@ -18,6 +18,7 @@ import {
 import { getTranslation } from '../../utils/translations';
 import { useLanguage } from '../../hooks/useLanguage';
 import { getRandomTopics } from '../../data/courseModules';
+import { getSafeImageUrl, sanitizeLoadedMessages, debugImageState } from '../../utils/imageDisplay';
 import type { ChatMessage as ChatMessageType, Problem } from '../../types';
 
 const ChatMessage = () => {
@@ -85,7 +86,9 @@ const ChatMessage = () => {
       const token = await getSessionToken();
       const hist = await getConversationHistory(id, user?.id || 'guest', token);
       setConversationId(id);
-      setMessages(hist.messages || []);
+      // Sanitize messages: remove dead blob URLs and ensure proper image format
+      const sanitizedMessages = sanitizeLoadedMessages(hist.messages || []);
+      setMessages(sanitizedMessages);
       setFollowWhileStreaming(false);
     };
 
@@ -749,28 +752,23 @@ const ChatMessage = () => {
   }, [messages, conversationId, user, isStreaming, getSessionToken]);
 
   // Helper: get a stable preview URL for a message's image
+  // Handles Blobs, base64 strings, and serialized image objects
   const getImageUrl = (msg: ChatMessageType): string | null => {
     const img = msg.problem?.image;
     if (!img) return null;
-    
-    // Validate that img is actually a Blob
-    if (!(img instanceof Blob)) {
-      console.warn('Image is not a valid Blob:', img);
-      return null;
-    }
-    
+
     const id = msg.problem?.id as string;
-    if (id && imageUrlsRef.current.has(id)) return imageUrlsRef.current.get(id)!;
-    
-    // Fallback: create on the fly (shouldn't normally happen)
-    try {
-      const url = URL.createObjectURL(img);
-      if (id) imageUrlsRef.current.set(id, url);
-      return url;
-    } catch (error) {
-      console.error('Failed to create object URL for image:', error);
-      return null;
+
+    // Debug logging (comment out in production if desired)
+    if (process.env.NODE_ENV === 'development') {
+      debugImageState(`getImageUrl for msg ${id?.substring(0, 8)}...`, img);
     }
+
+    // Use safe display helper that handles all image formats:
+    // - Blob/File objects (fresh upload)
+    // - Data URL strings (loaded from localStorage)
+    // - Serialized objects (from backend)
+    return getSafeImageUrl(img, id, imageUrlsRef.current);
   };
 
   // Landing page when no messages
