@@ -197,6 +197,7 @@ class QuestionRequest(BaseModel):
     user_id: str = "guest"             # User identifier
     context: str = ""                  # Optional context for better answers
     session_id: str = ""               # Optional session tracking
+    history: Optional[List[dict]] = None  # Conversation history [{role: str, content: str}]
 
 
 class AcademicStep(BaseModel):
@@ -426,6 +427,7 @@ async def ask_stream_endpoint(http_req: Request):
     question_text = None
     attachment = None
     user_id_from_request = "guest"
+    conversation_history = []  # Will store history from request
     request_received_at = datetime.utcnow()
 
     if "multipart/form-data" in content_type:
@@ -435,7 +437,17 @@ async def ask_stream_endpoint(http_req: Request):
         text = form.get("text")
         image = form.get("image")
         document = form.get("document")
+        history_json = form.get("history")
         user_id_from_request = str(form.get("user_id") or "guest")
+        
+        # Parse history if present
+        if history_json:
+            try:
+                conversation_history = json.loads(history_json) if isinstance(history_json, str) else history_json
+                print(f"[STREAM] Received conversation history: {len(conversation_history)} messages")
+            except Exception as e:
+                print(f"[STREAM] Failed to parse history: {e}")
+                conversation_history = []
         if text:
             question_text = text
             image_payload = None
@@ -472,6 +484,7 @@ async def ask_stream_endpoint(http_req: Request):
             question_request = QuestionRequest(**json_data)
             question_text = question_request.text
             user_id_from_request = question_request.user_id or "guest"
+            conversation_history = question_request.history or []
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Invalid JSON request: {str(e)}")
     else:
@@ -501,7 +514,7 @@ async def ask_stream_endpoint(http_req: Request):
             yield ": connected\n\n"
 
             # Get stream from orchestrator (it's a regular generator, not async)
-            for ndjson_line in ask_math_ai_stream(question_text, history="", attachment=attachment):
+            for ndjson_line in ask_math_ai_stream(question_text, history=conversation_history, attachment=attachment):
                 # Parse the NDJSON line
                 line = ndjson_line.strip()
                 if not line:

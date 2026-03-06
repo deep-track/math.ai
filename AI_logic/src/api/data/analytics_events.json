@@ -205,5 +205,68 @@
     "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
     "topic": null,
     "id": "ev-8902d20c07ba"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1772763558764",
+    "response_time": 2871,
+    "timestamp": "2026-03-06T02:19:18.764000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-af6b483273f8"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1772763601956",
+    "response_time": 2067,
+    "timestamp": "2026-03-06T02:20:01.956000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-6acbfc3433d0"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1772763641376",
+    "response_time": 5071,
+    "timestamp": "2026-03-06T02:20:41.376000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-99a05a0dc8ce"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1772763679971",
+    "response_time": 2458,
+    "timestamp": "2026-03-06T02:21:19.971000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-912e353035e5"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1772763693302",
+    "response_time": 5140,
+    "timestamp": "2026-03-06T02:21:33.302000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-95e9e6910468"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1772763735794",
+    "response_time": 2425,
+    "timestamp": "2026-03-06T02:22:15.794000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-8e95b7d9b148"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1772763751723",
+    "response_time": 2250,
+    "timestamp": "2026-03-06T02:22:31.723000",
+    "user_id": "user_39ADbVVCCN0WENN0bySEoHNeLMk",
+    "topic": null,
+    "id": "ev-6192873743a8"
   }
 ]

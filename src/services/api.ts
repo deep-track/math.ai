@@ -493,10 +493,11 @@ export async function* solveProblemStream(
   signal?: AbortSignal,
   token?: string,
   userId?: string,
-  options?: { forceFresh?: boolean }
+  options?: { forceFresh?: boolean; history?: Array<{role: string, content: string}> }
 ) {
   const cache = PromptCache.getInstance();
   const forceFresh = !!options?.forceFresh;
+  const history = options?.history || [];
   const cacheKey = `${problem.content}::math-physics-v1`;
 
   // Only cache text-only problems (no images/documents)
@@ -552,6 +553,12 @@ export async function* solveProblemStream(
       formData.append('document', documentFile, 'upload.pdf');
     }
     formData.append('user_id', userId || 'guest');
+    
+    // Add conversation history
+    if (history.length > 0) {
+      formData.append('history', JSON.stringify(history));
+      console.log(`📜 Including conversation history: ${history.length} messages`);
+    }
 
     console.log('📤 Sending image upload request:', {
       text: problem.content,
@@ -588,7 +595,12 @@ export async function* solveProblemStream(
       user_id: userId || 'guest',
       context: '',
       session_id: '',
+      history: history.length > 0 ? history : undefined,
     };
+    
+    if (history.length > 0) {
+      console.log(`📜 Including conversation history: ${history.length} messages`);
+    }
 
     console.log('📤 Sending text-only request:', requestBody);
 

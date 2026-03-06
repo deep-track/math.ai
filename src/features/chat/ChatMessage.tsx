@@ -297,9 +297,20 @@ const ChatMessage = () => {
         (entryRef as any).current.serverCharged = false;
         (entryRef as any).current.serverRemaining = undefined;
 
+        // Build conversation history (limit to last 10 messages = 5 exchanges)
+        const conversationHistory: Array<{role: string, content: string}> = [];
+        const relevantMessages = messages.slice(-10);
+        for (const msg of relevantMessages) {
+          if (msg.type === 'user' && msg.problem?.content) {
+            conversationHistory.push({ role: 'user', content: msg.problem.content });
+          } else if (msg.type === 'assistant' && msg.solution?.content) {
+            conversationHistory.push({ role: 'assistant', content: msg.solution.content });
+          }
+        }
+
         let streamEnded = false;
         try {
-          for await (const solution of solveProblemStream(problem, controller.signal, token, userId, options)) {
+          for await (const solution of solveProblemStream(problem, controller.signal, token, userId, { ...options, history: conversationHistory })) {
             lastResponseTime = Date.now();
 
             if ((solution as any).chargedRemaining !== undefined) {
@@ -536,10 +547,21 @@ const ChatMessage = () => {
       (entryRef as any).current.serverCharged = false;
       (entryRef as any).current.serverRemaining = undefined;
 
+      // Build conversation history (limit to last 10 messages = 5 exchanges)
+      const conversationHistory: Array<{role: string, content: string}> = [];
+      const relevantMessages = messages.slice(-10);
+      for (const msg of relevantMessages) {
+        if (msg.type === 'user' && msg.problem?.content) {
+          conversationHistory.push({ role: 'user', content: msg.problem.content });
+        } else if (msg.type === 'assistant' && msg.solution?.content) {
+          conversationHistory.push({ role: 'assistant', content: msg.solution.content });
+        }
+      }
+
       let streamEnded = false;
 
       try {
-        for await (const solution of solveProblemStream(problem, controller.signal, token, userId, { forceFresh: true })) {
+        for await (const solution of solveProblemStream(problem, controller.signal, token, userId, { forceFresh: true, history: conversationHistory })) {
           lastResponseTime = Date.now();
 
           if ((solution as any).chargedRemaining !== undefined) {

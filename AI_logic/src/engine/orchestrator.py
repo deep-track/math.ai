@@ -320,9 +320,22 @@ def _build_prompt(
 
 # ── Main orchestrator ─────────────────────────────────────────────────────────
 
-def ask_math_ai(question: str, history: str = "", attachment=None) -> dict:
+def ask_math_ai(question: str, history: list = None, attachment=None) -> dict:
+    """Non-streaming solution with conversation history.
+    
+    Args:
+        question: Current user question
+        history: List of {role: str, content: str} dicts for conversation context
+        attachment: Optional image/document attachment
+    """
     logger.log_step("Thought", f"Processing: {question[:80]}")
     execution_steps = []
+    
+    # Limit history to last 10 messages
+    if history is None:
+        history = []
+    else:
+        history = history[-10:]
 
     image_section = ""
     document_section = ""
@@ -361,11 +374,19 @@ def ask_math_ai(question: str, history: str = "", attachment=None) -> dict:
     prompt = _build_prompt(question, context_observation, image_section, image_recap_instruction)
 
     try:
-        resp = claude_client.messages.create(
+        # Build messages array with history
+        messages_array = []
+        if history:
+            for msg in history:
+                if isinstance(msg, dict) and "role" in msg and "content" in msg:
+                    messages_array.append({"role": msg["role"], "content": msg["content"]})
+        messages_array.append({"role": "user", "content": prompt})
+        
+        response = claude_client.messages.create(
             model="claude-sonnet-4-5",
             max_tokens=3000,
             system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": prompt}]
+            messages=messages_array
         )
         final_answer = resp.content[0].text
 
@@ -393,10 +414,22 @@ def ask_math_ai(question: str, history: str = "", attachment=None) -> dict:
         }
 
 
-def ask_math_ai_stream(question: str, history: str = "", attachment=None):
-    """Streaming version — yields NDJSON: metadata / token / done / error."""
+def ask_math_ai_stream(question: str, history: list = None, attachment=None):
+    """Streaming version - yields NDJSON: metadata / token / done / error.
+    
+    Args:
+        question: Current user question
+        history: List of {role: str, content: str} dicts for conversation context
+        attachment: Optional image/document attachment
+    """
     logger.log_step("Thought", f"Processing (stream): {question[:80]}")
     execution_steps = []
+    
+    # Limit history to last 10 messages (5 exchanges) to avoid token overflow
+    if history is None:
+        history = []
+    else:
+        history = history[-10:]
 
     image_section = ""
     document_section = ""
@@ -441,12 +474,20 @@ def ask_math_ai_stream(question: str, history: str = "", attachment=None):
             }
         }) + "\n"
 
+        # Build messages array with history
+        messages_array = []
+        if history:
+            for msg in history:
+                if isinstance(msg, dict) and "role" in msg and "content" in msg:
+                    messages_array.append({"role": msg["role"], "content": msg["content"]})
+        messages_array.append({"role": "user", "content": prompt})
+
         full_response = ""
         with claude_client.messages.stream(
             model="claude-sonnet-4-5",
             max_tokens=3000,
             system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": prompt}]
+            messages=messages_array
         ) as stream:
             for text in stream.text_stream:
                 full_response += text
