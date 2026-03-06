@@ -94,7 +94,12 @@ const ChatInput = ({
     // Revoke previous preview URL
     if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
     setSelectedImage(file);
-    setImagePreviewUrl(URL.createObjectURL(file));
+    try {
+      setImagePreviewUrl(URL.createObjectURL(file));
+    } catch (error) {
+      console.error('Failed to create image preview URL:', error);
+      setImagePreviewUrl(null);
+    }
     // Clear document if image is selected
     removeDocument();
     // Focus textarea after image selection

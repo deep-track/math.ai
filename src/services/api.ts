@@ -1,5 +1,6 @@
 import type { Problem, Solution, Feedback, AnalyticsEvent, SubmitFeedbackResponse, AnalyticsResponse } from '../types';
 import { PromptCache } from './promptCache';
+import { serializeMessagesForStorage, deserializeMessagesFromStorage } from '../utils/imageSerializer';
 
 // Get API base URL from environment, default to localhost
 let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -44,8 +45,9 @@ function localGetConversationHistory(conversationId: string, userId?: string) {
   const conversations = localReadConversations(userId);
   const conversation = conversations.find((c) => c.id === conversationId);
   if (!conversation) return { messages: [], id: conversationId };
+  const messages = deserializeMessagesFromStorage(conversation.messages || []);
   return {
-    messages: conversation.messages || [],
+    messages,
     id: conversationId,
     title: conversation.title,
   };
@@ -84,7 +86,7 @@ function localCreateConversation(title: string, userId?: string) {
   };
 }
 
-function localUpdateConversation(conversationId: string, userId: string | undefined, messages: any[], title?: string) {
+async function localUpdateConversation(conversationId: string, userId: string | undefined, messages: any[], title?: string) {
   const conversations = localReadConversations(userId);
 
   let conversation = conversations.find((c) => c.id === conversationId);
@@ -98,7 +100,9 @@ function localUpdateConversation(conversationId: string, userId: string | undefi
     conversations.push(conversation);
   }
 
-  conversation.messages = messages;
+  // Serialize images before storing
+  const serializedMessages = await serializeMessagesForStorage(messages);
+  conversation.messages = serializedMessages;
   conversation.updatedAt = new Date().toISOString();
   if (title) {
     conversation.title = title;
@@ -240,7 +244,9 @@ export async function getConversationHistory(conversationId: string, userId?: st
       if (!response.ok) throw new Error(`Failed to fetch conversation: ${response.status}`);
 
       const data = await response.json();
-      return { messages: data.messages || [], id: conversationId, title: data.title };
+      // Deserialize images when loading from backend
+      const messages = deserializeMessagesFromStorage(data.messages || []);
+      return { messages, id: conversationId, title: data.title };
     }
 
     return localGetConversationHistory(conversationId, resolvedUserId);
@@ -459,10 +465,13 @@ export async function updateConversation(conversationId: string, userId: string,
         headers['X-Session-Id'] = token;
       }
 
+      // Serialize images before sending to backend
+      const serializedMessages = await serializeMessagesForStorage(messages);
+
       const response = await fetch(`${API_BASE_URL}/conversations/${resolvedUserId}/${conversationId}`, {
         method: 'PUT',
         headers,
-        body: JSON.stringify({ messages, title }),
+        body: JSON.stringify({ messages: serializedMessages, title }),
       });
 
       if (!response.ok) throw new Error(`Failed to update conversation: ${response.status}`);
@@ -471,10 +480,10 @@ export async function updateConversation(conversationId: string, userId: string,
       return { success: true };
     }
 
-    return localUpdateConversation(conversationId, resolvedUserId, messages, title);
+    return await localUpdateConversation(conversationId, resolvedUserId, messages, title);
   } catch (error) {
     console.error('Failed to update conversation:', error);
-    return localUpdateConversation(conversationId, userId || 'guest', messages, title);
+    return await localUpdateConversation(conversationId, userId || 'guest', messages, title);
   }
 }
 

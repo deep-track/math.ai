@@ -238,8 +238,13 @@ const ChatMessage = () => {
 
         // Create stable preview URLs for attachments
         if (image) {
-          const previewUrl = URL.createObjectURL(image);
-          imageUrlsRef.current.set(problem.id as string, previewUrl);
+          try {
+            const previewUrl = URL.createObjectURL(image);
+            imageUrlsRef.current.set(problem.id as string, previewUrl);
+          } catch (error) {
+            console.error('Failed to create preview URL for image:', error);
+            // Continue without preview - will show text only
+          }
         }
 
         const userMessage: ChatMessageType = {
@@ -747,12 +752,25 @@ const ChatMessage = () => {
   const getImageUrl = (msg: ChatMessageType): string | null => {
     const img = msg.problem?.image;
     if (!img) return null;
+    
+    // Validate that img is actually a Blob
+    if (!(img instanceof Blob)) {
+      console.warn('Image is not a valid Blob:', img);
+      return null;
+    }
+    
     const id = msg.problem?.id as string;
     if (id && imageUrlsRef.current.has(id)) return imageUrlsRef.current.get(id)!;
+    
     // Fallback: create on the fly (shouldn't normally happen)
-    const url = URL.createObjectURL(img);
-    if (id) imageUrlsRef.current.set(id, url);
-    return url;
+    try {
+      const url = URL.createObjectURL(img);
+      if (id) imageUrlsRef.current.set(id, url);
+      return url;
+    } catch (error) {
+      console.error('Failed to create object URL for image:', error);
+      return null;
+    }
   };
 
   // Landing page when no messages
