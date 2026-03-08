@@ -16,7 +16,6 @@ const isValidAuth0Config = AUTH0_DOMAIN && AUTH0_CLIENT_ID &&
   AUTH0_DOMAIN !== 'your-tenant.auth0.com' &&
   AUTH0_CLIENT_ID !== 'your-client-id'
 
-// Error Boundary component
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean; error?: Error }

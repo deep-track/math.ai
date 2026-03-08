@@ -183,10 +183,10 @@ const SignUpPage = () => {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isLoading}
                 className="w-full bg-gradient-to-r from-[#008751] to-[#00b876] hover:from-[#006b42] hover:to-[#009a5c] text-white font-bold py-3 rounded-lg transition-all duration-300 text-base shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Inscription...' : 'S\'inscrire'}
+                {isLoading ? 'Inscription...' : 'S\'inscrire'}
               </button>
             </form>
 
