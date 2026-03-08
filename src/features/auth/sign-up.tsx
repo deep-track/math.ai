@@ -3,12 +3,13 @@ import { useAuth0 } from '@auth0/auth0-react'
 import { useNavigate, Link } from 'react-router-dom'
 
 const SignUpPage = () => {
-  const { loginWithPopup, isAuthenticated, isLoading } = useAuth0()
+  const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -33,28 +34,43 @@ const SignUpPage = () => {
       return
     }
 
+    setSubmitting(true)
     try {
-      // Use Auth0's built-in signup flow via loginWithRedirect
-      await loginWithPopup({
-        authorizationParams: {
-          screen_hint: 'signup'
-        }
+      // Create the account directly via Auth0 API — no redirect or popup
+      const response = await fetch(`https://${import.meta.env.VITE_AUTH0_DOMAIN}/dbconnections/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: import.meta.env.VITE_AUTH0_CLIENT_ID,
+          email,
+          password,
+          connection: 'Username-Password-Authentication',
+        }),
       })
-      navigate('/home')
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.description || data.message || 'Erreur lors de l\'inscription')
+      }
+
+      // Account created — send user to sign-in with a success flag
+      navigate(`/sign-in?registered=true&email=${encodeURIComponent(email)}`)
     } catch (err: any) {
       setError(err.message || 'Erreur lors de l\'inscription')
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const handleSignUpWithGoogle = async () => {
     try {
-      await loginWithPopup({
+      await loginWithRedirect({
         authorizationParams: {
           connection: 'google-oauth2',
           screen_hint: 'signup'
-        }
+        },
+        appState: { returnTo: '/home' },
       })
-      navigate('/home')
     } catch (err: any) {
       setError('Échec de l\'inscription avec Google')
     }
@@ -183,10 +199,10 @@ const SignUpPage = () => {
 
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={submitting}
                 className="w-full bg-gradient-to-r from-[#008751] to-[#00b876] hover:from-[#006b42] hover:to-[#009a5c] text-white font-bold py-3 rounded-lg transition-all duration-300 text-base shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Inscription...' : 'S\'inscrire'}
+                {submitting ? 'Inscription...' : 'S\'inscrire'}
               </button>
             </form>
 

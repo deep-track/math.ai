@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 
 const SignInPage = () => {
   const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const [searchParams] = useSearchParams()
+  const [email, setEmail] = useState(searchParams.get('email') || '')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const justRegistered = searchParams.get('registered') === 'true'
 
   // Redirect to home if already authenticated
   useEffect(() => {
@@ -82,6 +84,12 @@ const SignInPage = () => {
 
           {/* Form Container */}
           <div className="p-8">
+            {justRegistered && (
+              <div className="mb-4 p-3 bg-green-900/30 border border-green-500/50 rounded-lg text-green-200 text-sm">
+                ✓ Compte créé avec succès ! Connectez-vous maintenant.
+              </div>
+            )}
+
             {error && (
               <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg text-red-200 text-sm">
                 {error}
