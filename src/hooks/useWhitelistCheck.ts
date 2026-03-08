@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { useUser } from '@clerk/clerk-react'
+import { useAuth0 } from '@auth0/auth0-react'
 
 /**
  * Hook to verify if the current user's email is on the whitelist.
  * Returns null while loading, then {allowed: boolean, reason?: string}
  */
 export function useWhitelistCheck() {
-  const { user, isLoaded } = useUser()
+  const { user, isLoading } = useAuth0()
   const [whitelistStatus, setWhitelistStatus] = useState<{
     allowed: boolean
     reason?: string
@@ -16,10 +16,10 @@ export function useWhitelistCheck() {
 
   useEffect(() => {
     // 1. Capture the email in a local variable
-    const userEmail = user?.primaryEmailAddress?.emailAddress
+    const userEmail = user?.email
 
     // 2. Only proceed if we have everything we need
-    if (!isLoaded || !userEmail) {
+    if (isLoading || !userEmail) {
       return
     }
 
@@ -102,7 +102,7 @@ export function useWhitelistCheck() {
     }
 
     verifyEmail()
-  }, [user, isLoaded])
+  }, [user, isLoading])
 
   return { whitelistStatus, isChecking, timedOut }
 }

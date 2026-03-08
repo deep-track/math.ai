@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTheme } from '../../theme/useTheme';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { useAuth0 } from '@auth0/auth0-react';
 import ChatInput from './ChatInput';
 import SolutionDisplay from '../../components/SolutionDisplay';
 import InlineSpinner from '../../components/InlineSpinner';
@@ -23,7 +23,7 @@ import type { ChatMessage as ChatMessageType, Problem } from '../../types';
 
 const ChatMessage = () => {
   const { theme } = useTheme();
-  const { user } = useUser();
+  const { user, isLoading: isAuthLoading, getAccessTokenSilently } = useAuth0();
   const language = useLanguage();
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,14 +42,13 @@ const ChatMessage = () => {
   // Store image preview URLs to revoke on cleanup
   const imageUrlsRef = useRef<Map<string, string>>(new Map());
 
-  const userName = user?.firstName || guestName || getTranslation('learnerLabel', language);
-  const { getToken, isLoaded: isAuthLoaded } = useAuth();
+  const userName = user?.name || user?.nickname || guestName || getTranslation('learnerLabel', language);
 
   const getSessionToken = useCallback(async () => {
-    if (!user?.id || !isAuthLoaded) return undefined;
+    if (!user?.sub || isAuthLoading) return undefined;
     for (let attempt = 0; attempt < 3; attempt += 1) {
       try {
-        const token = await getToken();
+        const token = await getAccessTokenSilently();
         if (token) return token;
       } catch (e) {
         // ignore and retry
@@ -59,7 +58,7 @@ const ChatMessage = () => {
       }
     }
     return undefined;
-  }, [user?.id, isAuthLoaded, getToken]);
+  }, [user?.sub, isAuthLoading, getAccessTokenSilently]);
 
   // Cleanup image preview URLs on unmount
   useEffect(() => {
@@ -84,7 +83,7 @@ const ChatMessage = () => {
       const id = ev.detail?.id as string;
       if (!id) return;
       const token = await getSessionToken();
-      const hist = await getConversationHistory(id, user?.id || 'guest', token);
+      const hist = await getConversationHistory(id, user?.sub || 'guest', token);
       setConversationId(id);
       // Sanitize messages: remove dead blob URLs and ensure proper image format
       const sanitizedMessages = sanitizeLoadedMessages(hist.messages || []);
@@ -113,9 +112,9 @@ const ChatMessage = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        if (user?.id) {
+        if (user?.sub) {
           const token = await getSessionToken();
-          const credits = await getCredits(user.id, token);
+          const credits = await getCredits(user.sub, token);
           setCreditsRemaining(credits.remaining ?? null);
         } else {
           try {
@@ -184,10 +183,10 @@ const ChatMessage = () => {
       setError(null);
       setLoading(true);
 
-      const userId = user?.id || 'guest';
+      const userId = user?.sub || 'guest';
 
       let token: string | undefined = await getSessionToken();
-      if (user?.id && !token) {
+      if (user?.sub && !token) {
         setError(getTranslation('authTokenMissing', language));
         setLoading(false);
         return;
@@ -426,7 +425,7 @@ const ChatMessage = () => {
           if (streamEnded && !(entryRef as any).current.completed) {
             (entryRef as any).current.completed = true;
           }
-          if (user?.id) {
+          if (user?.sub) {
             try {
               const latestToken = await getSessionToken();
               const latestCredits = await getCredits(userId, latestToken);
@@ -493,10 +492,10 @@ const ChatMessage = () => {
       setLoading(true);
       cancelledRef.current = false;
 
-      const userId = user?.id || 'guest';
+      const userId = user?.sub || 'guest';
       let token: string | undefined = await getSessionToken();
 
-      if (user?.id && !token) {
+      if (user?.sub && !token) {
         setError(getTranslation('authTokenMissing', language));
         setLoading(false);
         return;
@@ -677,7 +676,7 @@ const ChatMessage = () => {
         if (streamEnded && !(entryRef as any).current.completed) {
           (entryRef as any).current.completed = true;
         }
-        if (user?.id) {
+        if (user?.sub) {
           try {
             const latestToken = await getSessionToken();
             const latestCredits = await getCredits(userId, latestToken);
@@ -744,7 +743,7 @@ const ChatMessage = () => {
 
     const persist = async () => {
       const token = await getSessionToken();
-      await updateConversation(conversationId, user?.id || 'guest', messages, undefined, token);
+      await updateConversation(conversationId, user?.sub || 'guest', messages, undefined, token);
       window.dispatchEvent(new CustomEvent('conversationUpdated'));
     };
 
@@ -987,7 +986,7 @@ const ChatMessage = () => {
                       confidence={msg.solution.confidence}
                       confidenceLevel={msg.solution.confidenceLevel}
                       solutionId={msg.solution.id}
-                      userToken={user?.id}
+                      userToken={user?.sub}
                       isLoading={loading}
                       onRefresh={handleRefreshSolution}
                       onFeedbackSubmitted={handleFeedbackSubmitted}

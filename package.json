@@ -14,8 +14,7 @@
     "e2e:run": "cypress run"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.59.6",
-    "@clerk/react-router": "^2.3.12",
+    "@auth0/auth0-react": "^2.2.4",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
     "katex": "^0.16.9",

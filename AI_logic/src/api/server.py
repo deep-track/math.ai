@@ -997,65 +997,121 @@ def _save_conversations_for_user(user_id: str, conversations: list):
     return True
 
 
-# Clerk session verification helper (dev-friendly)
+# Auth0 JWT verification helper (dev-friendly)
 import requests
 try:
     from zoneinfo import ZoneInfo
 except Exception:
     ZoneInfo = None
 import uuid
-CLERK_API_KEY = os.environ.get('CLERK_API_KEY')
-CLERK_API_BASE = os.environ.get('CLERK_API_BASE', 'https://api.clerk.com/v1')
-# Development escape hatch: when set to 'true' this skips Clerk verification so you can test locally
-DEV_SKIP_CLERK_VERIFY = os.environ.get('DEV_SKIP_CLERK_VERIFY', 'false').lower() == 'true'
+from jose import jwt, JWTError
+
+AUTH0_DOMAIN = os.environ.get('AUTH0_DOMAIN')
+AUTH0_AUDIENCE = os.environ.get('AUTH0_AUDIENCE')
+# Development escape hatch: when set to 'true' this skips Auth0 verification so you can test locally
+DEV_SKIP_AUTH0_VERIFY = os.environ.get('DEV_SKIP_AUTH0_VERIFY', 'false').lower() == 'true'
+
+# Cache for Auth0 JWKS
+_jwks_cache = None
+_jwks_cache_time = 0
+JWKS_CACHE_TTL = 3600  # 1 hour
 
 
-def _verify_clerk_session(session_id: str) -> Optional[str]:
-    """Verify a Clerk session ID via Clerk REST API and return the user_id if valid.
+def _get_auth0_jwks():
+    """Fetch and cache the Auth0 JWKS (JSON Web Key Set)."""
+    global _jwks_cache, _jwks_cache_time
+    import time
+    
+    now = time.time()
+    if _jwks_cache and (now - _jwks_cache_time) < JWKS_CACHE_TTL:
+        return _jwks_cache
+    
+    if not AUTH0_DOMAIN:
+        return None
+    
+    try:
+        jwks_url = f"https://{AUTH0_DOMAIN}/.well-known/jwks.json"
+        r = requests.get(jwks_url, timeout=5)
+        if r.status_code == 200:
+            _jwks_cache = r.json()
+            _jwks_cache_time = now
+            return _jwks_cache
+    except Exception:
+        pass
+    return _jwks_cache  # Return cached version if fetch fails
 
-    In development, if DEV_SKIP_CLERK_VERIFY is set to true, this will bypass Clerk and return
-    the provided session_id (useful for local testing). If Clerk is not configured, we return
+
+def _verify_auth0_token(token: str) -> Optional[str]:
+    """Verify an Auth0 JWT and return the user_id (sub claim) if valid.
+
+    In development, if DEV_SKIP_AUTH0_VERIFY is set to true, this will bypass Auth0 and return
+    the provided token as the user id (useful for local testing). If Auth0 is not configured, we return
     None so the caller can handle unauthenticated requests gracefully.
     """
-    if DEV_SKIP_CLERK_VERIFY:
+    if DEV_SKIP_AUTH0_VERIFY:
         # Return the token as a stand-in for user id in dev mode
-        return session_id
+        return token
 
-    if not CLERK_API_KEY:
-        # Clerk not configured in this environment — treat session as invalid instead of raising
+    if not AUTH0_DOMAIN:
+        # Auth0 not configured in this environment — treat session as invalid instead of raising
         return None
+    
     try:
-        url = f"{CLERK_API_BASE}/sessions/{session_id}"
-        headers = {"Authorization": f"Bearer {CLERK_API_KEY}"}
-        r = requests.get(url, headers=headers, timeout=5)
-        if r.status_code != 200:
+        jwks = _get_auth0_jwks()
+        if not jwks:
             return None
-        data = r.json()
-        return data.get('user_id')
+        
+        # Get the key ID from the token header
+        unverified_header = jwt.get_unverified_header(token)
+        rsa_key = {}
+        
+        for key in jwks.get("keys", []):
+            if key["kid"] == unverified_header.get("kid"):
+                rsa_key = {
+                    "kty": key["kty"],
+                    "kid": key["kid"],
+                    "use": key["use"],
+                    "n": key["n"],
+                    "e": key["e"]
+                }
+                break
+        
+        if not rsa_key:
+            return None
+        
+        # Verify the token
+        payload = jwt.decode(
+            token,
+            rsa_key,
+            algorithms=["RS256"],
+            audience=AUTH0_AUDIENCE,
+            issuer=f"https://{AUTH0_DOMAIN}/"
+        )
+        
+        return payload.get("sub")
+    except JWTError:
+        return None
     except Exception:
         return None
 
 
-def _get_clerk_user_primary_email(user_id: str) -> Optional[str]:
-    if not CLERK_API_KEY or not user_id:
+def _get_auth0_user_email(token: str) -> Optional[str]:
+    """Extract email from Auth0 token claims."""
+    if not AUTH0_DOMAIN or not token:
         return None
     try:
-        url = f"{CLERK_API_BASE}/users/{user_id}"
-        headers = {"Authorization": f"Bearer {CLERK_API_KEY}"}
-        r = requests.get(url, headers=headers, timeout=5)
-        if r.status_code != 200:
-            return None
-        data = r.json() or {}
-        primary_email_id = data.get("primary_email_address_id")
-        emails = data.get("email_addresses") or []
-        for item in emails:
-            if item.get("id") == primary_email_id:
-                return (item.get("email_address") or "").strip().lower() or None
-        if emails:
-            return (emails[0].get("email_address") or "").strip().lower() or None
+        # Decode without verification to get claims (we already verified above)
+        unverified = jwt.get_unverified_claims(token)
+        return unverified.get("email")
     except Exception:
         return None
-    return None
+
+
+# Legacy aliases for backward compatibility during migration
+_verify_clerk_session = _verify_auth0_token
+_get_clerk_user_primary_email = _get_auth0_user_email
+CLERK_API_KEY = AUTH0_DOMAIN  # For backward compat checks
+DEV_SKIP_CLERK_VERIFY = DEV_SKIP_AUTH0_VERIFY
 
 
 # Async wrappers for credits (works with either MongoDB or JSON files)

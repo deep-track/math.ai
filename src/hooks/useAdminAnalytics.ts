@@ -1,18 +1,17 @@
 import { useEffect, useState } from 'react'
-import { useAuth, useUser } from '@clerk/clerk-react'
+import { useAuth0 } from '@auth0/auth0-react'
 import { getAdminMetrics } from '../services/api'
 
 export function useAdminAnalytics(days = 30) {
-  const { user, isLoaded } = useUser()
-  const { getToken } = useAuth()
+  const { user, isLoading, getAccessTokenSilently } = useAuth0()
   const [data, setData] = useState<any | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
-      if (!isLoaded) return
-      const email = user?.primaryEmailAddress?.emailAddress
+      if (isLoading) return
+      const email = user?.email
       if (!email) {
         setData(null)
         return
@@ -21,7 +20,7 @@ export function useAdminAnalytics(days = 30) {
       setLoading(true)
       setError(null)
       try {
-        const token = await getToken().catch(() => undefined)
+        const token = await getAccessTokenSilently().catch(() => undefined)
         const res = await getAdminMetrics(email, days, token || undefined)
         setData(res)
       } catch (err) {
@@ -32,7 +31,7 @@ export function useAdminAnalytics(days = 30) {
     }
 
     load()
-  }, [user?.id, isLoaded, days, getToken])
+  }, [user?.sub, isLoading, days, getAccessTokenSilently])
 
   return { data, loading, error }
 }

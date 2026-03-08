@@ -12,6 +12,9 @@ uvicorn[standard]==0.27.1
 requests==2.31.0
 pydantic>=2.8.2,<3
 
+# Auth0 JWT verification
+python-jose[cryptography]==3.3.0
+
 # LangChain Ecosystem
 langchain==0.1.12
 langchain-community==0.0.28

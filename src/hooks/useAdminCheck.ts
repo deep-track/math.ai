@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useUser } from '@clerk/clerk-react'
+import { useAuth0 } from '@auth0/auth0-react'
 
 type AdminStatus = {
   allowed: boolean
@@ -7,13 +7,13 @@ type AdminStatus = {
 }
 
 export function useAdminCheck() {
-  const { user, isLoaded } = useUser()
+  const { user, isLoading } = useAuth0()
   const [adminStatus, setAdminStatus] = useState<AdminStatus | null>(null)
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(false)
 
   useEffect(() => {
-    const userEmail = user?.primaryEmailAddress?.emailAddress
-    if (!isLoaded || !userEmail) {
+    const userEmail = user?.email
+    if (isLoading || !userEmail) {
       return
     }
 
@@ -71,7 +71,7 @@ export function useAdminCheck() {
     }
 
     verifyAdmin()
-  }, [user, isLoaded])
+  }, [user, isLoading])
 
   return { adminStatus, isCheckingAdmin }
 }

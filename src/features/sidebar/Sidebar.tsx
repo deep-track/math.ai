@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useAuth0 } from '@auth0/auth0-react';
 import { useTheme } from '../../theme/useTheme';
 import DiscussionsIcon from '../../data/icons/Vector.png'
 import { getConversations, deleteConversation } from '../../services/api';
@@ -16,9 +16,7 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
-  const { user } = useUser();
-  const clerk = useClerk();
-  const { signOut } = clerk;
+  const { user, logout, getAccessTokenSilently } = useAuth0();
   const { theme } = useTheme();
   const language = useLanguage();
   const { adminStatus } = useAdminCheck();
@@ -31,27 +29,27 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
   const [conversations, setConversations] = useState<any[]>([]);
 
   const handleLogout = async () => {
-    await signOut({ redirectUrl: '/' });
+    await logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
   // Fetch conversations when component mounts or user changes
   useEffect(() => {
     // Only fetch if we have a user and are not in a render cycle
-    if (!user?.id) return;
+    if (!user?.sub) return;
 
     const fetchConversations = async () => {
       try {
         setLoading(true);
         let token: string | undefined;
-        if (user?.id) {
+        if (user?.sub) {
           try {
-            token = await (clerk as any).getToken?.();
+            token = await getAccessTokenSilently();
           } catch (e) {
             token = undefined;
           }
         }
 
-        const convs = (await getConversations(user?.id || 'guest', token)) || [];
+        const convs = (await getConversations(user?.sub || 'guest', token)) || [];
         // ensure sorted newest -> oldest
         convs.sort((a: any, b: any) => (a.updatedAt || a.createdAt) < (b.updatedAt || b.createdAt) ? 1 : -1);
         setConversations(convs);
@@ -71,7 +69,7 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
       clearTimeout(timeoutId);
       window.removeEventListener('conversationUpdated', handler);
     };
-  }, [user]);
+  }, [user, getAccessTokenSilently]);
 
   const [showMore, setShowMore] = useState(false);
 
@@ -82,17 +80,17 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
   const handleDeleteConversation = async (id: string) => {
     try {
       let token: string | undefined;
-      if (user?.id) {
+      if (user?.sub) {
         try {
-          token = await (clerk as any).getToken?.();
+          token = await getAccessTokenSilently();
         } catch (e) {
           token = undefined;
         }
       }
 
-      await deleteConversation(id, user?.id || 'guest', token);
+      await deleteConversation(id, user?.sub || 'guest', token);
       // Refresh list
-      const convs = await getConversations(user?.id || 'guest', token);
+      const convs = await getConversations(user?.sub || 'guest', token);
       setConversations(convs);
       window.dispatchEvent(new CustomEvent('conversationUpdated'));
     } catch (err) {
@@ -259,7 +257,7 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
         {!isCollapsed && (
           <div className="px-2 py-2">
             <p className="text-xs text-gray-400 uppercase font-semibold mb-1">{getTranslation('connected', language)}</p>
-            <p className="text-sm text-gray-300 truncate">{user ? user.emailAddresses[0]?.emailAddress : localStorage.getItem('guest_name') || getTranslation('guestLabel', language)}</p>
+            <p className="text-sm text-gray-300 truncate">{user?.email || localStorage.getItem('guest_name') || getTranslation('guestLabel', language)}</p>
           </div>
         )}
         <button 

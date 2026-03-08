@@ -2,16 +2,19 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import * as React from 'react'
 import { BrowserRouter } from 'react-router-dom'
+import { Auth0Provider } from '@auth0/auth0-react'
 import './index.css'
 import App from './App'
 
-// Import your Publishable Key
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+// Auth0 Configuration
+const AUTH0_DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN
+const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID
+const AUTH0_AUDIENCE = import.meta.env.VITE_AUTH0_AUDIENCE
 
-// Check if we have a valid Clerk key (not the placeholder)
-const isValidClerkKey = PUBLISHABLE_KEY &&
-  PUBLISHABLE_KEY !== 'pk_test_your_clerk_publishable_key_here' &&
-  PUBLISHABLE_KEY.startsWith('pk_')
+// Check if we have valid Auth0 config
+const isValidAuth0Config = AUTH0_DOMAIN && AUTH0_CLIENT_ID &&
+  AUTH0_DOMAIN !== 'your-tenant.auth0.com' &&
+  AUTH0_CLIENT_ID !== 'your-client-id'
 
 // Error Boundary component
 class ErrorBoundary extends React.Component<
@@ -72,86 +75,25 @@ class ErrorBoundary extends React.Component<
   }
 }
 
-// Production App component with Clerk
-const ProdApp = () => {
-  const [ClerkProvider, setClerkProvider] = React.useState<any>(null)
-  const [App, setApp] = React.useState<any>(null)
-  const [error, setError] = React.useState<string | null>(null)
-
-  React.useEffect(() => {
-    const loadComponents = async () => {
-      try {
-        setError(null)
-        const clerkModule = await import('@clerk/clerk-react')
-        const appModule = await import('./App.tsx')
-        setClerkProvider(() => clerkModule.ClerkProvider)
-        setApp(() => appModule.default)
-      } catch (error) {
-        console.error('Failed to load Clerk components:', error)
-        setError('Failed to load authentication. Falling back to development mode.')
-        // Fall back to dev mode after a delay
-        setTimeout(() => {
-          window.location.reload()
-        }, 2000)
-      }
-    }
-    loadComponents()
-  }, [])
-
-  if (error) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontFamily: 'monospace',
-        background: '#0A0A0A',
-        color: 'white'
-      }}>
-        <div style={{ textAlign: 'center', maxWidth: '400px' }}>
-          <div style={{ fontSize: '24px', marginBottom: '16px' }}>⚠️</div>
-          <div>{error}</div>
-          <div style={{ fontSize: '12px', marginTop: '16px', opacity: 0.7 }}>
-            Reloading in development mode...
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!ClerkProvider || !App) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontFamily: 'monospace',
-        background: '#0A0A0A',
-        color: 'white'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', marginBottom: '16px' }}>🚀</div>
-          <div>Loading Math.AI...</div>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl='/'>
-      <App />
-    </ClerkProvider>
-  )
-}
-
-// App loader component to handle async loading
+// App loader component with Auth0
 const AppLoader = () => {
-  if (isValidClerkKey) {
-    return <ProdApp />
+  if (isValidAuth0Config) {
+    return (
+      <Auth0Provider
+        domain={AUTH0_DOMAIN}
+        clientId={AUTH0_CLIENT_ID}
+        authorizationParams={{
+          redirect_uri: window.location.origin + '/sso-callback',
+          audience: AUTH0_AUDIENCE || undefined,
+        }}
+        cacheLocation="localstorage"
+      >
+        <App />
+      </Auth0Provider>
+    )
   } else {
-    // Development mode without Clerk
+    // Development mode without Auth0
+    console.warn('Auth0 not configured - running in development mode')
     return <App />
   }
 }

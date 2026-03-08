@@ -1,56 +1,31 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSignIn, useSignUp, useClerk } from '@clerk/clerk-react'
+import { useAuth0 } from '@auth0/auth0-react'
 
 const SSOCallback = () => {
   const navigate = useNavigate()
-  const { setActive } = useClerk()
-  const { signIn, isLoaded: signInLoaded } = useSignIn()
-  const { signUp, isLoaded: signUpLoaded } = useSignUp()
-  const [error, setError] = useState<string | null>(null)
+  const { isAuthenticated, isLoading, error } = useAuth0()
 
   useEffect(() => {
-    if (!signInLoaded && !signUpLoaded) return
+    if (isLoading) return
 
-    const handleCallback = async () => {
-      try {
-        // Handle the OAuth callback - Clerk automatically handles the redirect
-        // The signIn or signUp should already have the OAuth result
-        
-        if (signIn?.status === 'complete' && signInLoaded) {
-          // OAuth sign-in successful
-          await setActive({ session: signIn.createdSessionId })
-          navigate('/home')
-          return
-        }
-
-        if (signUp?.status === 'complete' && signUpLoaded) {
-          // OAuth sign-up successful
-          await setActive({ session: signUp.createdSessionId })
-          navigate('/home')
-          return
-        }
-
-        // If we reach here, OAuth authentication might have failed
-        // Redirect back to login with error
-        console.log('OAuth authentication did not complete. SignIn status:', signIn?.status, 'SignUp status:', signUp?.status)
-        setError('Authentification échouée. Veuillez créer un compte.')
-        
-        setTimeout(() => {
-          navigate('/signup?oauth=true')
-        }, 2000)
-      } catch (err: any) {
-        console.error('Error handling OAuth callback:', err)
-        setError('Une erreur est survenue lors de l\'authentification')
-        
-        setTimeout(() => {
-          navigate('/signup?oauth=true')
-        }, 2000)
-      }
+    if (error) {
+      console.error('Auth0 callback error:', error)
+      // Redirect to login on error
+      setTimeout(() => {
+        navigate('/login')
+      }, 2000)
+      return
     }
 
-    handleCallback()
-  }, [signIn, signUp, signInLoaded, signUpLoaded, navigate, setActive])
+    if (isAuthenticated) {
+      // Successfully authenticated, redirect to home
+      navigate('/home')
+    } else {
+      // Not authenticated, redirect to login
+      navigate('/login')
+    }
+  }, [isAuthenticated, isLoading, error, navigate])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] via-[#1a1f2a] to-[#0a3d28] flex items-center justify-center">
@@ -62,7 +37,7 @@ const SSOCallback = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <p className="text-red-400 font-medium">{error}</p>
+            <p className="text-red-400 font-medium">Authentification échouée</p>
             <p className="text-gray-400 text-sm mt-2">Redirection en cours...</p>
           </div>
         ) : (

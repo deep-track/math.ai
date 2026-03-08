@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { getCredits } from '../services/api';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useAuth0 } from '@auth0/auth0-react';
 import { getTranslation } from '../utils/translations';
 import { useLanguage } from '../hooks/useLanguage';
 
 const CreditsBadge: React.FC<{ userId?: string }> = ({ userId }) => {
-  const { user } = useUser();
-  const clerk = useClerk();
-  const uid = userId || user?.id || 'guest';
+  const { user, getAccessTokenSilently } = useAuth0();
+  const uid = userId || user?.sub || 'guest';
   const [remaining, setRemaining] = useState<number | null>(null);
   const language = useLanguage();
 
@@ -16,7 +15,7 @@ const CreditsBadge: React.FC<{ userId?: string }> = ({ userId }) => {
     (async () => {
       let token: string | undefined;
       try {
-        token = await (clerk as any).getToken?.();
+        token = await getAccessTokenSilently();
       } catch (e) {
         token = undefined;
       }
@@ -36,7 +35,7 @@ const CreditsBadge: React.FC<{ userId?: string }> = ({ userId }) => {
       mounted = false;
       window.removeEventListener('creditsUpdated', handler as EventListener);
     };
-  }, [uid, clerk]);
+  }, [uid, getAccessTokenSilently]);
 
   return (
     <div className="inline-flex items-center gap-3 px-3 py-2 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg backdrop-blur-sm min-w-0">

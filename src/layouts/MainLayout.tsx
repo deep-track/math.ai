@@ -5,12 +5,11 @@ import { ThemeProvider } from "../theme/ThemeProvider"
 import { ChatProvider } from "../contexts/ChatContext"
 import ErrorBoundary from "../components/ErrorBoundary"
 import CreditsBadge from "../components/CreditsBadge"
-import { useClerk, useUser } from "@clerk/clerk-react"
+import { useAuth0 } from "@auth0/auth0-react"
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  const { logout, user } = useAuth0();
 
   const handleNewChat = useCallback(() => {
     // This will trigger a chat reset event
@@ -22,7 +21,7 @@ const MainLayout = () => {
   }, []);
 
   const _handleLogout = async () => {
-    await signOut({ redirectUrl: '/' });
+    await logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
   // Reference so TypeScript doesn't fail on unused local in builds
@@ -35,7 +34,7 @@ const MainLayout = () => {
         <ChatProvider>
             {/* Credits indicator fixed top-right (no nav bar) */}
             <div className="fixed top-4 right-4 z-50">
-              <CreditsBadge userId={user?.id} />
+              <CreditsBadge userId={user?.sub} />
             </div>
 
             {/* Mobile menu toggle (small hamburger in top-left) */}

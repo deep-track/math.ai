@@ -5,9 +5,13 @@ import * as api from '../../../services/api'
 import { vi } from 'vitest'
 
 vi.mock('../../../services/api')
-vi.mock('@clerk/clerk-react', () => ({
-  useClerk: () => ({ getToken: async () => 'fake-token' }),
-  useUser: () => ({ user: null }),
+vi.mock('@auth0/auth0-react', () => ({
+  useAuth0: () => ({ 
+    user: null, 
+    isLoading: false, 
+    isAuthenticated: false,
+    getAccessTokenSilently: async () => 'fake-token' 
+  }),
 }))
 
 describe('ChatMessage', () => {

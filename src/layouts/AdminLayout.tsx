@@ -4,13 +4,13 @@ import Sidebar from '../features/sidebar/Sidebar';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import ErrorBoundary from '../components/ErrorBoundary';
 import CreditsBadge from '../components/CreditsBadge';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth0 } from '@auth0/auth0-react';
 import AdminDashboard from '../features/admin/AdminDashboard';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user } = useAuth0();
 
   const handleNewChat = useCallback(() => {
     navigate('/home');
@@ -30,7 +30,7 @@ const AdminLayout = () => {
     <ErrorBoundary>
       <ThemeProvider>
         <div className="fixed top-4 right-4 z-50">
-          <CreditsBadge userId={user?.id} />
+          <CreditsBadge userId={user?.sub} />
         </div>
 
         <div className="fixed top-4 left-4 z-50 md:hidden">
