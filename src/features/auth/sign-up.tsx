@@ -50,12 +50,28 @@ const SignUpPage = () => {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.description || data.message || 'Erreur lors de l\'inscription')
+        console.error('Auth0 signup error:', data)
+
+        // data.description can be an object (e.g. password policy breakdown) — never use it directly
+        let message = 'Erreur lors de l\'inscription'
+        if (data.code === 'user_exists' || data.code === 'invalid_signup') {
+          message = 'Un compte avec cet email existe déjà.'
+        } else if (data.code === 'invalid_password' || data.name === 'PasswordStrengthError') {
+          message = 'Mot de passe trop faible. Utilisez au moins 8 caractères avec majuscule, chiffre et symbole.'
+        } else if (data.code === 'invalid_user_password') {
+          message = 'Email ou mot de passe invalide.'
+        } else if (typeof data.description === 'string' && data.description) {
+          message = data.description
+        } else if (typeof data.message === 'string' && data.message) {
+          message = data.message
+        }
+        throw new Error(message)
       }
 
       // Account created — send user to sign-in with a success flag
       navigate(`/sign-in?registered=true&email=${encodeURIComponent(email)}`)
     } catch (err: any) {
+      console.error('Signup error:', err)
       setError(err.message || 'Erreur lors de l\'inscription')
     } finally {
       setSubmitting(false)
