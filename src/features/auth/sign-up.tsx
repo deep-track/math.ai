@@ -83,8 +83,31 @@ const SignUpPage = () => {
         throw new Error(message)
       }
 
-      // Account created — send user to sign-in with a success flag
-      navigate(`/sign-in?registered=true&email=${encodeURIComponent(email)}`)
+      // Account created — immediately authenticate without showing Auth0's UI
+      const coRes = await fetch(`https://${import.meta.env.VITE_AUTH0_DOMAIN}/co/authenticate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          credential_type: 'http://auth0.com/oauth/grant-type/password-realm',
+          username: email,
+          password,
+          realm: 'Username-Password-Authentication',
+          client_id: import.meta.env.VITE_AUTH0_CLIENT_ID,
+        }),
+      })
+
+      if (!coRes.ok) {
+        // Auto-login failed — fall back to sign-in page with success banner
+        navigate(`/sign-in?registered=true&email=${encodeURIComponent(email)}`)
+        return
+      }
+
+      const { login_ticket } = await coRes.json()
+
+      await loginWithRedirect({
+        authorizationParams: { login_ticket },
+        appState: { returnTo: '/home' },
+      })
     } catch (err: any) {
       console.error('Signup error:', err)
       setError(err.message || 'Erreur lors de l\'inscription')

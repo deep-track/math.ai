@@ -26,18 +26,41 @@ const SignInPage = () => {
     setLoading(true)
 
     try {
-      // Force Auth0 to open in login mode (not signup mode).
+      // Step 1: Validate credentials directly — no Auth0 UI shown
+      const coRes = await fetch(`https://${import.meta.env.VITE_AUTH0_DOMAIN}/co/authenticate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          credential_type: 'http://auth0.com/oauth/grant-type/password-realm',
+          username: email,
+          password,
+          realm: 'Username-Password-Authentication',
+          client_id: import.meta.env.VITE_AUTH0_CLIENT_ID,
+        }),
+      })
+
+      if (!coRes.ok) {
+        const data = await coRes.json()
+        console.error('Auth0 login error:', data)
+        const message =
+          data.code === 'invalid_user_password' || data.code === 'invalid_grant'
+            ? 'Email ou mot de passe incorrect'
+            : typeof data.description === 'string'
+            ? data.description
+            : 'Erreur de connexion'
+        throw new Error(message)
+      }
+
+      const { login_ticket } = await coRes.json()
+
+      // Step 2: Exchange ticket for session — Auth0 redirects back silently without showing its UI
       await loginWithRedirect({
-        authorizationParams: {
-          screen_hint: 'login',
-          login_hint: email,
-          prompt: 'login',
-        },
+        authorizationParams: { login_ticket },
         appState: { returnTo: '/home' },
       })
     } catch (err: any) {
-      setError(err.message || 'Email or password incorrect')
-    } finally {
+      console.error('Login error:', err)
+      setError(err.message || 'Email ou mot de passe incorrect')
       setLoading(false)
     }
   }
