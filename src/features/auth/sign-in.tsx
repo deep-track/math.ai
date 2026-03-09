@@ -31,9 +31,10 @@ const SignInPage = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          grant_type: 'password',
+          grant_type: 'http://auth0.com/oauth/grant-type/password-realm',
           username: email,
           password,
+          realm: 'Username-Password-Authentication',
           client_id: import.meta.env.VITE_AUTH0_CLIENT_ID,
           audience: import.meta.env.VITE_AUTH0_AUDIENCE,
           scope: 'openid profile email',
@@ -47,6 +48,8 @@ const SignInPage = () => {
         const message =
           data.error === 'invalid_grant'
             ? 'Email ou mot de passe incorrect'
+            : data.error_description === 'Authorization server not configured with default connection.'
+            ? 'Connexion indisponible: la connexion par mot de passe n\'est pas encore activée dans Auth0.'
             : data.error_description || 'Erreur de connexion'
         throw new Error(message)
       }
