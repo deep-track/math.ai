@@ -155,9 +155,14 @@ async def _debug_ip(request: Request):
     })
 # 3. CORS Configuration - Allow frontend to communicate
 # Include all dev ports and production domains
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
+# Load allowed origins from environment variable or use defaults
+ALLOWED_ORIGINS = os.environ.get('ALLOWED_ORIGINS', '')
+if ALLOWED_ORIGINS:
+    allowed_origins_list = [origin.strip() for origin in ALLOWED_ORIGINS.split(',') if origin.strip()]
+    print(f'[CORS] Loaded {len(allowed_origins_list)} custom origins from environment')
+else:
+    # Default origins for development and common deployments
+    allowed_origins_list = [
         # Local development
         "http://localhost:5173",
         "http://localhost:5174",
@@ -169,7 +174,6 @@ app.add_middleware(
         "http://127.0.0.1:5175",
         "http://127.0.0.1:3000",      
         "http://127.0.0.1:5176",
-
         # Local network
         "http://192.168.0.101:5173",
         "http://192.168.0.101:5174",
@@ -181,7 +185,12 @@ app.add_middleware(
         "https://mathai.fr",
         "https://mathai-deeptracks-projects-32338107.vercel.app",
         "https://math-ai-1-b5es.onrender.com",
-    ],
+    ]
+    print(f'[CORS] Using {len(allowed_origins_list)} default origins')
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins_list,
     allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
