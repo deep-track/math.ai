@@ -812,9 +812,34 @@ const ChatMessage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
               {[
-                { icon: '📝', key: 'typeAnyProblem' },
-                { icon: '⚡', key: 'getInstantExplanations' },
-                { icon: '📷', key: 'uploadImageTip', fallback: 'Upload an image of your problem' },
+                {
+                  icon: (
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 20h9" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+                    </svg>
+                  ),
+                  key: 'typeAnyProblem'
+                },
+                {
+                  icon: (
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
+                    </svg>
+                  ),
+                  key: 'getInstantExplanations'
+                },
+                {
+                  icon: (
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <rect x="3" y="6" width="18" height="14" rx="2" />
+                      <circle cx="12" cy="13" r="3" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 6V4m9 2V4" />
+                    </svg>
+                  ),
+                  key: 'uploadImageTip',
+                  fallback: 'Telechargez une image de votre probleme'
+                },
               ].map(({ icon, key, fallback }) => (
                 <div
                   key={key}
@@ -824,7 +849,15 @@ const ChatMessage = () => {
                       : 'bg-green-50 border-green-300'
                   }`}
                 >
-                  <div className="text-2xl mb-2">{icon}</div>
+                  <div
+                    className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl ${
+                      theme === 'dark'
+                        ? 'bg-emerald-900/40 text-emerald-300 ring-1 ring-emerald-500/30'
+                        : 'bg-white text-emerald-700 ring-1 ring-emerald-200'
+                    }`}
+                  >
+                    {icon}
+                  </div>
                   <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
                     {getTranslation(key as any, language) || fallback}
                   </p>
