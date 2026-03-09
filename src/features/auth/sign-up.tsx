@@ -84,28 +84,31 @@ const SignUpPage = () => {
       }
 
       // Account created — immediately authenticate without showing Auth0's UI
-      const coRes = await fetch(`https://${import.meta.env.VITE_AUTH0_DOMAIN}/co/authenticate`, {
+      const tokenRes = await fetch(`https://${import.meta.env.VITE_AUTH0_DOMAIN}/oauth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          credential_type: 'http://auth0.com/oauth/grant-type/password-realm',
+          grant_type: 'password',
           username: email,
           password,
-          realm: 'Username-Password-Authentication',
           client_id: import.meta.env.VITE_AUTH0_CLIENT_ID,
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+          scope: 'openid profile email',
         }),
       })
 
-      if (!coRes.ok) {
+      if (!tokenRes.ok) {
         // Auto-login failed — fall back to sign-in page with success banner
         navigate(`/sign-in?registered=true&email=${encodeURIComponent(email)}`)
         return
       }
 
-      const { login_ticket } = await coRes.json()
+      const data = await tokenRes.json()
+      sessionStorage.setItem('auth0_access_token', data.access_token)
+      if (data.id_token) sessionStorage.setItem('auth0_id_token', data.id_token)
 
       await loginWithRedirect({
-        authorizationParams: { login_ticket },
+        authorizationParams: { login_hint: email, prompt: 'none' },
         appState: { returnTo: '/home' },
       })
     } catch (err: any) {

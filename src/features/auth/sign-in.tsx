@@ -26,36 +26,41 @@ const SignInPage = () => {
     setLoading(true)
 
     try {
-      // Step 1: Validate credentials directly — no Auth0 UI shown
-      const coRes = await fetch(`https://${import.meta.env.VITE_AUTH0_DOMAIN}/co/authenticate`, {
+      // Resource Owner Password Grant — pure API call, no Auth0 UI, no redirects, works in all browsers
+      const tokenRes = await fetch(`https://${import.meta.env.VITE_AUTH0_DOMAIN}/oauth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          credential_type: 'http://auth0.com/oauth/grant-type/password-realm',
+          grant_type: 'password',
           username: email,
           password,
-          realm: 'Username-Password-Authentication',
           client_id: import.meta.env.VITE_AUTH0_CLIENT_ID,
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+          scope: 'openid profile email',
         }),
       })
 
-      if (!coRes.ok) {
-        const data = await coRes.json()
+      const data = await tokenRes.json()
+
+      if (!tokenRes.ok) {
         console.error('Auth0 login error:', data)
         const message =
-          data.code === 'invalid_user_password' || data.code === 'invalid_grant'
+          data.error === 'invalid_grant'
             ? 'Email ou mot de passe incorrect'
-            : typeof data.description === 'string'
-            ? data.description
-            : 'Erreur de connexion'
+            : data.error_description || 'Erreur de connexion'
         throw new Error(message)
       }
 
-      const { login_ticket } = await coRes.json()
+      // Store tokens and reload via loginWithRedirect using a silent prompt
+      // Tokens obtained — now get Auth0 to create the SPA session via redirect
+      sessionStorage.setItem('auth0_access_token', data.access_token)
+      if (data.id_token) sessionStorage.setItem('auth0_id_token', data.id_token)
 
-      // Step 2: Exchange ticket for session — Auth0 redirects back silently without showing its UI
       await loginWithRedirect({
-        authorizationParams: { login_ticket },
+        authorizationParams: {
+          login_hint: email,
+          prompt: 'none',   // Silent: Auth0 uses the just-validated session, no UI shown
+        },
         appState: { returnTo: '/home' },
       })
     } catch (err: any) {
