@@ -107,7 +107,7 @@ const SignUpPage = () => {
 
       const data = await tokenRes.json()
       storeManualSession(data.access_token, data.id_token)
-      navigate('/home')
+      window.location.href = '/home'
     } catch (err: any) {
       console.error('Signup error:', err)
       setError(err.message || 'Erreur lors de l\'inscription')

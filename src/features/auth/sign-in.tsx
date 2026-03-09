@@ -57,7 +57,7 @@ const SignInPage = () => {
 
       // Complete login locally and route immediately without reopening Auth0 UI
       storeManualSession(data.access_token, data.id_token)
-      navigate('/home')
+      window.location.href = '/home'
     } catch (err: any) {
       console.error('Login error:', err)
       setError(err.message || 'Email ou mot de passe incorrect')
