@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { storeManualSession } from '../../utils/manualAuth'
 
 const SignInPage = () => {
   const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0()
@@ -54,18 +55,9 @@ const SignInPage = () => {
         throw new Error(message)
       }
 
-      // Store tokens and reload via loginWithRedirect using a silent prompt
-      // Tokens obtained — now get Auth0 to create the SPA session via redirect
-      sessionStorage.setItem('auth0_access_token', data.access_token)
-      if (data.id_token) sessionStorage.setItem('auth0_id_token', data.id_token)
-
-      await loginWithRedirect({
-        authorizationParams: {
-          login_hint: email,
-          prompt: 'none',   // Silent: Auth0 uses the just-validated session, no UI shown
-        },
-        appState: { returnTo: '/home' },
-      })
+      // Complete login locally and route immediately without reopening Auth0 UI
+      storeManualSession(data.access_token, data.id_token)
+      navigate('/home')
     } catch (err: any) {
       console.error('Login error:', err)
       setError(err.message || 'Email ou mot de passe incorrect')
@@ -75,6 +67,7 @@ const SignInPage = () => {
 
   const handleSignInWithGoogle = async () => {
     try {
+      // Google still uses Auth0 redirect flow
       await loginWithRedirect({
         authorizationParams: {
           connection: 'google-oauth2'

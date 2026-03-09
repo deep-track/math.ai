@@ -6,10 +6,13 @@ import { ChatProvider } from "../contexts/ChatContext"
 import ErrorBoundary from "../components/ErrorBoundary"
 import CreditsBadge from "../components/CreditsBadge"
 import { useAuth0 } from "@auth0/auth0-react"
+import { clearManualSession, getManualUser, hasManualSession } from "../utils/manualAuth"
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { logout, user } = useAuth0();
+  const manualUser = getManualUser();
+  const effectiveUserId = user?.sub || manualUser?.sub;
 
   const handleNewChat = useCallback(() => {
     // This will trigger a chat reset event
@@ -21,6 +24,12 @@ const MainLayout = () => {
   }, []);
 
   const _handleLogout = async () => {
+    const wasManualSession = hasManualSession();
+    clearManualSession();
+    if (wasManualSession) {
+      window.location.href = '/';
+      return;
+    }
     await logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
@@ -34,7 +43,7 @@ const MainLayout = () => {
         <ChatProvider>
             {/* Credits indicator fixed top-right (no nav bar) */}
             <div className="fixed top-4 right-4 z-50">
-              <CreditsBadge userId={user?.sub} />
+              <CreditsBadge userId={effectiveUserId} />
             </div>
 
             {/* Mobile menu toggle (small hamburger in top-left) */}

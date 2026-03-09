@@ -8,6 +8,7 @@ import { useLanguage } from '../../hooks/useLanguage';
 import SettingsModal from '../../components/SettingsModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAdminCheck } from '../../hooks/useAdminCheck';
+import { clearManualSession, getManualAccessToken, getManualUser, hasManualSession } from '../../utils/manualAuth';
 
 interface SidebarProps {
   onNewChat?: () => void;
@@ -17,6 +18,8 @@ interface SidebarProps {
 
 const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
   const { user, logout, getAccessTokenSilently } = useAuth0();
+  const manualUser = getManualUser();
+  const effectiveUserId = user?.sub || manualUser?.sub;
   const { theme } = useTheme();
   const language = useLanguage();
   const { adminStatus } = useAdminCheck();
@@ -29,27 +32,33 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
   const [conversations, setConversations] = useState<any[]>([]);
 
   const handleLogout = async () => {
+    const wasManualSession = hasManualSession();
+    clearManualSession();
+    if (wasManualSession) {
+      window.location.href = '/';
+      return;
+    }
     await logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
   // Fetch conversations when component mounts or user changes
   useEffect(() => {
     // Only fetch if we have a user and are not in a render cycle
-    if (!user?.sub) return;
+    if (!effectiveUserId) return;
 
     const fetchConversations = async () => {
       try {
         setLoading(true);
         let token: string | undefined;
-        if (user?.sub) {
+        if (effectiveUserId) {
           try {
             token = await getAccessTokenSilently();
           } catch (e) {
-            token = undefined;
+            token = getManualAccessToken() || undefined;
           }
         }
 
-        const convs = (await getConversations(user?.sub || 'guest', token)) || [];
+        const convs = (await getConversations(effectiveUserId || 'guest', token)) || [];
         // ensure sorted newest -> oldest
         convs.sort((a: any, b: any) => (a.updatedAt || a.createdAt) < (b.updatedAt || b.createdAt) ? 1 : -1);
         setConversations(convs);
@@ -69,7 +78,7 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
       clearTimeout(timeoutId);
       window.removeEventListener('conversationUpdated', handler);
     };
-  }, [user, getAccessTokenSilently]);
+  }, [effectiveUserId, getAccessTokenSilently]);
 
   const [showMore, setShowMore] = useState(false);
 
@@ -80,17 +89,17 @@ const Sidebar = ({ onNewChat, onSelectConversation }: SidebarProps) => {
   const handleDeleteConversation = async (id: string) => {
     try {
       let token: string | undefined;
-      if (user?.sub) {
+      if (effectiveUserId) {
         try {
           token = await getAccessTokenSilently();
         } catch (e) {
-          token = undefined;
+          token = getManualAccessToken() || undefined;
         }
       }
 
-      await deleteConversation(id, user?.sub || 'guest', token);
+      await deleteConversation(id, effectiveUserId || 'guest', token);
       // Refresh list
-      const convs = await getConversations(user?.sub || 'guest', token);
+      const convs = await getConversations(effectiveUserId || 'guest', token);
       setConversations(convs);
       window.dispatchEvent(new CustomEvent('conversationUpdated'));
     } catch (err) {

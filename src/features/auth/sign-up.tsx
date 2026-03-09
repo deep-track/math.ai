@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { useNavigate, Link } from 'react-router-dom'
+import { storeManualSession } from '../../utils/manualAuth'
 
 const SignUpPage = () => {
   const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0()
@@ -105,13 +106,8 @@ const SignUpPage = () => {
       }
 
       const data = await tokenRes.json()
-      sessionStorage.setItem('auth0_access_token', data.access_token)
-      if (data.id_token) sessionStorage.setItem('auth0_id_token', data.id_token)
-
-      await loginWithRedirect({
-        authorizationParams: { login_hint: email, prompt: 'none' },
-        appState: { returnTo: '/home' },
-      })
+      storeManualSession(data.access_token, data.id_token)
+      navigate('/home')
     } catch (err: any) {
       console.error('Signup error:', err)
       setError(err.message || 'Erreur lors de l\'inscription')

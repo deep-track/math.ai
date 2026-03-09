@@ -13,6 +13,7 @@ import LoadingState from "./components/LoadingState"
 import { useAdminCheck } from "./hooks/useAdminCheck"
 import LandingPage from "./features/landing/LandingPage"
 import AdminLayout from "./layouts/AdminLayout"
+import { hasManualSession } from "./utils/manualAuth"
 
 function App() {
   const { isAuthenticated, isLoading } = useAuth0()
@@ -38,7 +39,7 @@ function App() {
       // }
 
       setAuthState({ 
-        isSignedIn: isAuthenticated ?? null, 
+        isSignedIn: (isAuthenticated || hasManualSession()) ?? null, 
         isLoaded: !isLoading, 
         isWhitelisted: true // Always allow - whitelist disabled
       })
