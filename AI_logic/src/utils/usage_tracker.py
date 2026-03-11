@@ -10,9 +10,9 @@ load_dotenv()
 
 mongo_uri = os.getenv("MONGO_URI") or os.getenv("MONGODB_URI")
 mongo_client = MongoClient(mongo_uri) if mongo_uri else None
-mongo_db = mongo_client["mathai"] if mongo_client else None
-usage_col = mongo_db["usage_logs"] if mongo_db else None
-pricing_col = mongo_db["model_pricing"] if mongo_db else None
+mongo_db = mongo_client["mathai"] if mongo_client is not None else None
+usage_col = mongo_db["usage_logs"] if mongo_db is not None else None
+pricing_col = mongo_db["model_pricing"] if mongo_db is not None else None
 
 
 def _extract_usage(provider: str, response: Any) -> tuple[int, int]:
