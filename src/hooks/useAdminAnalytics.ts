@@ -20,8 +20,12 @@ export function useAdminAnalytics(days = 30) {
       setLoading(true)
       setError(null)
       try {
-        const token = await getAccessTokenSilently().catch(() => undefined)
-        const res = await getAdminMetrics(email, days, token || undefined)
+        const token = await getAccessTokenSilently({
+          authorizationParams: {
+            audience: import.meta.env.VITE_AUTH0_AUDIENCE || undefined,
+          },
+        })
+        const res = await getAdminMetrics(email, days, token)
         setData(res)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load admin analytics')

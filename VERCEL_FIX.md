@@ -31,13 +31,24 @@ Add these environment variables:
 **For Frontend:**
 ```
 VITE_API_BASE_URL=https://your-backend-api.com
+VITE_AUTH0_DOMAIN=your-tenant.auth0.com
+VITE_AUTH0_CLIENT_ID=your-client-id
+VITE_AUTH0_AUDIENCE=https://your-api-identifier
+VITE_ENABLE_KATEX=true
+VITE_ENABLE_ANALYTICS=true
+VITE_ENABLE_TUTOR_MODE=true
 ```
 
 **For Backend (if deploying separately):**
 ```
-MISTRAL_API_KEY=your_key
 ANTHROPIC_API_KEY=your_key
 COHERE_API_KEY=your_key
+MISTRAL_API_KEY=your_key
+MONGODB_URI=your_mongodb_uri
+AUTH0_DOMAIN=your-tenant.auth0.com
+AUTH0_AUDIENCE=https://your-api-identifier
+ADMIN_EMAILS=admin@example.com
+ALLOWED_ORIGINS=https://your-frontend.vercel.app
 ```
 
 ### Step 3: Redeploy
@@ -76,6 +87,8 @@ You should now see the Math.AI interface instead of 404.
 - Make sure your backend FastAPI server has CORS enabled for:
   - `https://deep-track-mathai.vercel.app`
   - `https://*.vercel.app`
+
+This project now supports setting `ALLOWED_ORIGINS` on Render so you can control this without code changes.
 
 Example in `server.py`:
 ```python

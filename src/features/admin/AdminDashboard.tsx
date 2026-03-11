@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useAdminAnalytics } from '../../hooks/useAdminAnalytics';
+import UsageDashboard from '../../components/admin/UsageDashboard';
+import InfrastructureManager from '../../components/admin/InfrastructureManager';
 
-type DashboardTab = 'overview' | 'learning' | 'ai' | 'infrastructure' | 'safety';
+type DashboardTab = 'overview' | 'learning' | 'ai' | 'costs' | 'infrastructure' | 'safety';
 
 type MetricCardProps = {
   label: string;
@@ -19,6 +21,7 @@ const tabs: { id: DashboardTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'learning', label: 'Learning Analytics' },
   { id: 'ai', label: 'AI Performance' },
+  { id: 'costs', label: 'Cost Tracking' },
   { id: 'infrastructure', label: 'Infrastructure' },
   { id: 'safety', label: 'Safety' },
 ];
@@ -284,6 +287,8 @@ const renderInfrastructure = (data: any) => {
           </div>
         </Panel>
       </section>
+
+      <InfrastructureManager />
     </div>
   );
 };
@@ -313,6 +318,7 @@ const AdminDashboard = () => {
     if (activeTab === 'overview') return renderOverview(data, hideZeroDays, () => setHideZeroDays((prev) => !prev));
     if (activeTab === 'learning') return renderLearning(data);
     if (activeTab === 'ai') return renderAiPerformance(data);
+    if (activeTab === 'costs') return <UsageDashboard />;
     if (activeTab === 'infrastructure') return renderInfrastructure(data);
     return renderSafety(data);
   }, [activeTab, data, hideZeroDays]);

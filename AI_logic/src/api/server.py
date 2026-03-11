@@ -5,7 +5,7 @@ This server connects the AI logic (orchestrator.py) to the React frontend.
 Run with: uvicorn src.api.server:app --reload --port 8000
 """
 
-from fastapi import FastAPI, HTTPException, Request, File, UploadFile, Form
+from fastapi import FastAPI, HTTPException, Request, File, UploadFile, Form, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
@@ -24,6 +24,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 # 2. Import the AI orchestrator
 from src.engine.orchestrator import ask_math_ai, ask_math_ai_stream
 from src.utils.process_uploads import process_uploaded_image, process_uploaded_document
+from src.utils.cost_alerts import check_daily_threshold
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -269,6 +270,7 @@ async def ask_endpoint(
     image: UploadFile = File(None),
     document: UploadFile = File(None),
     user_id: Optional[str] = Form(None),
+    session_id: Optional[str] = Form(None),
 ):
     """
     Main endpoint for solving math problems.
@@ -296,11 +298,13 @@ async def ask_endpoint(
             if isinstance(payload, dict):
                 text = payload.get("text") or payload.get("question") or payload.get("content")
                 user_id = payload.get("user_id") or payload.get("userId") or user_id
+                session_id = payload.get("session_id") or payload.get("sessionId") or session_id
 
         if not text or not str(text).strip():
             raise HTTPException(status_code=400, detail="Missing 'text' field in request.")
 
         user_id = user_id or "guest"
+        session_id = session_id or request.headers.get("x-session-id") or request.headers.get("authorization")
         started_at = datetime.utcnow()
         attachment = None
         image_payload = None
@@ -332,7 +336,7 @@ async def ask_endpoint(
         
         # Call the AI orchestrator - returns AcademicResponse format
         print("[INFO] Calling orchestrator...")
-        result = ask_math_ai(text, attachment=attachment)
+        result = ask_math_ai(text, attachment=attachment, user_id=user_id, session_id=session_id)
         print(f"[DEBUG] Result type: {type(result)}")
         print(f"[DEBUG] Result keys: {list(result.keys()) if isinstance(result, dict) else 'N/A'}")
         
@@ -436,6 +440,7 @@ async def ask_stream_endpoint(http_req: Request):
     question_text = None
     attachment = None
     user_id_from_request = "guest"
+    session_id_from_request = http_req.headers.get("x-session-id") or http_req.headers.get("authorization")
     conversation_history = []  # Will store history from request
     request_received_at = datetime.utcnow()
 
@@ -448,6 +453,7 @@ async def ask_stream_endpoint(http_req: Request):
         document = form.get("document")
         history_json = form.get("history")
         user_id_from_request = str(form.get("user_id") or "guest")
+        session_id_from_request = str(form.get("session_id") or session_id_from_request or "") or None
         
         # Parse history if present
         if history_json:
@@ -493,6 +499,7 @@ async def ask_stream_endpoint(http_req: Request):
             question_request = QuestionRequest(**json_data)
             question_text = question_request.text
             user_id_from_request = question_request.user_id or "guest"
+            session_id_from_request = question_request.session_id or session_id_from_request
             conversation_history = question_request.history or []
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Invalid JSON request: {str(e)}")
@@ -523,7 +530,13 @@ async def ask_stream_endpoint(http_req: Request):
             yield ": connected\n\n"
 
             # Get stream from orchestrator (it's a regular generator, not async)
-            for ndjson_line in ask_math_ai_stream(question_text, history=conversation_history, attachment=attachment):
+            for ndjson_line in ask_math_ai_stream(
+                question_text,
+                history=conversation_history,
+                attachment=attachment,
+                user_id=user_id_from_request,
+                session_id=session_id_from_request,
+            ):
                 # Parse the NDJSON line
                 line = ndjson_line.strip()
                 if not line:
@@ -712,11 +725,16 @@ MONGODB_URI = os.environ.get('MONGODB_URI')
 MONGODB_DB = os.environ.get('MONGODB_DB', 'mathai')
 USE_MONGO = bool(MONGODB_URI)
 
+mongo_db = None
+mongo_sync_db = None
 credits_coll = None
 conversations_coll = None
 analytics_interactions_coll = None
 analytics_feedback_coll = None
 analytics_events_coll = None
+usage_logs_coll_sync = None
+pricing_coll_sync = None
+infrastructure_costs_coll_sync = None
 analytics_interactions_coll_sync = None
 analytics_feedback_coll_sync = None
 analytics_events_coll_sync = None
@@ -747,6 +765,9 @@ if USE_MONGO:
             serverSelectionTimeoutMS=5000
         )
         mongo_sync_db = mongo_sync_client[MONGODB_DB]
+        usage_logs_coll_sync = mongo_sync_db['usage_logs']
+        pricing_coll_sync = mongo_sync_db['model_pricing']
+        infrastructure_costs_coll_sync = mongo_sync_db['infrastructure_costs']
         analytics_interactions_coll_sync = mongo_sync_db['analytics_interactions']
         analytics_feedback_coll_sync = mongo_sync_db['analytics_feedback']
         analytics_events_coll_sync = mongo_sync_db['analytics_events']
@@ -1734,6 +1755,147 @@ async def get_admin_metrics(request: Request, email: str = "", days: int = 30):
     }
 
 
+@api_router.get("/analytics/usage")
+async def get_usage_analytics(
+    request: Request,
+    days: int = 30,
+    email: str = Header(None, alias="x-user-email")
+):
+    _resolve_admin_email_from_request(request, email or "")
+
+    if not USE_MONGO or usage_logs_coll_sync is None:
+        return {
+            "period_days": days,
+            "total_cost_usd": 0.0,
+            "providers": [],
+            "daily_trend": [],
+        }
+
+    days = max(1, min(days, 365))
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    provider_breakdown = list(usage_logs_coll_sync.aggregate([
+        {"$match": {"timestamp": {"$gte": cutoff_date}}},
+        {
+            "$group": {
+                "_id": "$provider",
+                "total_cost": {"$sum": "$cost_usd"},
+                "total_calls": {"$sum": 1},
+                "total_tokens": {"$sum": "$total_tokens"},
+            }
+        },
+        {"$sort": {"total_cost": -1}},
+    ]))
+
+    daily_spend = list(usage_logs_coll_sync.aggregate([
+        {"$match": {"timestamp": {"$gte": cutoff_date}}},
+        {
+            "$group": {
+                "_id": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$timestamp",
+                    }
+                },
+                "cost": {"$sum": "$cost_usd"},
+                "calls": {"$sum": 1},
+            }
+        },
+        {"$sort": {"_id": 1}},
+    ]))
+
+    total_cost = round(sum(float(item.get("total_cost", 0)) for item in provider_breakdown), 4)
+
+    return {
+        "period_days": days,
+        "total_cost_usd": total_cost,
+        "providers": provider_breakdown,
+        "daily_trend": daily_spend,
+    }
+
+
+@api_router.post("/analytics/infrastructure")
+async def add_infrastructure_cost(
+    request: Request,
+    data: dict,
+    email: str = Header(None, alias="x-user-email")
+):
+    _resolve_admin_email_from_request(request, email or "")
+
+    provider = data.get("provider")
+    amount_usd = data.get("amount_usd")
+    billing_period = data.get("billing_period")
+
+    if not isinstance(provider, str) or not provider.strip():
+        raise HTTPException(status_code=400, detail="provider is required")
+    if not isinstance(amount_usd, (int, float)):
+        raise HTTPException(status_code=400, detail="amount_usd must be a number")
+    if not isinstance(billing_period, str) or not re.match(r"^\d{4}-\d{2}$", billing_period):
+        raise HTTPException(status_code=400, detail="billing_period must be YYYY-MM")
+
+    if not USE_MONGO or infrastructure_costs_coll_sync is None:
+        raise HTTPException(status_code=503, detail="MongoDB is required for infrastructure cost tracking")
+
+    infrastructure_costs_coll_sync.insert_one({
+        "provider": provider.strip().lower(),
+        "amount_usd": float(amount_usd),
+        "billing_period": billing_period,
+        "timestamp": datetime.utcnow(),
+    })
+
+    return {"success": True}
+
+
+@api_router.get("/analytics/infrastructure")
+async def get_infrastructure_costs(
+    request: Request,
+    months: int = 3,
+    email: str = Header(None, alias="x-user-email")
+):
+    _resolve_admin_email_from_request(request, email or "")
+
+    if not USE_MONGO or infrastructure_costs_coll_sync is None:
+        return []
+
+    months = max(1, min(months, 24))
+    now = datetime.utcnow()
+    cutoff_month = now.year * 12 + now.month - (months - 1)
+
+    pipeline = [
+        {
+            "$addFields": {
+                "period_index": {
+                    "$add": [
+                        {"$multiply": [{"$toInt": {"$substr": ["$billing_period", 0, 4]}}, 12]},
+                        {"$toInt": {"$substr": ["$billing_period", 5, 2]}},
+                    ]
+                }
+            }
+        },
+        {"$match": {"period_index": {"$gte": cutoff_month}}},
+        {
+            "$group": {
+                "_id": {
+                    "provider": "$provider",
+                    "billing_period": "$billing_period",
+                },
+                "amount_usd": {"$sum": "$amount_usd"},
+            }
+        },
+        {"$sort": {"_id.billing_period": -1, "_id.provider": 1}},
+    ]
+
+    rows = list(infrastructure_costs_coll_sync.aggregate(pipeline))
+    return [
+        {
+            "provider": row.get("_id", {}).get("provider"),
+            "billing_period": row.get("_id", {}).get("billing_period"),
+            "amount_usd": row.get("amount_usd", 0),
+        }
+        for row in rows
+    ]
+
+
 # API: Credits endpoints (now using async wrappers with error handling)
 @api_router.get("/credits/{user_id}")
 async def api_get_credits(user_id: str, request: Request):
@@ -1959,6 +2121,15 @@ async def _midnight_reset_loop():
         except Exception as e:
             print("[CREDITS] Error resetting credits:", e)
 
+
+async def _cost_alert_loop():
+    while True:
+        await asyncio.sleep(21600)
+        try:
+            check_daily_threshold()
+        except Exception as e:
+            print("[COST ALERT] Scheduled check failed:", e)
+
 # Start background task and run migrations on startup
 @app.on_event("startup")
 async def _start_midnight_task():
@@ -1966,6 +2137,7 @@ async def _start_midnight_task():
     if USE_MONGO:
         asyncio.create_task(_migrate_json_to_mongo())
     asyncio.create_task(_midnight_reset_loop())
+    asyncio.create_task(_cost_alert_loop())
 
 
 # 6. Health check endpoint
