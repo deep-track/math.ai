@@ -77,6 +77,7 @@ class ErrorBoundary extends React.Component<
 // App loader component with Auth0
 const AppLoader = () => {
   if (isValidAuth0Config) {
+    console.log('[Auth0Provider] Initializing with domain:', AUTH0_DOMAIN, 'audience:', AUTH0_AUDIENCE);
     return (
       <Auth0Provider
         domain={AUTH0_DOMAIN}
@@ -86,13 +87,14 @@ const AppLoader = () => {
           audience: AUTH0_AUDIENCE || undefined,
         }}
         cacheLocation="localstorage"
+        useRefreshTokens={true}
       >
         <App />
       </Auth0Provider>
     )
   } else {
     // Development mode without Auth0
-    console.warn('Auth0 not configured - running in development mode')
+    console.warn('Auth0 not configured - running in development mode. Domain:', AUTH0_DOMAIN, 'ClientId:', AUTH0_CLIENT_ID)
     return <App />
   }
 }

@@ -504,6 +504,7 @@ export async function* solveProblemStream(
   userId?: string,
   options?: { forceFresh?: boolean; history?: Array<{role: string, content: string}> }
 ) {
+  console.log('[solveProblemStream] CALLED with problem:', problem.content.substring(0, 100));
   const cache = PromptCache.getInstance();
   const forceFresh = !!options?.forceFresh;
   const history = options?.history || [];
@@ -613,12 +614,14 @@ export async function* solveProblemStream(
 
     console.log('📤 Sending text-only request:', requestBody);
 
+    console.log('[solveProblemStream] About to fetch from:', `${API_BASE_URL}/ask-stream`, 'with headers:', headers);
     response = await fetch(`${API_BASE_URL}/ask-stream`, {
       method: 'POST',
       headers,
       body: JSON.stringify(requestBody),
       signal,
     });
+    console.log('[solveProblemStream] Fetch completed. Response status:', response.status, 'ok:', response.ok);
   }
 
   if (!response.ok) {
@@ -769,6 +772,7 @@ export async function* solveProblemStream(
           yield* processLines(buffer);
           buffer = '';
         }
+        console.log('[SSE] Stream ended. accumulatedContent length:', accumulatedContent.length, 'status:', status);
         break;
       }
 
@@ -785,6 +789,12 @@ export async function* solveProblemStream(
     if (accumulatedContent && status !== 'ok') {
       console.log('[SSE] auto-completing stream');
       yield { content: accumulatedContent, finalAnswer: accumulatedContent, status: 'ok', sources };
+    }
+
+    console.log('[SSE] Final validation - accumulatedContent:', accumulatedContent.length, 'chars, finalAnswer:', finalAnswer.length, 'chars');
+    if (!accumulatedContent.trim() && !finalAnswer.trim()) {
+      console.error('[SSE] ERROR: Both accumulatedContent and finalAnswer are empty!');
+      throw new Error('Backend returned an empty response');
     }
 
     // Cache the response if it was a text-only prompt
