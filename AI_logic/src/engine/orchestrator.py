@@ -2,6 +2,7 @@ import os
 import json
 from dotenv import load_dotenv
 from src.utils.usage_tracker import track_usage
+from src.utils.simple_cost_tracker import log_claude_usage
 
 try:
     import chromadb
@@ -411,6 +412,18 @@ def ask_math_ai(question: str, history: list = None, attachment=None, user_id=No
         )
         final_answer = response.content[0].text if response.content else ""
 
+        # Log token usage and cost
+        try:
+            log_claude_usage(
+                input_text=prompt,
+                output_text=final_answer,
+                model="claude-sonnet-4-5",
+                user_id=user_id,
+                session_id=session_id,
+            )
+        except Exception as _cost_err:
+            print(f"[COST] Failed to log usage: {_cost_err}")
+
         logger.save_request(
             prompt=question, model="claude-sonnet-4.5",
             steps=execution_steps, final_answer=final_answer,
@@ -513,6 +526,18 @@ def ask_math_ai_stream(question: str, history: list = None, attachment=None, use
             for text in stream.text_stream:
                 full_response += text
                 yield json.dumps({"token": text}) + "\n"
+
+        # Log token usage and cost
+        try:
+            log_claude_usage(
+                input_text=prompt,
+                output_text=full_response,
+                model="claude-sonnet-4-5",
+                user_id=user_id,
+                session_id=session_id,
+            )
+        except Exception as _cost_err:
+            print(f"[COST] Failed to log usage: {_cost_err}")
 
         yield json.dumps({
             "done": True,
