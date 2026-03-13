@@ -45,18 +45,32 @@ const ChatMessage = () => {
   const userName = user?.name || user?.nickname || guestName || getTranslation('learnerLabel', language);
 
   const getSessionToken = useCallback(async () => {
-    if (!user?.sub || isAuthLoading) return undefined;
+    if (!user?.sub || isAuthLoading) {
+      console.log('[getSessionToken] Early return - user.sub:', user?.sub, 'isAuthLoading:', isAuthLoading);
+      return undefined;
+    }
+    
+    const audience = import.meta.env.VITE_AUTH0_AUDIENCE;
+    console.log('[getSessionToken] Attempting to get token for audience:', audience);
+    
     for (let attempt = 0; attempt < 3; attempt += 1) {
       try {
-        const token = await getAccessTokenSilently();
+        console.log(`[getSessionToken] Attempt ${attempt + 1}/3 with audience: ${audience}`);
+        const token = await getAccessTokenSilently({
+          authorizationParams: {
+            audience: audience || undefined,
+          },
+        });
+        console.log('[getSessionToken] SUCCESS! Got token of length:', token?.length);
         if (token) return token;
       } catch (e) {
-        // ignore and retry
+        console.error(`[getSessionToken] Attempt ${attempt + 1} failed:`, e);
       }
       if (attempt < 2) {
         await new Promise((resolve) => setTimeout(resolve, 200 * (attempt + 1)));
       }
     }
+    console.error('[getSessionToken] All 3 attempts failed');
     return undefined;
   }, [user?.sub, isAuthLoading, getAccessTokenSilently]);
 
@@ -185,11 +199,15 @@ const ChatMessage = () => {
 
       const userId = user?.sub || 'guest';
 
+      console.log('[handleSubmitProblem] Getting session token for user:', userId);
       let token: string | undefined = await getSessionToken();
+      console.log('[handleSubmitProblem] Token retrieved:', !!token, 'token length:', token?.length || 0);
+      
+      // Allow both authenticated users (with token) and guests (without token)
+      // The backend will handle guest mode gracefully
       if (user?.sub && !token) {
-        setError(getTranslation('authTokenMissing', language));
-        setLoading(false);
-        return;
+        console.warn('[handleSubmitProblem] User is logged in but token not available - will use guest mode');
+        // Don't block - proceed as guest
       }
 
       if (creditsRemaining === 0) {
@@ -317,8 +335,14 @@ const ChatMessage = () => {
 
         let streamEnded = false;
         try {
+          console.log('[ChatMessage] Starting stream for problem:', problemText.substring(0, 100));
           for await (const solution of solveProblemStream(problem, controller.signal, token, userId, { ...options, history: conversationHistory })) {
             lastResponseTime = Date.now();
+            console.log('[ChatMessage] Received solution chunk:', {
+              contentLength: solution.content?.length,
+              status: solution.status,
+              contentPreview: solution.content?.substring(0, 50),
+            });
 
             if ((solution as any).chargedRemaining !== undefined) {
               (entryRef as any).current.serverCharged = true;
@@ -337,6 +361,7 @@ const ChatMessage = () => {
 
             if (!entryRef.current.hasReceivedChunk) {
               entryRef.current.hasReceivedChunk = true;
+              console.log('[ChatMessage] First chunk received, hiding loading state');
               setLoading(false);
             }
 
@@ -390,6 +415,7 @@ const ChatMessage = () => {
           }
           streamEnded = true;
         } catch (err: any) {
+          console.error('[ChatMessage] Stream error caught:', err);
           if (err?.name === 'AbortError') {
             cancelledRef.current = true;
             setError(getTranslation('generationStopped', language));
@@ -409,6 +435,9 @@ const ChatMessage = () => {
               return next;
             });
           } else {
+            console.error('[ChatMessage] Non-abort error, setting error state:', err.message);
+            setError(err.message || 'An error occurred while processing your request');
+            setLoading(false);
             throw err;
           }
         } finally {

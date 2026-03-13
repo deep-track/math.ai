@@ -1,6 +1,7 @@
 import os
 import json
 from dotenv import load_dotenv
+from src.utils.usage_tracker import track_usage
 
 try:
     import chromadb
@@ -66,6 +67,26 @@ elif not cohere_api_key:
     print("WARNING: COHERE_API_KEY not found.")
 else:
     co_client = cohere.Client(api_key=cohere_api_key)
+
+
+@track_usage("anthropic", "claude-sonnet-4-5")
+def call_claude_tracked(messages, system_prompt, user_id=None, session_id=None):
+    return claude_client.messages.create(
+        model="claude-sonnet-4-5",
+        max_tokens=3000,
+        system=system_prompt,
+        messages=messages,
+    )
+
+
+@track_usage("anthropic", "claude-sonnet-4-5")
+def call_claude_stream_tracked(messages, system_prompt, user_id=None, session_id=None):
+    return claude_client.messages.stream(
+        model="claude-sonnet-4-5",
+        max_tokens=3000,
+        system=system_prompt,
+        messages=messages,
+    )
 
 # ── ChromaDB ──────────────────────────────────────────────────────────────────
 
@@ -320,7 +341,7 @@ def _build_prompt(
 
 # ── Main orchestrator ─────────────────────────────────────────────────────────
 
-def ask_math_ai(question: str, history: list = None, attachment=None) -> dict:
+def ask_math_ai(question: str, history: list = None, attachment=None, user_id=None, session_id=None) -> dict:
     """Non-streaming solution with conversation history.
     
     Args:
@@ -382,13 +403,13 @@ def ask_math_ai(question: str, history: list = None, attachment=None) -> dict:
                     messages_array.append({"role": msg["role"], "content": msg["content"]})
         messages_array.append({"role": "user", "content": prompt})
         
-        response = claude_client.messages.create(
-            model="claude-sonnet-4-5",
-            max_tokens=3000,
-            system=SYSTEM_PROMPT,
-            messages=messages_array
+        response = call_claude_tracked(
+            messages=messages_array,
+            system_prompt=SYSTEM_PROMPT,
+            user_id=user_id,
+            session_id=session_id,
         )
-        final_answer = resp.content[0].text
+        final_answer = response.content[0].text if response.content else ""
 
         logger.save_request(
             prompt=question, model="claude-sonnet-4.5",
@@ -414,7 +435,7 @@ def ask_math_ai(question: str, history: list = None, attachment=None) -> dict:
         }
 
 
-def ask_math_ai_stream(question: str, history: list = None, attachment=None):
+def ask_math_ai_stream(question: str, history: list = None, attachment=None, user_id=None, session_id=None):
     """Streaming version - yields NDJSON: metadata / token / done / error.
     
     Args:
@@ -483,11 +504,11 @@ def ask_math_ai_stream(question: str, history: list = None, attachment=None):
         messages_array.append({"role": "user", "content": prompt})
 
         full_response = ""
-        with claude_client.messages.stream(
-            model="claude-sonnet-4-5",
-            max_tokens=3000,
-            system=SYSTEM_PROMPT,
-            messages=messages_array
+        with call_claude_stream_tracked(
+            messages=messages_array,
+            system_prompt=SYSTEM_PROMPT,
+            user_id=user_id,
+            session_id=session_id,
         ) as stream:
             for text in stream.text_stream:
                 full_response += text

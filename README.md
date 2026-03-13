@@ -12,7 +12,7 @@ An AI-powered math tutoring application, combining streaming responses with acad
 -  **Academic Formatting** - Structured solutions with steps, equations, and conclusions
 -  **Localized Content** - Tailored curriculum for Benin's education system
 -  **Vector Search** - Fast retrieval using Cohere embeddings and ChromaDB
--  **User Authentication** - Clerk integration for secure access
+-  **User Authentication** - Auth0 integration for secure access
 -  **Analytics** - Track learning sessions and response metrics
 -  **Production-Ready** - Deployed on Render (backend) & Vercel (frontend)
 
@@ -25,7 +25,7 @@ An AI-powered math tutoring application, combining streaming responses with acad
 │                    FRONTEND (React/Vite)                    │
 │                  https://vercel-domain.app                  │
 │  • Streaming UI with KaTeX math rendering                  │
-│  • Clerk authentication                                     │
+│  • Auth0 authentication                                     │
 │  • Real-time response display                              │
 └─────────────────────────────────────────────────────────────┘
                            ↓↑ HTTPS
@@ -54,6 +54,7 @@ An AI-powered math tutoring application, combining streaming responses with acad
 - Node.js 18+ (frontend)
 - Python 3.11.9 (backend)
 - API Keys: `ANTHROPIC_API_KEY`, `COHERE_API_KEY`, `MISTRAL_API_KEY`
+- Auth0 app + API configuration for protected admin endpoints
 
 ### Clone & Setup
 
@@ -85,9 +86,13 @@ ANTHROPIC_API_KEY=sk-ant-...
 COHERE_API_KEY=...
 MISTRAL_API_KEY=...
 
-# Clerk backend verification (required to enable auth-enforced credits)
-CLERK_API_KEY=sk_clerk_...
-CLERK_API_BASE=https://api.clerk.com/v1
+# Auth0 backend verification
+AUTH0_DOMAIN=your-tenant.auth0.com
+AUTH0_AUDIENCE=https://your-api-identifier
+
+# Access control
+ADMIN_EMAILS=admin@example.com
+WHITELIST_EMAILS=
 
 # Configuration
 VERBOSE=True
@@ -99,16 +104,54 @@ ANONYMIZED_TELEMETRY=False
 # When provided the server will migrate existing JSON files into MongoDB collections on startup.
 MONGODB_URI=mongodb://user:pass@host:27017
 MONGODB_DB=mathai
+
+# Optional: restrict CORS to your deployed frontend URLs
+ALLOWED_ORIGINS=https://your-frontend.vercel.app,https://yourdomain.com
+
+# Optional: cost alert emails
+ALERT_EMAIL=alerts@example.com
+DAILY_COST_THRESHOLD=5.00
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=alerts@example.com
+SMTP_PASSWORD=your-app-password
 ```
 
 Create `.env.local` in repo root (frontend):
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
-VITE_CLERK_PUBLISHABLE_KEY=pk_clerk_...
+VITE_AUTH0_DOMAIN=your-tenant.auth0.com
+VITE_AUTH0_CLIENT_ID=your-client-id
+VITE_AUTH0_AUDIENCE=https://your-api-identifier
 ```
 
-Note: When `CLERK_API_KEY` is set, backend endpoints for credits and conversations require a valid Clerk session token to be provided (via `Authorization: Bearer <token>` or `X-Session-Id` header). This securely maps credits to Clerk user IDs.
+Note: When `AUTH0_DOMAIN` and `AUTH0_AUDIENCE` are set, protected backend endpoints require a valid Auth0 access token via `Authorization: Bearer <token>`. Admin endpoints also require the caller email to be listed in `ADMIN_EMAILS`.
+
+### Deployment Environment Variables
+
+**Render backend**
+
+- `MONGODB_URI`
+- `ANTHROPIC_API_KEY`
+- `COHERE_API_KEY`
+- `MISTRAL_API_KEY`
+- `AUTH0_DOMAIN`
+- `AUTH0_AUDIENCE`
+- `ADMIN_EMAILS`
+- `WHITELIST_EMAILS` (optional)
+- `ALLOWED_ORIGINS`
+- `ALERT_EMAIL` / `DAILY_COST_THRESHOLD` / `SMTP_*` (optional)
+
+**Vercel frontend**
+
+- `VITE_API_BASE_URL`
+- `VITE_AUTH0_DOMAIN`
+- `VITE_AUTH0_CLIENT_ID`
+- `VITE_AUTH0_AUDIENCE`
+- `VITE_ENABLE_KATEX`
+- `VITE_ENABLE_ANALYTICS`
+- `VITE_ENABLE_TUTOR_MODE`
 
 ### Run Locally
 
@@ -162,7 +205,7 @@ math.ai/
 │   │   ├── ErrorDisplay.tsx         # Error handling
 │   │   └── MarkdownDisplay.tsx      # Math formula rendering
 │   ├── features/
-│   │   ├── auth/                    # Clerk authentication
+│   │   ├── auth/                    # Auth0 authentication
 │   │   ├── chat/                    # Chat UI components
 │   │   └── sidebar/                 # Navigation sidebar
 │   ├── services/
