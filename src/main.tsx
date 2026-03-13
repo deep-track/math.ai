@@ -85,6 +85,7 @@ const AppLoader = () => {
         authorizationParams={{
           redirect_uri: window.location.origin + '/sso-callback',
           audience: AUTH0_AUDIENCE || undefined,
+          scope: 'openid profile email offline_access',
         }}
         cacheLocation="localstorage"
         useRefreshTokens={true}
