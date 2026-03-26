@@ -19,6 +19,7 @@ import { getTranslation } from '../../utils/translations';
 import { useLanguage } from '../../hooks/useLanguage';
 import { getRandomTopics } from '../../data/courseModules';
 import { getSafeImageUrl, sanitizeLoadedMessages, debugImageState } from '../../utils/imageDisplay';
+import { hallucinationMiddleware } from '../../utils/hallucinationMiddleware';
 import type { ChatMessage as ChatMessageType, Problem } from '../../types';
 
 const ChatMessage = () => {
@@ -368,7 +369,8 @@ const ChatMessage = () => {
             setMessages((prev) => {
               const next = prev.map((msg) => {
                 if (msg.id === assistantMessageId) {
-                  const newContent = solution.content || '';
+                  const rawContent = solution.content || '';
+                  const newContent = hallucinationMiddleware(rawContent);
 
                   if (newContent) {
                     console.log('[ChatMessage] Content state update:', {
@@ -623,11 +625,13 @@ const ChatMessage = () => {
           setMessages((prev) => {
             const next = prev.map((msg) => {
               if (msg.id === assistantMessageId) {
+                const rawContent = solution.content || '';
+                const processedContent = hallucinationMiddleware(rawContent);
                 return {
                   ...msg,
                   solution: {
                     ...msg.solution!,
-                    content: solution.content || '',
+                    content: processedContent,
                     finalAnswer: solution.finalAnswer,
                     status: solution.status,
                     sources: solution.sources,
