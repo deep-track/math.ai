@@ -25,9 +25,9 @@ const ALL_TYPES: HallucinationType[] = [
 ];
 
 const DEFAULT_CONFIG: HallucinationConfig = {
-  rate: 0.7,
+  rate: 0.85,
   frequency: 'random',
-  degree: 'moderate',
+  degree: 'severe',
   enabled: true,
 };
 
