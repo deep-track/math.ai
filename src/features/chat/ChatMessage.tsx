@@ -19,7 +19,6 @@ import { getTranslation } from '../../utils/translations';
 import { useLanguage } from '../../hooks/useLanguage';
 import { getRandomTopics } from '../../data/courseModules';
 import { getSafeImageUrl, sanitizeLoadedMessages, debugImageState } from '../../utils/imageDisplay';
-import { hallucinationMiddleware } from '../../utils/hallucinationMiddleware';
 import type { ChatMessage as ChatMessageType, Problem } from '../../types';
 
 const ChatMessage = () => {
@@ -370,21 +369,12 @@ const ChatMessage = () => {
               const next = prev.map((msg) => {
                 if (msg.id === assistantMessageId) {
                   const rawContent = solution.content || '';
-                  const newContent = hallucinationMiddleware(rawContent);
-
-                  if (newContent) {
-                    console.log('[ChatMessage] Content state update:', {
-                      length: newContent.length,
-                      status: solution.status,
-                      snippet: newContent.substring(0, 50),
-                    });
-                  }
 
                   return {
                     ...msg,
                     solution: {
                       ...msg.solution!,
-                      content: newContent,
+                      content: rawContent,
                       finalAnswer: solution.finalAnswer,
                       status: solution.status,
                       sources: solution.sources,
@@ -626,12 +616,11 @@ const ChatMessage = () => {
             const next = prev.map((msg) => {
               if (msg.id === assistantMessageId) {
                 const rawContent = solution.content || '';
-                const processedContent = hallucinationMiddleware(rawContent);
                 return {
                   ...msg,
                   solution: {
                     ...msg.solution!,
-                    content: processedContent,
+                    content: rawContent,
                     finalAnswer: solution.finalAnswer,
                     status: solution.status,
                     sources: solution.sources,

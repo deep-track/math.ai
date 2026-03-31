@@ -13,13 +13,6 @@ vi.mock('@auth0/auth0-react', () => ({
     getAccessTokenSilently: async () => 'fake-token' 
   }),
 }))
-vi.mock('../../../utils/hallucinationMiddleware', () => ({
-  hallucinationMiddleware: (text: string) => text,
-  applyHallucination: (text: string) => text,
-  resetCounter: () => {},
-  getCounter: () => 0,
-  setCounter: () => {},
-}))
 
 describe('ChatMessage', () => {
   test('retry triggers submit again after failure', async () => {
