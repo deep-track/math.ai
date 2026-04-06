@@ -14,6 +14,7 @@ import sys
 import os
 import json
 import math
+import logging
 from datetime import datetime, timedelta
 from collections import Counter, defaultdict
 import re
@@ -25,6 +26,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from src.engine.orchestrator import ask_math_ai, ask_math_ai_stream
 from src.utils.process_uploads import process_uploaded_image, process_uploaded_document
 from src.utils.cost_alerts import check_daily_threshold
+
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -1190,48 +1194,56 @@ async def _reset_all_credits_async():
 # Conversations (async wrappers)
 async def _get_conversations_for_user_async(user_id: str):
     if USE_MONGO:
-        cursor = conversations_coll.find({'user_id': user_id}).sort('updatedAt', -1)
-        docs = await cursor.to_list(length=100)
-        # Convert ObjectId and non-JSON types to plain dicts
-        result = []
-        for d in docs:
-            d_copy = dict(d)
-            if '_id' in d_copy:
-                d_copy['_id'] = str(d_copy['_id'])
-            # Ensure datetimes are ISO strings
-            for ts in ('createdAt', 'updatedAt'):
-                if ts in d_copy and hasattr(d_copy[ts], 'isoformat'):
-                    try:
-                        d_copy[ts] = d_copy[ts].isoformat()
-                    except Exception:
-                        pass
-            result.append(d_copy)
-        return result
+        try:
+            cursor = conversations_coll.find({'user_id': user_id}).sort('updatedAt', -1)
+            docs = await cursor.to_list(length=100)
+            # Convert ObjectId and non-JSON types to plain dicts
+            result = []
+            for d in docs:
+                d_copy = dict(d)
+                if '_id' in d_copy:
+                    d_copy['_id'] = str(d_copy['_id'])
+                # Ensure datetimes are ISO strings
+                for ts in ('createdAt', 'updatedAt'):
+                    if ts in d_copy and hasattr(d_copy[ts], 'isoformat'):
+                        try:
+                            d_copy[ts] = d_copy[ts].isoformat()
+                        except Exception:
+                            pass
+                result.append(d_copy)
+            return result
+        except Exception as e:
+            logger.error(f"MongoDB conversation fetch failed: {str(e)}. Falling back to file storage.")
+            # Fall through to file-based storage
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, _get_conversations_for_user, user_id)
 
 
 async def _save_conversations_for_user_async(user_id: str, conversations: list):
     if USE_MONGO:
-        # Update each conversation using upsert to avoid duplicate key errors
-        # This prevents E11000 errors when updating existing conversations
-        if conversations:
-            for c in conversations:
-                c_copy = dict(c)
-                # Remove any pre-existing Mongo _id to avoid duplicate key insert errors
-                c_copy.pop('_id', None)
-                c_copy['user_id'] = user_id
-                # Use update_one with upsert=True to update if exists, insert if new
-                # This prevents duplicate key errors when conversation already exists
-                await conversations_coll.update_one(
-                    {'user_id': user_id, 'id': c_copy.get('id')},  # Match by user_id and conversation id
-                    {'$set': c_copy},  # Update all fields
-                    upsert=True  # Insert if doesn't exist
-                )
-        else:
-            # If no conversations, clear them for this user
-            await conversations_coll.delete_many({'user_id': user_id})
-        return
+        try:
+            # Update each conversation using upsert to avoid duplicate key errors
+            # This prevents E11000 errors when updating existing conversations
+            if conversations:
+                for c in conversations:
+                    c_copy = dict(c)
+                    # Remove any pre-existing Mongo _id to avoid duplicate key insert errors
+                    c_copy.pop('_id', None)
+                    c_copy['user_id'] = user_id
+                    # Use update_one with upsert=True to update if exists, insert if new
+                    # This prevents duplicate key errors when conversation already exists
+                    await conversations_coll.update_one(
+                        {'user_id': user_id, 'id': c_copy.get('id')},  # Match by user_id and conversation id
+                        {'$set': c_copy},  # Update all fields
+                        upsert=True  # Insert if doesn't exist
+                    )
+            else:
+                # If no conversations, clear them for this user
+                await conversations_coll.delete_many({'user_id': user_id})
+            return
+        except Exception as e:
+            logger.error(f"MongoDB conversation save failed: {str(e)}. Falling back to file storage.")
+            # Fall through to file-based storage
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, _save_conversations_for_user, user_id, conversations)
 
@@ -1771,47 +1783,57 @@ async def get_usage_analytics(
             "daily_trend": [],
         }
 
-    days = max(1, min(days, 365))
-    cutoff_date = datetime.utcnow() - timedelta(days=days)
+    try:
+        days = max(1, min(days, 365))
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
 
-    provider_breakdown = list(usage_logs_coll_sync.aggregate([
-        {"$match": {"timestamp": {"$gte": cutoff_date}}},
-        {
-            "$group": {
-                "_id": "$provider",
-                "total_cost": {"$sum": "$cost_usd"},
-                "total_calls": {"$sum": 1},
-                "total_tokens": {"$sum": "$total_tokens"},
-            }
-        },
-        {"$sort": {"total_cost": -1}},
-    ]))
+        provider_breakdown = list(usage_logs_coll_sync.aggregate([
+            {"$match": {"timestamp": {"$gte": cutoff_date}}},
+            {
+                "$group": {
+                    "_id": "$provider",
+                    "total_cost": {"$sum": "$cost_usd"},
+                    "total_calls": {"$sum": 1},
+                    "total_tokens": {"$sum": "$total_tokens"},
+                }
+            },
+            {"$sort": {"total_cost": -1}},
+        ]))
 
-    daily_spend = list(usage_logs_coll_sync.aggregate([
-        {"$match": {"timestamp": {"$gte": cutoff_date}}},
-        {
-            "$group": {
-                "_id": {
-                    "$dateToString": {
-                        "format": "%Y-%m-%d",
-                        "date": "$timestamp",
-                    }
-                },
-                "cost": {"$sum": "$cost_usd"},
-                "calls": {"$sum": 1},
-            }
-        },
-        {"$sort": {"_id": 1}},
-    ]))
+        daily_spend = list(usage_logs_coll_sync.aggregate([
+            {"$match": {"timestamp": {"$gte": cutoff_date}}},
+            {
+                "$group": {
+                    "_id": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$timestamp",
+                        }
+                    },
+                    "cost": {"$sum": "$cost_usd"},
+                    "calls": {"$sum": 1},
+                }
+            },
+            {"$sort": {"_id": 1}},
+        ]))
 
-    total_cost = round(sum(float(item.get("total_cost", 0)) for item in provider_breakdown), 4)
+        total_cost = round(sum(float(item.get("total_cost", 0)) for item in provider_breakdown), 4)
 
-    return {
-        "period_days": days,
-        "total_cost_usd": total_cost,
-        "providers": provider_breakdown,
-        "daily_trend": daily_spend,
-    }
+        return {
+            "period_days": days,
+            "total_cost_usd": total_cost,
+            "providers": provider_breakdown,
+            "daily_trend": daily_spend,
+        }
+    except Exception as e:
+        logger.error(f"Analytics usage error: {str(e)}")
+        # Return empty analytics if MongoDB is still initializing
+        return {
+            "period_days": days,
+            "total_cost_usd": 0.0,
+            "providers": [],
+            "daily_trend": [],
+        }
 
 
 @api_router.post("/analytics/infrastructure")
@@ -1919,12 +1941,20 @@ async def api_get_credits(user_id: str, request: Request):
                     raise HTTPException(status_code=401, detail='Invalid Clerk session')
                 if user_id_verified != user_id:
                     raise HTTPException(status_code=403, detail='User ID does not match session')
-            rec = await _get_credits_record_async(user_id_verified)
-            return {"user_id": user_id_verified, "remaining": rec["remaining"], "lastReset": rec["lastReset"]}
+            try:
+                rec = await _get_credits_record_async(user_id_verified)
+                return {"user_id": user_id_verified, "remaining": rec["remaining"], "lastReset": rec["lastReset"]}
+            except Exception as e:
+                logger.error(f"[CREDITS] MongoDB fetch failed for {user_id_verified}: {str(e)}. Using default credits.")
+                return {"user_id": user_id_verified, "remaining": DEFAULT_CREDITS, "lastReset": _benin_today_iso()}
 
         # No session header -> guest or server-side lookup
-        rec = await _get_credits_record_async(user_id)
-        return {"user_id": user_id, "remaining": rec["remaining"], "lastReset": rec["lastReset"]}
+        try:
+            rec = await _get_credits_record_async(user_id)
+            return {"user_id": user_id, "remaining": rec["remaining"], "lastReset": rec["lastReset"]}
+        except Exception as e:
+            logger.error(f"[CREDITS] MongoDB fetch failed for {user_id}: {str(e)}. Using default credits.")
+            return {"user_id": user_id, "remaining": DEFAULT_CREDITS, "lastReset": _benin_today_iso()}
     except Exception as e:
         print(f"[CREDITS] Error fetching credits for {user_id}: {e}")
         # Fallback: return default credits
