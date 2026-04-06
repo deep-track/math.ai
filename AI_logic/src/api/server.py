@@ -309,6 +309,25 @@ async def ask_endpoint(
 
         user_id = user_id or "guest"
         session_id = session_id or request.headers.get("x-session-id") or request.headers.get("authorization")
+        
+        # Check and spend 1 credit for this request
+        if user_id != "guest":
+            try:
+                # Get current credits
+                credits_rec = await _get_credits_record_async(user_id)
+                if credits_rec["remaining"] <= 0:
+                    raise HTTPException(status_code=402, detail="Insufficient credits. Please purchase more credits to continue.")
+                
+                # Spend 1 credit
+                spent_rec = await _spend_credit_record_async(user_id)
+                if spent_rec is None:
+                    raise HTTPException(status_code=402, detail="Insufficient credits. Please purchase more credits to continue.")
+                print(f"[CREDITS] Spent 1 credit for {user_id}, remaining: {spent_rec['remaining']}")
+            except HTTPException:
+                raise
+            except Exception as e:
+                print(f"[CREDITS] Warning - could not spend credit: {e}. Continuing anyway.")
+        
         started_at = datetime.utcnow()
         attachment = None
         image_payload = None
@@ -523,6 +542,18 @@ async def ask_stream_endpoint(http_req: Request):
         if attachment.get("document_text"):
             attachment_info.append(f"document ({len(attachment['document_text'])} chars)")
         print(f"[STREAM] {request_id} With attachment: {', '.join(attachment_info)}")
+
+    # Check and validate credits BEFORE starting the stream
+    if user_id_from_request != "guest":
+        try:
+            credits_rec = asyncio.run(_get_credits_record_async(user_id_from_request))
+            if credits_rec["remaining"] <= 0:
+                raise HTTPException(status_code=402, detail="Insufficient credits. Please purchase more credits to continue.")
+            print(f"[CREDITS] {request_id} User {user_id_from_request} has {credits_rec['remaining']} credits")
+        except HTTPException:
+            raise
+        except Exception as e:
+            print(f"[CREDITS] {request_id} Warning - could not check credits: {e}. Allowing request to proceed.")
 
     def generate():  
         chunk_count = 0
