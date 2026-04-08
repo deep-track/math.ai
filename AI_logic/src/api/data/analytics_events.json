@@ -331,5 +331,15 @@
     "user_id": "google-oauth2|101085822177912325994",
     "topic": null,
     "id": "ev-fbb015bf5448"
+  },
+  {
+    "event_type": "problem_submitted",
+    "solution_id": "solution-1775666887724",
+    "response_time": 30713,
+    "timestamp": "2026-04-08T16:48:07.724000",
+    "user_id": "google-oauth2|103310654798679776206",
+    "topic": null,
+    "id": "ev-71b1254e7e26",
+    "_id": "69d686d72545c0ba3a7b7175"
   }
 ]

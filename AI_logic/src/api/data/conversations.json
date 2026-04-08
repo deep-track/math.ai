@@ -198,5 +198,41 @@
         }
       ]
     }
+  ],
+  "google-oauth2|103310654798679776206": [
+    {
+      "id": "conv-1775656052024",
+      "title": "Expliquez Lentilles et dioptres",
+      "createdAt": "2026-04-08T16:47:32.024294",
+      "updatedAt": "2026-04-08T16:48:03.470478",
+      "messages": [
+        {
+          "id": "msg-1775666857115",
+          "type": "user",
+          "problem": {
+            "id": "1775666857115",
+            "content": "Expliquez Lentilles et dioptres",
+            "submittedAt": 1775666857115
+          },
+          "timestamp": 1775666857115
+        },
+        {
+          "id": "msg-1775666857115-solution",
+          "type": "assistant",
+          "solution": {
+            "id": "solution-1775666857115",
+            "steps": [],
+            "finalAnswer": "Voir explication ci-dessus",
+            "confidence": 95,
+            "confidenceLevel": "high",
+            "status": "ok",
+            "timestamp": 1775666857115,
+            "content": "# Lentilles et Dioptres\n\n## Dioptre\nUn **dioptre** est une surface s\u00e9parant deux milieux transparents d'indices de r\u00e9fraction diff\u00e9rents ($n_1$ et $n_2$). Il provoque la **r\u00e9fraction** de la lumi\u00e8re selon la loi de Snell-Descartes :\n\n$$n_1 \\sin(i_1) = n_2 \\sin(i_2)$$\n\n**Types** : dioptre plan (surface plate) et dioptre sph\u00e9rique (surface courbe).\n\n## Lentille\nUne **lentille** est un syst\u00e8me optique form\u00e9 de **deux dioptres** (g\u00e9n\u00e9ralement sph\u00e9riques). Elle fait converger ou diverger la lumi\u00e8re.\n\n**Types** :\n- **Convergente** (bords minces) : concentre les rayons \u2192 image r\u00e9elle\n- **Divergente** (bords \u00e9pais) : \u00e9carte les rayons \u2192 image virtuelle\n\n**Formule des lentilles minces** (relation de conjugaison) :\n\n$$\\frac{1}{f'} = \\frac{1}{\\overline{OA'}} - \\frac{1}{\\overline{OA}}$$\n\no\u00f9 $f'$ = distance focale, $A$ = objet, $A'$ = image, $O$ = centre optique.\n\n**Puissance** : $P = \\frac{1}{f'}$ (en dioptries, m\u207b\u00b9)\n\n**Application** : lunettes, microscopes, appareils photo.",
+            "sources": []
+          },
+          "timestamp": 1775666857115
+        }
+      ]
+    }
   ]
 }

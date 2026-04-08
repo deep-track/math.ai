@@ -478,5 +478,22 @@
     "error_flags": [],
     "source": "ask-stream",
     "id": "ix-7e2f96a6140d"
+  },
+  {
+    "user_id": "google-oauth2|103310654798679776206",
+    "timestamp": "2026-04-08T16:47:57.556901",
+    "student_question": "Expliquez Lentilles et dioptres",
+    "retrieved_documents": [],
+    "retrieved_similarity_scores": [],
+    "model_answer": "Voir explication ci-dessus",
+    "response_latency_ms": 20424,
+    "topic": "General Math",
+    "question_type": "computation",
+    "difficulty": "easy",
+    "correctness_flag": null,
+    "error_flags": [],
+    "source": "ask-stream",
+    "id": "ix-a8b8afbb6fbf",
+    "_id": "69d686bd2545c0ba3a7b7174"
   }
 ]

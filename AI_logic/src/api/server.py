@@ -546,7 +546,7 @@ async def ask_stream_endpoint(http_req: Request):
     # Check and validate credits BEFORE starting the stream
     if user_id_from_request != "guest":
         try:
-            credits_rec = asyncio.run(_get_credits_record_async(user_id_from_request))
+            credits_rec = await _get_credits_record_async(user_id_from_request)
             if credits_rec["remaining"] <= 0:
                 raise HTTPException(status_code=402, detail="Insufficient credits. Please purchase more credits to continue.")
             print(f"[CREDITS] {request_id} User {user_id_from_request} has {credits_rec['remaining']} credits")
@@ -627,16 +627,18 @@ async def ask_stream_endpoint(http_req: Request):
                 except json.JSONDecodeError:
                     continue
             
-            # If a session header was provided, attempt to charge the user's credits on the server side
+            # Attempt to charge the user's credits on the server side.
+            # In local/dev flows a token may be temporarily unavailable; in that case,
+            # fall back to the request user id so credits still decrement.
             try:
                 session_header = http_req.headers.get('x-session-id') or http_req.headers.get('authorization')
+                user_id_verified = None
                 if session_header:
                     if session_header.lower().startswith('bearer '):
                         session_token = session_header.split(' ', 1)[1]
                     else:
                         session_token = session_header
 
-                    # Determine verified user id (respect dev bypass)
                     if DEV_SKIP_CLERK_VERIFY:
                         user_id_verified = user_id_from_request
                     else:
@@ -645,30 +647,35 @@ async def ask_stream_endpoint(http_req: Request):
                         else:
                             user_id_verified = user_id_from_request
 
-                    if user_id_verified:
-                        print(f"[CREDITS] {request_id} Attempting server-side charge for user: {user_id_verified}")
-                        rec = None
-                        if USE_MONGO:
-                            # Run async decrement in a dedicated loop for this sync generator
-                            loop = asyncio.new_event_loop()
-                            try:
-                                rec = loop.run_until_complete(_spend_credit_record_async(user_id_verified))
-                            finally:
-                                try:
-                                    loop.close()
-                                except Exception:
-                                    pass
-                        else:
-                            rec = spend_credit_record(user_id_verified)
+                charge_user_id = user_id_verified or (user_id_from_request if user_id_from_request != "guest" else None)
 
-                        if rec is None:
-                            # Inform client that there were no credits
-                            yield f"data: {json.dumps({'error': 'No credits remaining'})}\n\n"
-                            print(f"[CREDITS] {request_id} No credits remaining for user: {user_id_verified}")
-                        else:
-                            # Inform client of remaining credits so UI can be updated
-                            yield f"data: {json.dumps({'charged': True, 'remaining': rec['remaining']})}\n\n"
-                            print(f"[CREDITS] {request_id} Charged user {user_id_verified}, remaining={rec['remaining']}")
+                if charge_user_id:
+                    if not user_id_verified and session_header:
+                        print(f"[CREDITS] {request_id} Token verification unavailable; falling back to request user id for charge: {charge_user_id}")
+
+                    print(f"[CREDITS] {request_id} Attempting server-side charge for user: {charge_user_id}")
+                    rec = None
+                    if USE_MONGO:
+                        # Run async decrement in a dedicated loop for this sync generator
+                        loop = asyncio.new_event_loop()
+                        try:
+                            rec = loop.run_until_complete(_spend_credit_record_async(charge_user_id))
+                        finally:
+                            try:
+                                loop.close()
+                            except Exception:
+                                pass
+                    else:
+                        rec = spend_credit_record(charge_user_id)
+
+                    if rec is None:
+                        # Inform client that there were no credits
+                        yield f"data: {json.dumps({'error': 'No credits remaining'})}\n\n"
+                        print(f"[CREDITS] {request_id} No credits remaining for user: {charge_user_id}")
+                    else:
+                        # Inform client of remaining credits so UI can be updated
+                        yield f"data: {json.dumps({'charged': True, 'remaining': rec['remaining']})}\n\n"
+                        print(f"[CREDITS] {request_id} Charged user {charge_user_id}, remaining={rec['remaining']}")
             except Exception as e:
                 print(f"[CREDITS] {request_id} Server-side charge failed: {e}")
 
@@ -1185,14 +1192,17 @@ import asyncio
 async def _get_credits_record_async(user_id: str):
     today = _benin_today_iso()
 
-    if USE_MONGO:
-        # Upsert default if missing or stale
-        doc = await credits_coll.find_one({'user_id': user_id})
-        if not doc or doc.get('lastReset') < today:
-            rec = {'user_id': user_id, 'remaining': DEFAULT_CREDITS, 'lastReset': today}
-            await credits_coll.update_one({'user_id': user_id}, {'$set': rec}, upsert=True)
-            return rec
-        return doc
+    if USE_MONGO and credits_coll is not None:
+        try:
+            # Upsert default if missing or stale
+            doc = await credits_coll.find_one({'user_id': user_id})
+            if not doc or doc.get('lastReset') < today:
+                rec = {'user_id': user_id, 'remaining': DEFAULT_CREDITS, 'lastReset': today}
+                await credits_coll.update_one({'user_id': user_id}, {'$set': rec}, upsert=True)
+                return rec
+            return doc
+        except Exception as e:
+            print(f"[CREDITS] Mongo read failed for {user_id}, falling back to file storage: {e}")
 
     # Fallback to file-based (run in thread pool)
     loop = asyncio.get_running_loop()
@@ -1200,14 +1210,17 @@ async def _get_credits_record_async(user_id: str):
 
 
 async def _spend_credit_record_async(user_id: str):
-    if USE_MONGO:
-        # Atomic decrement if remaining > 0
-        doc = await credits_coll.find_one_and_update(
-            {'user_id': user_id, 'remaining': {'$gt': 0}},
-            {'$inc': {'remaining': -1}},
-            return_document=ReturnDocument.AFTER
-        )
-        return doc
+    if USE_MONGO and credits_coll is not None:
+        try:
+            # Atomic decrement if remaining > 0
+            doc = await credits_coll.find_one_and_update(
+                {'user_id': user_id, 'remaining': {'$gt': 0}},
+                {'$inc': {'remaining': -1}},
+                return_document=ReturnDocument.AFTER
+            )
+            return doc
+        except Exception as e:
+            print(f"[CREDITS] Mongo spend failed for {user_id}, falling back to file storage: {e}")
 
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, spend_credit_record, user_id)
@@ -1227,7 +1240,7 @@ async def _get_conversations_for_user_async(user_id: str):
     if USE_MONGO:
         try:
             cursor = conversations_coll.find({'user_id': user_id}).sort('updatedAt', -1)
-            docs = await cursor.to_list(length=100)
+            docs = await cursor.to_list(length=5000)
             # Convert ObjectId and non-JSON types to plain dicts
             result = []
             for d in docs:
@@ -1986,6 +1999,8 @@ async def api_get_credits(user_id: str, request: Request):
         except Exception as e:
             logger.error(f"[CREDITS] MongoDB fetch failed for {user_id}: {str(e)}. Using default credits.")
             return {"user_id": user_id, "remaining": DEFAULT_CREDITS, "lastReset": _benin_today_iso()}
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"[CREDITS] Error fetching credits for {user_id}: {e}")
         # Fallback: return default credits
